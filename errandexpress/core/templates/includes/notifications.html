@@ -1,5 +1,5 @@
 <!-- Professional Toast Notification System -->
-<div id="notification-container" class="fixed top-24 right-6 z-[60] space-y-4 max-w-md"></div>
+<div id="notification-container" class="fixed bottom-6 left-6 z-[60] space-y-4 max-w-md"></div>
 
 <style>
 /* Professional Notification Styles */
@@ -11,7 +11,7 @@
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    transform: translateX(500px);
+    transform: translateX(-500px) translateY(20px);
     opacity: 0;
     transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     border-left: 6px solid;
@@ -23,12 +23,12 @@
 }
 
 .notification.show {
-    transform: translateX(0);
+    transform: translateX(0) translateY(0);
     opacity: 1;
 }
 
 .notification.hide {
-    transform: translateX(550px);
+    transform: translateX(-550px) translateY(20px);
     opacity: 0;
 }
 
@@ -197,16 +197,54 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 640px) {
-    .notification {
-        max-width: calc(100vw - 32px);
-        margin: 0 16px;
+@media (max-width: 768px) {
+    #notification-container {
+        bottom: 80px;
+        left: 12px;
+        right: 12px;
+        max-width: calc(100vw - 24px);
     }
     
+    .notification {
+        max-width: 100%;
+        min-height: 70px;
+        padding: 16px 20px;
+    }
+    
+    .notification-title {
+        font-size: 15px;
+    }
+    
+    .notification-message {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
     #notification-container {
-        right: 0;
-        left: 0;
-        padding: 0 16px;
+        bottom: 70px;
+        left: 8px;
+        right: 8px;
+    }
+    
+    .notification {
+        max-width: 100%;
+        padding: 14px 16px;
+        gap: 12px;
+    }
+    
+    .notification-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .notification-title {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    
+    .notification-message {
+        font-size: 12px;
     }
 }
 

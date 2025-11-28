@@ -1,386 +1,256 @@
-{% extends 'base.html' %}
+{% extends 'base_complete.html' %}
 
 {% block title %}Rate User - ErrandExpress{% endblock %}
 
 {% block content %}
-<div class="rating-container">
-    <div class="rating-header">
-        <h1>⭐ Rate User</h1>
-        <p>Share your experience working with {{ rated_user.fullname }}</p>
+<div class="min-h-screen bg-bg pb-20">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-amber-600 to-orange-600 text-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="star" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold">Rate User</h1>
+                    <p class="text-amber-100 mt-1">Share your experience</p>
+                </div>
+            </div>
+            <a href="{% url 'task_detail' task.id %}" class="inline-flex items-center gap-2 text-amber-100 hover:text-white transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Task
+            </a>
+        </div>
     </div>
-    
-    <div class="rating-content">
-        <!-- Task Info -->
-        <div class="task-info-card">
-            <h3>Task: {{ task.title }}</h3>
-            <div class="task-details">
-                <span class="category">{{ task.get_category_display }}</span>
-                <span class="price">₱{{ task.price }}</span>
-                <span class="status">{{ task.get_status_display }}</span>
-            </div>
-            <p class="task-description">{{ task.description|truncatewords:25 }}</p>
-        </div>
-        
-        <!-- User Info -->
-        <div class="user-info-card">
-            <div class="user-profile">
-                <div class="user-avatar">
-                    {% if rated_user.profile_picture %}
-                        <img src="{{ rated_user.profile_picture.url }}" alt="{{ rated_user.fullname }}">
-                    {% else %}
-                        <div class="avatar-placeholder">{{ rated_user.fullname|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="user-details">
-                    <h3>{{ rated_user.fullname }}</h3>
-                    <div class="user-role">
-                        {% if rated_user.role == 'task_poster' %}
-                            👨‍🏫 Task Poster
-                        {% elif rated_user.role == 'task_doer' %}
-                            👨‍🎓 Task Doer
-                            {% if rated_user.doer_type %}
-                                <small>({{ rated_user.get_doer_type_display }})</small>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                    <div class="current-rating">
-                        Current Rating: ⭐ {{ rated_user.avg_rating }}/10 
-                        <small>({{ rated_user.total_ratings }} reviews)</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Rating Form -->
-        <div class="rating-form-card">
-            <h3>Your Rating</h3>
-            
-            <form method="post" class="rating-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="{{ form.score.id_for_label }}">Rating Score *</label>
-                    <div class="rating-input">
-                        {{ form.score }}
-                        <div class="rating-scale">
-                            <div class="scale-labels">
-                                <span>1 - Poor</span>
-                                <span>5 - Average</span>
-                                <span>10 - Excellent</span>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Task Info Card -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-5 h-5 text-blue-600"></i>
+                        Task Details
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-sm text-gray-600">Title</p>
+                            <p class="font-semibold text-gray-900">{{ task.title }}</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600">Category</p>
+                                <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">{{ task.get_category_display }}</span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Price</p>
+                                <p class="font-semibold text-green-600">₱{{ task.price }}</p>
                             </div>
                         </div>
                     </div>
-                    {% if form.score.errors %}
-                        <div class="text-danger">{{ form.score.errors.0 }}</div>
+                </div>
+
+                <!-- Rating Form Card -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm border {% if already_rated %}border-green-200{% else %}border-gray-100{% endif %}">
+                    <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                        {% if already_rated %}
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                            Your Rating (Submitted)
+                        {% else %}
+                            <i data-lucide="edit-3" class="w-5 h-5 text-amber-600"></i>
+                            Your Rating
+                        {% endif %}
+                    </h3>
+                    
+                    {% if already_rated %}
+                        <!-- Already Rated Message -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                            <div class="flex gap-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="font-semibold text-green-900">Rating Already Submitted</p>
+                                    <p class="text-sm text-green-800 mt-1">You have already rated {{ rated_user.fullname }} for this task. Each user can only be rated once per task.</p>
+                                    <div class="mt-4 p-4 bg-white rounded border border-green-200">
+                                        <p class="text-sm text-gray-600">Your Rating:</p>
+                                        <p class="text-2xl font-bold text-amber-600 mt-1">{{ existing_rating.score }}/10 ⭐</p>
+                                        {% if existing_rating.feedback %}
+                                            <p class="text-sm text-gray-700 mt-3 italic">{{ existing_rating.feedback }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Back Button Only -->
+                        <div class="flex gap-3">
+                            <a href="{% url 'task_detail' task.id %}" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                Back to Task
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Rating Form -->
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <!-- Rating Score -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-800 mb-3">
+                                    Rating Score <span class="text-red-600">*</span>
+                                </label>
+                                <div class="space-y-2">
+                                    {{ form.score }}
+                                    <div class="flex justify-between text-xs text-gray-600 px-1">
+                                        <span>1 - Poor</span>
+                                        <span>5 - Average</span>
+                                        <span>10 - Excellent</span>
+                                    </div>
+                                </div>
+                                {% if form.score.errors %}
+                                    <p class="text-sm text-red-600 mt-2">{{ form.score.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Feedback -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-800 mb-3">
+                                    Your Feedback
+                                </label>
+                                {{ form.feedback }}
+                                <p class="text-xs text-gray-600 mt-2">Share details about your experience to help others make informed decisions</p>
+                                {% if form.feedback.errors %}
+                                    <p class="text-sm text-red-600 mt-2">{{ form.feedback.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="flex gap-3 pt-4">
+                                <button type="submit" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <i data-lucide="check" class="w-5 h-5"></i>
+                                    Submit Rating
+                                </button>
+                                <a href="{% url 'task_detail' task.id %}" class="flex-1 bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-bold hover:bg-gray-300 transition-all flex items-center justify-center gap-2">
+                                    <i data-lucide="x" class="w-5 h-5"></i>
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
                     {% endif %}
                 </div>
-                
-                <div class="form-group">
-                    <label for="{{ form.feedback.id_for_label }}">Feedback</label>
-                    {{ form.feedback }}
-                    <small class="form-text">
-                        Share details about your experience. This will help other users make informed decisions.
-                    </small>
-                    {% if form.feedback.errors %}
-                        <div class="text-danger">{{ form.feedback.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="rating-guidelines">
-                    <h4>Rating Guidelines</h4>
-                    <div class="guidelines-grid">
-                        <div class="guideline">
-                            <strong>Communication</strong>
-                            <p>Was the user responsive and clear in communication?</p>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- User Card -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 sticky top-24">
+                    <h3 class="text-lg font-bold mb-6">Rating</h3>
+                    
+                    <div class="flex flex-col items-center text-center mb-6">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mb-4">
+                            <span class="text-white font-bold text-2xl">{{ rated_user.fullname|first|upper }}</span>
                         </div>
-                        <div class="guideline">
-                            <strong>Quality</strong>
-                            <p>Did they deliver quality work or provide clear requirements?</p>
-                        </div>
-                        <div class="guideline">
-                            <strong>Timeliness</strong>
-                            <p>Did they meet deadlines and respond promptly?</p>
-                        </div>
-                        <div class="guideline">
-                            <strong>Professionalism</strong>
-                            <p>Were they professional and respectful throughout?</p>
+                        <p class="font-bold text-lg text-gray-900">{{ rated_user.fullname }}</p>
+                        <p class="text-sm text-gray-600 mt-1">
+                            {% if rated_user.role == 'task_poster' %}
+                                Task Poster
+                            {% else %}
+                                Task Doer
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 pb-6 border-b border-gray-200">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">Current Rating</p>
+                            <p class="text-2xl font-bold text-amber-600">{{ rated_user.avg_rating|default:"N/A" }} ⭐</p>
+                            <p class="text-xs text-gray-600 mt-1">({{ rated_user.total_ratings }} review{{ rated_user.total_ratings|pluralize }})</p>
                         </div>
                     </div>
+
+                    <div class="mt-6 space-y-2 text-sm text-gray-700">
+                        <p class="font-semibold text-gray-900">Rating Guidelines:</p>
+                        <ul class="space-y-2 text-xs">
+                            <li class="flex gap-2">
+                                <span class="text-amber-600">•</span>
+                                <span><strong>Communication:</strong> Responsive & clear?</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="text-amber-600">•</span>
+                                <span><strong>Quality:</strong> Good work/requirements?</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="text-amber-600">•</span>
+                                <span><strong>Timeliness:</strong> Met deadlines?</span>
+                            </li>
+                            <li class="flex gap-2">
+                                <span class="text-amber-600">•</span>
+                                <span><strong>Professionalism:</strong> Professional & respectful?</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        ⭐ Submit Rating
-                    </button>
-                    <a href="{% url 'task_detail' task.id %}" class="btn btn-secondary">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </div>
-        
-        <!-- Rating Impact -->
-        <div class="rating-impact-card">
-            <h4>💡 Why Your Rating Matters</h4>
-            <ul>
-                <li>Helps build trust in the ErrandExpress community</li>
-                <li>Guides other users in choosing reliable partners</li>
-                <li>Encourages high-quality service and professionalism</li>
-                <li>Contributes to a safer and better platform for everyone</li>
-            </ul>
-            <p><small>Ratings are permanent and cannot be changed once submitted. Please rate fairly and honestly.</small></p>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-.rating-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-.rating-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.rating-header h1 {
-    color: #333;
-    margin-bottom: 0.5rem;
-}
-
-.rating-header p {
-    color: #666;
-    font-size: 1.1rem;
-}
-
-.rating-content {
-    display: grid;
-    gap: 2rem;
-}
-
-.task-info-card,
-.user-info-card,
-.rating-form-card,
-.rating-impact-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.task-info-card h3,
-.user-info-card h3,
-.rating-form-card h3 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    border-bottom: 2px solid #667eea;
-    padding-bottom: 0.5rem;
-}
-
-.task-details {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.category {
-    background: #667eea;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.875rem;
-}
-
-.price {
-    color: #28a745;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.status {
-    background: #28a745;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.875rem;
-}
-
-.task-description {
-    color: #666;
-    line-height: 1.5;
-}
-
-.user-profile {
-    display: flex;
-    gap: 1.5rem;
-    align-items: start;
-}
-
-.user-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #667eea;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: 600;
-}
-
-.user-details h3 {
-    margin: 0 0 0.5rem 0;
-    border: none;
-    padding: 0;
-}
-
-.user-role {
-    color: #666;
-    margin-bottom: 0.5rem;
-}
-
-.current-rating {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.rating-input {
-    margin-bottom: 1rem;
-}
-
-.rating-scale {
-    margin-top: 0.5rem;
-}
-
-.scale-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.form-text {
-    color: #666;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-}
-
-.text-danger {
-    color: #dc3545;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-}
-
-.rating-guidelines {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-}
-
-.rating-guidelines h4 {
-    margin-bottom: 1rem;
-    color: #333;
-}
-
-.guidelines-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-}
-
-.guideline {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    border-left: 4px solid #667eea;
-}
-
-.guideline strong {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #333;
-}
-
-.guideline p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-.rating-impact-card {
-    background: #e3f2fd;
-    border: 1px solid #bbdefb;
-}
-
-.rating-impact-card h4 {
-    margin-bottom: 1rem;
-    color: #1565c0;
-}
-
-.rating-impact-card ul {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-}
-
-.rating-impact-card li {
-    margin-bottom: 0.5rem;
-    color: #1976d2;
-}
-
-.rating-impact-card p {
-    margin: 0;
-    color: #1565c0;
-    font-style: italic;
-}
-
-@media (max-width: 768px) {
-    .user-profile {
-        flex-direction: column;
-        text-align: center;
+    /* Form input styling */
+    input[type="range"] {
+        width: 100%;
+        height: 8px;
+        border-radius: 5px;
+        background: #e5e7eb;
+        outline: none;
+        -webkit-appearance: none;
     }
     
-    .task-details {
-        justify-content: center;
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
     }
     
-    .guidelines-grid {
-        grid-template-columns: 1fr;
+    input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
     }
     
-    .form-actions {
-        flex-direction: column;
+    textarea {
+        width: 100%;
+        padding: 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-family: inherit;
+        font-size: 1rem;
+        resize: vertical;
+        min-height: 120px;
+        transition: border-color 0.15s ease;
     }
     
-    .scale-labels {
-        flex-direction: column;
-        gap: 0.25rem;
-        text-align: center;
+    textarea:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-}
 </style>
+
+{% block extra_scripts %}
+<script>
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
 {% endblock %}

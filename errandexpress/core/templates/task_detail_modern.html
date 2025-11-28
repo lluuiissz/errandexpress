@@ -111,6 +111,11 @@
                     <!-- Poster Actions -->
                     <div class="space-y-3">
                         {% if task.status == 'open' %}
+                        <a href="{% url 'view_applications' task.id %}" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                            View Applications
+                        </a>
+                        
                         <a href="{% url 'edit_task' task.id %}" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
                             <i data-lucide="edit" class="w-5 h-5"></i>
                             Edit Task
@@ -125,20 +130,57 @@
                         {% endif %}
                         
                         {% if task.status == 'completed' %}
-                        <button class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
-                            <i data-lucide="star" class="w-5 h-5"></i>
-                            Rate Task Doer
-                        </button>
+                            {% if already_rated_doer %}
+                            <button disabled class="w-full bg-gray-400 text-white px-6 py-4 rounded-lg font-bold cursor-not-allowed flex items-center justify-center gap-2 text-lg" title="You have already rated this user">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                Already Rated
+                            </button>
+                            {% else %}
+                            <button class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="rateUser('{{ task.id }}', '{{ task.doer.id }}')">
+                                <i data-lucide="star" class="w-5 h-5"></i>
+                                Rate Task Doer
+                            </button>
+                            {% endif %}
                         {% endif %}
                     </div>
                 {% else %}
                     <!-- Doer Actions -->
                     <div class="space-y-3">
                         {% if task.status == 'open' and not task.doer %}
-                        <button class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="applyForTask('{{ task.id }}')">
-                            <i data-lucide="send" class="w-5 h-5"></i>
-                            Apply for Task
-                        </button>
+                            {% if doer_application_status == 'pending' %}
+                            <!-- Waiting for Poster Decision -->
+                            <div class="w-full bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-400 text-yellow-900 px-6 py-4 rounded-lg font-bold flex items-center justify-center gap-2 text-lg">
+                                <i data-lucide="clock" class="w-5 h-5 animate-spin"></i>
+                                Waiting for Review
+                            </div>
+                            <p class="text-sm text-center text-muted">Your application is pending. The task poster is reviewing applicants.</p>
+                            
+                            {% elif doer_application_status == 'accepted' %}
+                            <!-- Application Accepted -->
+                            <div class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-lg font-bold flex items-center justify-center gap-2 text-lg">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                Application Accepted! ✅
+                            </div>
+                            <p class="text-sm text-center text-muted">You've been chosen! You can now start working on this task.</p>
+                            
+                            {% elif doer_application_status == 'rejected' %}
+                            <!-- Application Rejected -->
+                            <div class="w-full bg-gradient-to-r from-red-100 to-pink-100 border-2 border-red-400 text-red-900 px-6 py-4 rounded-lg font-bold flex items-center justify-center gap-2 text-lg">
+                                <i data-lucide="x-circle" class="w-5 h-5"></i>
+                                Application Rejected
+                            </div>
+                            <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="applyForTask('{{ task.id }}')">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                                Apply Again
+                            </button>
+                            
+                            {% else %}
+                            <!-- No Application Yet -->
+                            <button class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="applyForTask('{{ task.id }}')">
+                                <i data-lucide="send" class="w-5 h-5"></i>
+                                Apply for Task
+                            </button>
+                            {% endif %}
                         {% elif user == task.doer %}
                         
                         <button class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="openChat('{{ task.id }}')">
@@ -147,22 +189,29 @@
                         </button>
                         
                         {% if task.status == 'in_progress' %}
-                        <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
+                        <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="submitTask('{{ task.id }}')">
                             <i data-lucide="upload" class="w-5 h-5"></i>
                             Submit Work
                         </button>
                         {% endif %}
                         
                         {% if task.status == 'completed' %}
-                        <button class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
-                            <i data-lucide="star" class="w-5 h-5"></i>
-                            Rate Task Poster
-                        </button>
+                            {% if already_rated_poster %}
+                            <button disabled class="w-full bg-gray-400 text-white px-6 py-4 rounded-lg font-bold cursor-not-allowed flex items-center justify-center gap-2 text-lg" title="You have already rated this user">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                Already Rated
+                            </button>
+                            {% else %}
+                            <button class="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg" onclick="rateUser('{{ task.id }}', '{{ task.poster.id }}')">
+                                <i data-lucide="star" class="w-5 h-5"></i>
+                                Rate Task Poster
+                            </button>
+                            {% endif %}
                         {% endif %}
                         
                         {% endif %}
                         
-                        <button class="w-full bg-red-100 text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center justify-center gap-2">
+                        <button class="w-full bg-red-100 text-red-700 px-6 py-3 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center justify-center gap-2" onclick="reportTask('{{ task.id }}')">
                             <i data-lucide="flag" class="w-5 h-5"></i>
                             Report Task
                         </button>
@@ -171,7 +220,7 @@
             </div>
             
             <!-- Task Poster Info -->
-            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100" data-poster-id="{{ task.poster.id }}">
                 <h3 class="text-2xl font-bold mb-6">Posted By</h3>
                 <div class="flex items-center gap-4 mb-6">
                     <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -271,6 +320,32 @@
     // Open chat - redirect to messages page with this conversation
     function openChat(taskId) {
         window.location.href = `/messages/${taskId}/`;
+    }
+    
+    // Submit task - mark as completed
+    function submitTask(taskId) {
+        if (confirm('Are you sure you want to submit this task as completed?')) {
+            window.location.href = `/tasks/${taskId}/complete/`;
+        }
+    }
+    
+    // Report task - report the task poster
+    function reportTask(taskId) {
+        // Get task poster ID from data attribute or fetch it
+        const posterIdElement = document.querySelector('[data-poster-id]');
+        if (posterIdElement) {
+            const posterId = posterIdElement.getAttribute('data-poster-id');
+            if (confirm('Are you sure you want to report this task? This will report the task poster.')) {
+                window.location.href = `/report/${posterId}/`;
+            }
+        } else {
+            showToast('Unable to report this task. Please try again.', 'error');
+        }
+    }
+    
+    // Rate user - redirect to rating page
+    function rateUser(taskId, userId) {
+        window.location.href = `/rate/${taskId}/${userId}/`;
     }
     
     // Legacy function for checking chat access

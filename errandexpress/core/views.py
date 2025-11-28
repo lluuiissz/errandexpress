@@ -9,6 +9,7 @@ from django.db import transaction
 from django.db.models import (
     Q,
     Avg,
+    Count,
     Case,
     When,
     IntegerField,
@@ -42,6 +43,98 @@ logger = logging.getLogger(__name__)
 
 
 # ==================== SMART ALGORITHMS ====================
+
+def get_pending_rating_obligations(user):
+    """
+    Check if user has pending rating obligations that must be completed.
+    
+    Returns: {
+        'has_obligations': bool,
+        'pending_tasks': [Task objects],
+        'message': str,
+        'is_blocked': bool
+    }
+    """
+    from .models import Task, Rating, Payment
+    
+    pending_tasks = []
+    
+    # Get completed tasks where user is the poster and hasn't rated the doer
+    completed_tasks = Task.objects.filter(
+        poster=user,
+        status='completed',
+        doer__isnull=False
+    ).select_related('doer')
+    
+    for task in completed_tasks:
+        # Check if poster already rated the doer
+        already_rated = Rating.objects.filter(
+            task=task,
+            rater=user,
+            rated=task.doer
+        ).exists()
+        
+        if not already_rated:
+            # Check payment requirements
+            chat_unlocked = task.chat_unlocked
+            
+            # For online payment: also check if task doer was paid
+            if task.payment_method == 'online':
+                doer_paid = Payment.objects.filter(
+                    task=task,
+                    payer=user,
+                    receiver=task.doer,
+                    status='confirmed'
+                ).exists()
+                
+                # If chat not unlocked OR doer not paid, it's a pending obligation
+                if not chat_unlocked or not doer_paid:
+                    pending_tasks.append({
+                        'task': task,
+                        'reason': 'payment_required',
+                        'needs_system_fee': not chat_unlocked,
+                        'needs_doer_payment': not doer_paid,
+                        'payment_method': 'online'
+                    })
+            else:
+                # For COD: only check if chat is unlocked
+                if not chat_unlocked:
+                    pending_tasks.append({
+                        'task': task,
+                        'reason': 'payment_required',
+                        'needs_system_fee': True,
+                        'needs_doer_payment': False,
+                        'payment_method': 'cod'
+                    })
+    
+    has_obligations = len(pending_tasks) > 0
+    is_blocked = has_obligations  # User is blocked if they have pending obligations
+    
+    if has_obligations:
+        if len(pending_tasks) == 1:
+            task_info = pending_tasks[0]
+            if task_info['payment_method'] == 'online':
+                if task_info['needs_system_fee'] and task_info['needs_doer_payment']:
+                    message = f"⚠️ You must pay the ₱2 system fee AND pay the task doer for '{task_info['task'].title}' before rating."
+                elif task_info['needs_system_fee']:
+                    message = f"⚠️ You must pay the ₱2 system fee for '{task_info['task'].title}' before rating."
+                else:
+                    message = f"⚠️ You must pay the task doer for '{task_info['task'].title}' before rating."
+            else:
+                message = f"⚠️ You must pay the ₱2 system fee for '{task_info['task'].title}' before rating."
+        else:
+            message = f"⚠️ You have {len(pending_tasks)} task(s) with pending rating obligations. Complete payments and ratings to continue."
+    else:
+        message = ""
+    
+    return {
+        'has_obligations': has_obligations,
+        'pending_tasks': pending_tasks,
+        'message': message,
+        'is_blocked': is_blocked,
+        'count': len(pending_tasks)
+    }
+
 
 def calculate_assignment_score(task, agent):
     """
@@ -239,32 +332,33 @@ def get_matched_tasks_for_user(user):
     base_tasks = Task.objects.filter(status='open').select_related('poster')
     
     # 🧹 FILTER OUT TASKS THAT SHOULD BE HIDDEN (3-minute window logic)
-    # Get tasks with applications
-    tasks_with_apps = base_tasks.annotate(
-        app_count=Count('applications', filter=Q(applications__status='pending'))
-    )
-    
-    # Check which tasks should be hidden
+    # ✅ OPTIMIZED: Use database queries instead of Python loop
     now = timezone.now()
     three_minutes_ago = now - timezone.timedelta(minutes=3)
     
-    tasks_to_exclude = []
-    for task in tasks_with_apps:
-        if task.app_count > 0:  # Has applications
-            # Get first application time
-            first_app = task.applications.filter(status='pending').order_by('created_at').first()
-            
-            if first_app and first_app.first_application_time:
-                time_elapsed = now - first_app.first_application_time
-                
-                # If 3 minutes have passed
-                if time_elapsed >= timezone.timedelta(minutes=3):
-                    # Hide task if:
-                    # 1. Task poster chose a doer (task.doer is set), OR
-                    # 2. Only 1 applicant (task taken)
-                    if task.doer is not None or task.app_count == 1:
-                        tasks_to_exclude.append(task.id)
-                        logger.info(f"🚫 Hiding task {task.id} - 3-min window expired (doer={task.doer}, apps={task.app_count})")
+    # Find tasks to exclude using database queries (no N+1!)
+    from django.db.models import Min, Count
+    
+    # Tasks with applications that have passed 3-minute window
+    tasks_with_old_apps = base_tasks.filter(
+        applications__status='pending',
+        applications__first_application_time__lte=three_minutes_ago
+    ).filter(
+        Q(doer__isnull=False)  # Doer already chosen
+    ).distinct().values_list('id', flat=True)
+    
+    # Tasks with only 1 application that passed 3-minute window
+    tasks_with_single_app = base_tasks.filter(
+        applications__status='pending',
+        applications__first_application_time__lte=three_minutes_ago
+    ).annotate(
+        app_count=Count('applications', filter=Q(applications__status='pending'))
+    ).filter(
+        app_count=1
+    ).distinct().values_list('id', flat=True)
+    
+    # Combine both exclusion lists
+    tasks_to_exclude = list(tasks_with_old_apps) + list(tasks_with_single_app)
     
     # Exclude hidden tasks
     base_tasks = base_tasks.exclude(id__in=tasks_to_exclude)
@@ -902,46 +996,65 @@ def dashboard(request):
     from django.db.models import Q, Avg, Sum, Count
     from django.utils import timezone
     
+    # ✅ NEW: Check for pending rating obligations (SYSTEM BLOCK)
+    rating_obligations = get_pending_rating_obligations(user)
+    if rating_obligations['is_blocked']:
+        # User is blocked from using system until they complete ratings
+        messages.error(request, rating_obligations['message'])
+        return render(request, 'blocked_pending_ratings.html', {
+            'pending_tasks': rating_obligations['pending_tasks'],
+            'message': rating_obligations['message'],
+            'count': rating_obligations['count']
+        })
+    
     # Current month calculations
     current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
     if user.role == 'task_poster':
+        # ✅ OPTIMIZED: Use aggregation for all counts (single query)
         # TASK POSTER METRICS
-        active_tasks = Task.objects.filter(poster=user, status__in=['open', 'in_progress'])
-        completed_tasks = Task.objects.filter(poster=user, status='completed')
         all_tasks = Task.objects.filter(poster=user)
         
-        # Calculate total spent this month
-        monthly_tasks = all_tasks.filter(created_at__gte=current_month)
-        total_spent = monthly_tasks.aggregate(total=Sum('price'))['total'] or 0
+        # ✅ OPTIMIZED: Calculate all counts in one aggregation query
+        stats = all_tasks.aggregate(
+            active_count=Count('id', filter=Q(status__in=['open', 'in_progress'])),
+            completed_count=Count('id', filter=Q(status='completed')),
+            total_assigned=Count('id', filter=~Q(status='open')),
+            monthly_spent=Sum('price', filter=Q(created_at__gte=current_month))
+        )
         
-        # Calculate average completion time
-        completed_with_times = completed_tasks.exclude(completed_at__isnull=True)
+        active_tasks = all_tasks.filter(status__in=['open', 'in_progress'])
+        completed_tasks = all_tasks.filter(status='completed')
+        
+        total_spent = stats['monthly_spent'] or 0
+        
+        # ✅ OPTIMIZED: Calculate average completion time using database aggregation
+        from django.db.models import F, ExpressionWrapper, DurationField
+        completed_with_times = completed_tasks.exclude(completed_at__isnull=True, accepted_at__isnull=True)
         avg_completion_hours = 0
         if completed_with_times.exists():
-            total_hours = sum([
-                (task.completed_at - task.accepted_at).total_seconds() / 3600 
-                for task in completed_with_times 
-                if task.accepted_at
-            ])
-            avg_completion_hours = total_hours / completed_with_times.count() if completed_with_times.count() > 0 else 0
+            avg_duration = completed_with_times.aggregate(
+                avg_time=Avg(ExpressionWrapper(F('completed_at') - F('accepted_at'), output_field=DurationField()))
+            )['avg_time']
+            if avg_duration:
+                avg_completion_hours = avg_duration.total_seconds() / 3600
         
-        # Calculate success rate
-        total_assigned = all_tasks.exclude(status='open').count()
-        success_rate = (completed_tasks.count() / total_assigned * 100) if total_assigned > 0 else 0
+        # ✅ OPTIMIZED: Calculate success rate from aggregation
+        total_assigned = stats['total_assigned']
+        success_rate = (stats['completed_count'] / total_assigned * 100) if total_assigned > 0 else 0
         
-        # Get tasks with interest (open tasks that have messages from potential doers)
+        # ✅ OPTIMIZED: Get tasks with applications (not messages)
         pending_applications = all_tasks.filter(status='open').annotate(
-            message_count=Count('messages')
-        ).filter(message_count__gt=0)
+            app_count=Count('applications', filter=Q(applications__status='pending'))
+        ).filter(app_count__gt=0)[:5]
         
-        # Get tasks in different states
-        in_progress_tasks = active_tasks.filter(status='in_progress')
-        awaiting_review = Task.objects.filter(poster=user, status='completed')
-        payment_pending = Task.objects.filter(poster=user, status='completed').exclude(payment__isnull=True)
+        # ✅ OPTIMIZED: Get tasks in different states with select_related
+        in_progress_tasks = active_tasks.filter(status='in_progress').select_related('doer')[:5]
+        awaiting_review = completed_tasks.select_related('doer')[:5]
+        payment_pending = completed_tasks.select_related('doer')[:5]
         
-        # Recent tasks for activity
-        recent_tasks = all_tasks.order_by('-created_at')[:5]
+        # ✅ OPTIMIZED: Recent tasks with select_related
+        recent_tasks = all_tasks.select_related('doer').order_by('-created_at')[:5]
         
         context = {
             'user': user,
@@ -1191,6 +1304,9 @@ def browse_tasks(request):
     if not tasks.query.order_by:
         tasks = tasks.order_by('-created_at')
     
+    # ✅ OPTIMIZED: Cache count before pagination
+    total_tasks = tasks.count()
+    
     # Pagination
     paginator = Paginator(tasks, 12)
     page_number = request.GET.get('page')
@@ -1199,7 +1315,7 @@ def browse_tasks(request):
     context = {
         'tasks': page_obj,
         'filter_form': filter_form,
-        'total_tasks': tasks.count()
+        'total_tasks': total_tasks
     }
     
     return render(request, 'browse_tasks_modern.html', context)
@@ -1208,7 +1324,8 @@ def browse_tasks(request):
 @login_required
 def task_detail(request, task_id):
     """View task details"""
-    task = get_object_or_404(Task, id=task_id)
+    # ✅ OPTIMIZED: Use select_related to fetch poster and doer in one query
+    task = Task.objects.select_related('poster', 'doer').get(id=task_id)
     
     # Check if user can view this task
     can_view = (
@@ -1222,13 +1339,45 @@ def task_detail(request, task_id):
         messages.error(request, "You don't have permission to view this task.")
         return redirect('dashboard')
     
-    # Get messages for this task
-    messages_list = Message.objects.filter(task=task).order_by('created_at')
+    # ✅ OPTIMIZED: Paginate messages (limit to last 50)
+    messages_list = Message.objects.filter(task=task).select_related('sender').order_by('-created_at')[:50]
+    messages_list = list(reversed(messages_list))  # Reverse to get chronological order
     
     # Message form for participants
     message_form = None
     if task.poster == request.user or task.doer == request.user:
         message_form = MessageForm()
+    
+    # Check if user has already rated the other party
+    already_rated_doer = False
+    already_rated_poster = False
+    
+    if task.status == 'completed':
+        if request.user == task.poster and task.doer:
+            # Check if poster already rated the doer
+            already_rated_doer = Rating.objects.filter(
+                task=task,
+                rater=request.user,
+                rated=task.doer
+            ).exists()
+        elif request.user == task.doer:
+            # Check if doer already rated the poster
+            already_rated_poster = Rating.objects.filter(
+                task=task,
+                rater=request.user,
+                rated=task.poster
+            ).exists()
+    
+    # ✅ NEW: Check doer's application status (if they're a task doer viewing this task)
+    doer_application = None
+    doer_application_status = None
+    if request.user.role == 'task_doer' and request.user != task.poster:
+        doer_application = TaskApplication.objects.filter(
+            task=task,
+            doer=request.user
+        ).first()
+        if doer_application:
+            doer_application_status = doer_application.status
     
     context = {
         'task': task,
@@ -1246,7 +1395,10 @@ def task_detail(request, task_id):
         'can_confirm': (
             task.poster == request.user and 
             task.status == 'completed'
-        )
+        ),
+        'already_rated_doer': already_rated_doer,
+        'already_rated_poster': already_rated_poster,
+        'doer_application_status': doer_application_status,  # ✅ NEW
     }
     
     return render(request, 'task_detail_modern.html', context)
@@ -1254,38 +1406,37 @@ def task_detail(request, task_id):
 
 @login_required
 def accept_task(request, task_id):
-    """Accept a task (Task Doers only)"""
+    """
+    ✅ DISABLED: Direct task acceptance removed
+    
+    Task doers must now apply through the application system.
+    Task posters must accept the application.
+    This ensures proper vetting before work begins.
+    """
     task = get_object_or_404(Task, id=task_id)
     
     if request.user.role != 'task_doer':
         messages.error(request, "Only Task Doers can accept tasks.")
         return redirect('task_detail', task_id=task_id)
     
-    if task.status != 'open':
-        messages.error(request, "This task is no longer available.")
+    # ✅ NEW: Check if user already applied
+    existing_app = TaskApplication.objects.filter(
+        task=task,
+        doer=request.user
+    ).first()
+    
+    if existing_app:
+        if existing_app.status == 'pending':
+            messages.info(request, f"You already applied for this task. Waiting for {task.poster.fullname} to review your application.")
+        elif existing_app.status == 'accepted':
+            messages.info(request, "You have been accepted for this task! You can now start working.")
+        elif existing_app.status == 'rejected':
+            messages.warning(request, "Your application was rejected. You can apply again if you'd like.")
         return redirect('task_detail', task_id=task_id)
     
-    if task.poster == request.user:
-        messages.error(request, "You cannot accept your own task.")
-        return redirect('task_detail', task_id=task_id)
-    
-    # Accept the task
-    task.doer = request.user
-    task.status = 'in_progress'
-    task.accepted_at = timezone.now()
-    task.save()
-    
-    # Create notification for poster
-    Notification.objects.create(
-        user=task.poster,
-        type='task_assigned',
-        title=f'Task "{task.title}" Accepted',
-        message=f'{request.user.fullname} has accepted your task.',
-        related_task=task
-    )
-    
-    messages.success(request, f"You have accepted the task '{task.title}'!")
-    return redirect('task_detail', task_id=task_id)
+    # ✅ NEW: Redirect to apply instead of direct accept
+    messages.info(request, "Please submit an application for this task. The poster will review and choose the best applicant.")
+    return redirect('apply_for_task', task_id=task_id)
 
 
 @login_required
@@ -1338,12 +1489,19 @@ def my_tasks(request):
         # Admin sees all tasks
         tasks = Task.objects.all().select_related('poster', 'doer').order_by('-created_at')
     
-    # Calculate status counts
+    # ✅ OPTIMIZED: Calculate status counts using aggregation (single query)
+    from django.db.models import Count, Q
+    status_counts_query = tasks.aggregate(
+        open=Count('id', filter=Q(status='open')),
+        in_progress=Count('id', filter=Q(status='in_progress')),
+        completed=Count('id', filter=Q(status='completed')),
+        accepted=Count('id', filter=Q(status='accepted')),
+    )
     status_counts = {
-        'open': tasks.filter(status='open').count(),
-        'in_progress': tasks.filter(status='in_progress').count(),
-        'completed': tasks.filter(status='completed').count(),
-        'accepted': tasks.filter(status='accepted').count(),
+        'open': status_counts_query['open'],
+        'in_progress': status_counts_query['in_progress'],
+        'completed': status_counts_query['completed'],
+        'accepted': status_counts_query['accepted'],
     }
     
     # Pagination
@@ -1691,6 +1849,215 @@ def payment_system_fee(request, task_id):
 
 
 @login_required
+def payment_task_doer(request, task_id):
+    """Handle task doer payment (for online payment method) - Pre-payment form"""
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Only task poster can pay task doer
+    if task.poster != request.user:
+        messages.error(request, "Only the task poster can pay the task doer.")
+        return redirect('task_detail', task_id=task_id)
+    
+    # Only for online payment method
+    if task.payment_method != 'online':
+        messages.error(request, "Task doer payment is only for online payment method.")
+        return redirect('task_detail', task_id=task_id)
+    
+    # Check if already paid
+    payment = Payment.objects.filter(
+        task=task,
+        payer=request.user,
+        receiver=task.doer,
+        status='confirmed'
+    ).first()
+    
+    if payment:
+        messages.info(request, "Task doer has already been paid for this task.")
+        return redirect('task_detail', task_id=task_id)
+    
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method', 'gcash')
+        
+        if payment_method == 'gcash':
+            # Collect GCash payment info before redirecting to PayMongo
+            fullname = request.POST.get('fullname', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            email = request.POST.get('email', '').strip()
+            gcash_number = request.POST.get('gcash_number', '').strip()
+            
+            # Validate required fields
+            if not all([fullname, phone, email]):
+                messages.error(request, "Please fill in all required fields.")
+                return render(request, 'payments/task_doer_payment.html', {
+                    'task': task,
+                    'amount': task.price,
+                    'doer': task.doer,
+                    'fullname': fullname,
+                    'phone': phone,
+                    'email': email,
+                    'gcash_number': gcash_number,
+                    'payment_methods': [
+                        {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
+                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
+                    ]
+                })
+            
+            # Store payment info in session
+            request.session['gcash_fullname'] = fullname
+            request.session['gcash_phone'] = phone
+            request.session['gcash_email'] = email
+            request.session['gcash_number'] = gcash_number
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'task_payment'
+            
+            logger.info(f"Task doer payment form submitted for task {task_id}")
+            logger.info(f"User: {fullname} | Phone: {phone} | Email: {email}")
+            
+            # Redirect to payment processing
+            return redirect('payment_task_doer_process', task_id=task_id)
+        
+        elif payment_method == 'card':
+            # For card, also collect info
+            fullname = request.POST.get('fullname', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            email = request.POST.get('email', '').strip()
+            
+            # Validate required fields
+            if not all([fullname, phone, email]):
+                messages.error(request, "Please fill in all required fields.")
+                return render(request, 'payments/task_doer_payment.html', {
+                    'task': task,
+                    'amount': task.price,
+                    'doer': task.doer,
+                    'fullname': fullname,
+                    'phone': phone,
+                    'email': email,
+                    'payment_methods': [
+                        {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
+                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
+                    ]
+                })
+            
+            # Store payment info in session
+            request.session['card_fullname'] = fullname
+            request.session['card_phone'] = phone
+            request.session['card_email'] = email
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'task_payment'
+            
+            logger.info(f"Task doer card payment form submitted for task {task_id}")
+            
+            # Redirect to card payment processing
+            return redirect('payment_task_doer_card', task_id=task_id)
+    
+    context = {
+        'task': task,
+        'amount': task.price,
+        'doer': task.doer,
+        'fullname': request.user.fullname or '',
+        'email': request.user.email or '',
+        'phone': request.user.phone_number or '',
+        'payment_methods': [
+            {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
+            {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
+        ]
+    }
+    
+    return render(request, 'payments/task_doer_payment.html', context)
+
+
+@login_required
+def payment_task_doer_process(request, task_id):
+    """Process task doer GCash payment - Redirect to PayMongo"""
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Verify user has submitted the form
+    if 'gcash_fullname' not in request.session:
+        messages.error(request, "Please fill in payment information first.")
+        return redirect('payment_task_doer', task_id=task_id)
+    
+    from .paymongo import ErrandExpressPayments
+    payments = ErrandExpressPayments()
+    
+    # Get GCash info from session
+    gcash_info = {
+        'fullname': request.session.get('gcash_fullname'),
+        'phone': request.session.get('gcash_phone'),
+        'email': request.session.get('gcash_email'),
+        'gcash_number': request.session.get('gcash_number', '')
+    }
+    
+    # Create payment with GCash info in description
+    description = f"ErrandExpress Task Payment - {task.title} | {gcash_info['fullname']} | {gcash_info['phone']}"
+    
+    result = payments.process_gcash_payment(
+        amount=float(task.price),
+        description=description,
+        success_url=request.build_absolute_uri(reverse('payment_success')),
+        failed_url=request.build_absolute_uri(reverse('payment_failed'))
+    )
+    
+    if result['success']:
+        # Store payment info in session
+        request.session['payment_source_id'] = result['source_id']
+        request.session['payment_task_id'] = str(task.id)
+        request.session['payment_type'] = 'task_payment'
+        
+        logger.info(f"✅ Task doer GCash payment initiated for task {task_id}")
+        logger.info(f"Amount: ₱{task.price} | Payer: {gcash_info['fullname']}")
+        
+        return redirect(result['checkout_url'])
+    else:
+        messages.error(request, f"Payment failed: {result['error']}")
+        return redirect('payment_task_doer', task_id=task_id)
+
+
+@login_required
+def payment_task_doer_card(request, task_id):
+    """Process task doer card payment"""
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Verify user has submitted the form
+    if 'card_fullname' not in request.session:
+        messages.error(request, "Please fill in payment information first.")
+        return redirect('payment_task_doer', task_id=task_id)
+    
+    from .paymongo import ErrandExpressPayments
+    payments = ErrandExpressPayments()
+    
+    # Get card info from session
+    card_info = {
+        'fullname': request.session.get('card_fullname'),
+        'phone': request.session.get('card_phone'),
+        'email': request.session.get('card_email')
+    }
+    
+    # Create payment intent
+    description = f"ErrandExpress Task Payment - {task.title} | {card_info['fullname']}"
+    
+    result = payments.process_card_payment(
+        amount=float(task.price),
+        description=description,
+        success_url=request.build_absolute_uri(reverse('payment_success')),
+        failed_url=request.build_absolute_uri(reverse('payment_failed'))
+    )
+    
+    if result['success']:
+        # Store payment info in session
+        request.session['payment_source_id'] = result['source_id']
+        request.session['payment_task_id'] = str(task.id)
+        request.session['payment_type'] = 'task_payment'
+        
+        logger.info(f"✅ Task doer card payment initiated for task {task_id}")
+        logger.info(f"Amount: ₱{task.price} | Payer: {card_info['fullname']}")
+        
+        return redirect(result['checkout_url'])
+    else:
+        messages.error(request, f"Payment failed: {result['error']}")
+        return redirect('payment_task_doer', task_id=task_id)
+
+
+@login_required
 def payment_success(request):
     """Handle successful payment callback"""
     # Get payment info from session
@@ -1771,6 +2138,75 @@ def payment_success(request):
             logger.error(f"❌ Payment verification error: {str(e)}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             messages.error(request, f"Payment verification failed: {str(e)}")
+            
+            # Clear session on error
+            for key in ['payment_source_id', 'payment_task_id', 'payment_type', 'gcash_fullname', 'gcash_phone', 'gcash_email', 'gcash_number']:
+                request.session.pop(key, None)
+            
+            return redirect('task_detail', task_id=task_id)
+    
+    elif payment_type == 'task_payment':
+        # Handle task doer payment
+        try:
+            from .models import Payment, SystemWallet
+            logger.info(f"Processing task doer payment for task {task_id}")
+            
+            # Create Payment record for task doer
+            payment = Payment.objects.create(
+                task=task,
+                payer=task.poster,
+                receiver=task.doer,
+                amount=task.price,
+                method='online',
+                status='confirmed',
+                paymongo_payment_id=source_id,
+                confirmed_at=timezone.now()
+            )
+            logger.info(f"✅ Payment record created: {payment.id}")
+            
+            # 💰 ADD REVENUE TO SYSTEM WALLET (10% commission)
+            wallet = SystemWallet.get_or_create_wallet()
+            commission_amount = float(task.price) * 0.10
+            wallet.add_revenue(
+                amount=commission_amount,
+                description=f"Commission from task payment: {task.title}"
+            )
+            logger.info(f"💰 Commission added to wallet: ₱{commission_amount}")
+            
+            # Notify task doer about payment
+            Notification.objects.create(
+                user=task.doer,
+                type='payment_received',
+                title='Payment Received! 💰',
+                message=f'You received ₱{task.price} for completing "{task.title}"',
+                related_task=task
+            )
+            logger.info(f"✅ Notification created for task doer {task.doer.id}")
+            
+            # Notify task poster
+            Notification.objects.create(
+                user=task.poster,
+                type='payment_confirmed',
+                title='Task Doer Payment Confirmed! 💳',
+                message=f'Payment of ₱{task.price} sent to task doer for "{task.title}". You can now rate them.',
+                related_task=task
+            )
+            logger.info(f"✅ Notification created for task poster {task.poster.id}")
+            
+            logger.info(f"✅ Task doer payment confirmed for task {task_id}")
+            messages.success(request, f"✅ Payment successful! ₱{task.price} sent to {task.doer.fullname}. You can now rate them.")
+            
+            # Clear session
+            for key in ['payment_source_id', 'payment_task_id', 'payment_type', 'gcash_fullname', 'gcash_phone', 'gcash_email', 'gcash_number']:
+                request.session.pop(key, None)
+            
+            # Redirect to rating page
+            return redirect('rate_user', task_id=task_id, user_id=task.doer.id)
+            
+        except Exception as e:
+            logger.error(f"❌ Task payment processing error: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            messages.error(request, f"Payment processing failed: {str(e)}")
             
             # Clear session on error
             for key in ['payment_source_id', 'payment_task_id', 'payment_type', 'gcash_fullname', 'gcash_phone', 'gcash_email', 'gcash_number']:
@@ -1905,7 +2341,7 @@ def task_monitoring(request):
 
 @login_required
 def rate_user(request, task_id, user_id):
-    """Rate a user after task completion with enhanced verification"""
+    """Rate a user after task completion with payment enforcement"""
     task = get_object_or_404(Task, id=task_id)
     rated_user = get_object_or_404(User, id=user_id)
     
@@ -1929,6 +2365,27 @@ def rate_user(request, task_id, user_id):
         messages.error(request, "This user is not part of this task.")
         return redirect('task_detail', task_id=task_id)
     
+    # ✅ NEW: PAYMENT ENFORCEMENT FOR RATING
+    # Task poster must pay before rating task doer
+    if request.user == task.poster and rated_user == task.doer:
+        # Check if chat is unlocked (system commission paid)
+        if not task.chat_unlocked:
+            messages.error(request, "You must pay the ₱2 system fee to unlock chat before rating.")
+            return redirect('payment_system_fee', task_id=task_id)
+        
+        # For online payment: must also pay the task doer
+        if task.payment_method == 'online':
+            payment = Payment.objects.filter(
+                task=task,
+                payer=request.user,
+                receiver=task.doer,
+                status='confirmed'
+            ).first()
+            
+            if not payment:
+                messages.error(request, "You must pay the task doer before rating them. Please complete the payment first.")
+                return redirect('payment_task_doer', task_id=task_id)
+    
     # Check if already rated
     existing_rating = Rating.objects.filter(
         task=task,
@@ -1936,11 +2393,12 @@ def rate_user(request, task_id, user_id):
         rated=rated_user
     ).first()
     
-    if existing_rating:
-        messages.info(request, "You have already rated this user for this task.")
-        return redirect('task_detail', task_id=task_id)
-    
     if request.method == 'POST':
+        # Prevent duplicate ratings
+        if existing_rating:
+            messages.warning(request, "You have already rated this user for this task. You cannot rate them again.")
+            return redirect('task_detail', task_id=task_id)
+        
         form = RatingForm(request.POST)
         if form.is_valid():
             rating = form.save(commit=False)
@@ -1975,7 +2433,9 @@ def rate_user(request, task_id, user_id):
     context = {
         'form': form,
         'task': task,
-        'rated_user': rated_user
+        'rated_user': rated_user,
+        'already_rated': bool(existing_rating),
+        'existing_rating': existing_rating
     }
     
     return render(request, 'ratings/rate_user.html', context)
@@ -2075,14 +2535,25 @@ def view_applications(request, task_id):
         messages.error(request, "You can only view applications for your own tasks.")
         return redirect('task_detail', task_id=task_id)
     
-    # Get applications with real-time doer ratings
+    # ✅ OPTIMIZED: Get applications with prefetch_related to avoid N+1 queries
+    from django.db.models import Count, Prefetch
+    
+    # Prefetch ratings and skills for each doer
+    # ✅ NOTE: Don't use slice [:3] in Prefetch queryset - it prevents further filtering
     applications = TaskApplication.objects.filter(
         task=task
-    ).select_related('doer').order_by('-created_at')
+    ).select_related('doer').prefetch_related(
+        Prefetch(
+            'doer__received_ratings',
+            queryset=Rating.objects.order_by('-created_at')
+        ),
+        Prefetch(
+            'doer__skills',
+            queryset=StudentSkill.objects.filter(status='verified')
+        )
+    ).order_by('-created_at')
     
     # Calculate real-time ratings and add to each application
-    from django.db.models import Count
-    
     doer_rating_subquery = Rating.objects.filter(
         rated=OuterRef('doer')
     ).values('rated').annotate(
@@ -2092,11 +2563,12 @@ def view_applications(request, task_id):
     applications = applications.annotate(
         doer_current_rating=Coalesce(
             Subquery(doer_rating_subquery, output_field=DecimalField(max_digits=3, decimal_places=2)),
-            0.0
+            Value(0.0, output_field=DecimalField(max_digits=3, decimal_places=2)),
+            output_field=DecimalField(max_digits=3, decimal_places=2)
         ),
         doer_completed_count=Count(
-            'doer__doer_tasks',
-            filter=Q(doer__doer_tasks__status='completed')
+            'doer__assigned_tasks',
+            filter=Q(doer__assigned_tasks__status='completed')
         )
     )
     
@@ -2115,16 +2587,11 @@ def view_applications(request, task_id):
             (15 if app.current_is_newbie else 0)
         )
         
-        # Get recent ratings
-        app.recent_ratings = Rating.objects.filter(
-            rated=app.doer
-        ).order_by('-created_at')[:3]
+        # ✅ OPTIMIZED: Use prefetched ratings
+        app.recent_ratings = app.doer.received_ratings.all()[:3]
         
-        # 🎯 GET VALIDATED SKILLS FOR THIS DOER
-        app.validated_skills = StudentSkill.objects.filter(
-            student=app.doer,
-            status='verified'
-        ).values_list('skill_name', flat=True)
+        # ✅ OPTIMIZED: Use prefetched skills
+        app.validated_skills = [skill.skill_name for skill in app.doer.skills.all()]
         
         # Get skill display names
         skill_display_map = {
@@ -2177,9 +2644,9 @@ def accept_application(request, application_id):
     application.reviewed_at = timezone.now()
     application.save()
     
-    # Assign doer to task
+    # Assign doer to task and change status to in_progress
     task.doer = application.doer
-    task.status = 'accepted'
+    task.status = 'in_progress'  # ✅ FIXED: Use 'in_progress' instead of 'accepted'
     task.accepted_at = timezone.now()
     task.save()
     
@@ -2196,8 +2663,8 @@ def accept_application(request, application_id):
     Notification.objects.create(
         user=application.doer,
         type='task_assigned',
-        title='Application Accepted!',
-        message=f'Your application for "{task.title}" was accepted! You can now start working on it.',
+        title='You were chosen for a task!',
+        message=f'Your application for "{task.title}" was selected! You can now start working on it.',
         related_task=task
     )
     
@@ -2211,12 +2678,12 @@ def accept_application(request, application_id):
         Notification.objects.create(
             user_id=doer_id,
             type='system_message',
-            title='Application Update',
-            message=f'Thank you for applying to "{task.title}". The poster has chosen another doer for this task.',
+            title='Application Not Selected',
+            message=f'Thank you for applying to "{task.title}". The poster has chosen another applicant for this task.',
             related_task=task
         )
     
-    messages.success(request, f"Application accepted! {application.doer.fullname} is now assigned to this task.")
+    messages.success(request, f"Selected {application.doer.fullname} for this task!")
     return redirect('task_detail', task_id=task.id)
 
 
@@ -2240,8 +2707,8 @@ def reject_application(request, application_id):
     Notification.objects.create(
         user=application.doer,
         type='system_message',
-        title='Application Update',
-        message=f'Your application for "{task.title}" was not accepted. Keep applying to other tasks!',
+        title='Application Not Selected',
+        message=f'Your application for "{task.title}" was not selected. Keep applying to other tasks!',
         related_task=task
     )
     
@@ -3555,9 +4022,119 @@ def paymongo_webhook(request):
                 except Exception as e:
                     logger.error(f"❌ Error processing system fee payment: {str(e)}")
             
-            # 🔹 STEP 5B: Main Task Payment (GCash)
+            # 🔹 STEP 5B: Task Doer Payment (GCash/Card) - NEW
+            elif "Task Payment" in description or ("ErrandExpress Task Payment" in description):
+                logger.info("📝 Processing as TASK DOER PAYMENT")
+                
+                # Extract task ID and payment ID from description
+                try:
+                    import re
+                    uuid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+                    matches = re.findall(uuid_pattern, description)
+                    
+                    task_id = None
+                    payment_id = None
+                    
+                    if len(matches) >= 2:
+                        task_id = matches[0]
+                        payment_id = matches[1]
+                    elif len(matches) == 1:
+                        task_id = matches[0]
+                    else:
+                        # Fallback: try to extract from quotes
+                        task_id = description.split('"')[1] if '"' in description else description.split(" ")[-1]
+                    
+                    logger.info(f"Extracted task_id: {task_id}, payment_id: {payment_id}")
+                    
+                    task = Task.objects.get(id=task_id)
+                    
+                    # Try to get existing payment by ID first
+                    if payment_id:
+                        try:
+                            payment = Payment.objects.get(id=payment_id)
+                            logger.info(f"Found existing payment record: {payment_id}")
+                        except Payment.DoesNotExist:
+                            logger.warning(f"Payment ID {payment_id} not found, creating new record")
+                            payment = None
+                    else:
+                        payment = None
+                    
+                    # If no payment found, try to get by task
+                    if not payment:
+                        try:
+                            payment = Payment.objects.get(task=task, status='pending_payment')
+                            logger.info(f"Found pending payment for task: {payment.id}")
+                        except Payment.DoesNotExist:
+                            logger.warning(f"No pending payment found for task, creating new record")
+                            payment = None
+                    
+                    # Create payment if it doesn't exist
+                    if not payment:
+                        payment = Payment.objects.create(
+                            task=task,
+                            payer=task.poster,
+                            receiver=task.doer,
+                            amount=task.price,
+                            method='gcash',
+                            status='pending_payment'
+                        )
+                        logger.info(f"Created new payment record: {payment.id}")
+                    
+                    # Mark task doer payment as paid
+                    payment.status = 'paid'
+                    payment.paid_at = timezone.now()
+                    payment.paymongo_source_id = source_id
+                    payment.save()
+                    
+                    logger.info(f"✅ Payment record updated: {payment.id}, status=paid")
+                    
+                    # 💰 ADD COMMISSION TO SYSTEM WALLET
+                    from .models import SystemWallet
+                    wallet = SystemWallet.get_or_create_wallet()
+                    from decimal import Decimal
+                    commission_amount = Decimal(str(task.price)) * Decimal('0.10')
+                    wallet.add_revenue(
+                        amount=commission_amount,
+                        description=f"Commission from task payment: {task.title}"
+                    )
+                    logger.info(f"💰 Commission added to wallet: ₱{commission_amount}")
+                    
+                    # Complete the task
+                    task.status = 'completed'
+                    task.completed_at = timezone.now()
+                    task.save()
+                    logger.info(f"✅ Task marked as completed: {task_id}")
+                    
+                    # Notify task doer about payment
+                    Notification.objects.create(
+                        user=task.doer,
+                        type='payment_received',
+                        title='Payment Received! 💰',
+                        message=f'You received ₱{amount_pesos} for completing "{task.title}". Task poster can now rate you.',
+                        related_task=task
+                    )
+                    logger.info(f"✅ Notification sent to task doer {task.doer.id}")
+                    
+                    # Notify task poster that payment is confirmed
+                    Notification.objects.create(
+                        user=task.poster,
+                        type='payment_confirmed',
+                        title='Task Doer Payment Confirmed! 💳',
+                        message=f'Payment of ₱{amount_pesos} sent to {task.doer.fullname}. You can now rate them.',
+                        related_task=task
+                    )
+                    logger.info(f"✅ Notification sent to task poster {task.poster.id}")
+                    
+                    logger.info(f"✅ Task doer payment CONFIRMED - task {task_id} payment verified")
+                    
+                except Task.DoesNotExist:
+                    logger.error(f"❌ Task not found for payment: {task_id}")
+                except Exception as e:
+                    logger.error(f"❌ Error processing task doer payment: {str(e)}", exc_info=True)
+            
+            # 🔹 STEP 5B: Main Task Payment (GCash) - OLD
             elif "Task payment" in description or (amount_pesos > 2.0 and amount_pesos < 100000):
-                logger.info("📝 Processing as TASK PAYMENT")
+                logger.info("📝 Processing as LEGACY TASK PAYMENT")
                 
                 # Extract task ID from description
                 try:
@@ -3730,7 +4307,7 @@ def create_task_payment_intent(request):
         from .models import Payment
         payment = Payment.objects.get(id=payment_id, status='pending_payment')
         
-        amount_centavos = int(payment.amount * 100)  # Convert to centavos
+        amount_centavos = int(float(payment.amount) * 100)  # Convert to centavos
         
         payload = {
             "data": {
@@ -3772,6 +4349,7 @@ def create_task_payment_intent(request):
 def create_task_gcash_payment(request):
     """
     💳 Create GCash payment source for main task payment (STEP 5B)
+    Integrated with PayMongo webhook for automatic confirmation
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
@@ -3780,11 +4358,35 @@ def create_task_gcash_payment(request):
         data = json.loads(request.body)
         payment_id = data.get('payment_id')
         
+        if not payment_id:
+            logger.error("Missing payment_id in request")
+            return JsonResponse({'error': 'Missing payment_id'}, status=400)
+        
         # Get payment record
         from .models import Payment
-        payment = Payment.objects.get(id=payment_id, status='pending_payment')
+        try:
+            payment = Payment.objects.get(id=payment_id, status='pending_payment')
+        except Payment.DoesNotExist:
+            logger.error(f"Payment not found: {payment_id}")
+            return JsonResponse({'error': 'Payment not found'}, status=404)
         
-        amount_centavos = int(payment.amount * 100)
+        # Validate amount
+        amount_centavos = int(float(payment.amount) * 100)
+        if amount_centavos <= 0:
+            logger.error(f"Invalid payment amount: {payment.amount}")
+            return JsonResponse({'error': 'Invalid payment amount'}, status=400)
+        
+        # Build redirect URLs
+        success_url = request.build_absolute_uri(reverse('payment_success'))
+        failed_url = request.build_absolute_uri(reverse('payment_failed'))
+        
+        # Add payment_id to query params for webhook tracking
+        success_url = f"{success_url}?payment_id={payment_id}"
+        failed_url = f"{failed_url}?payment_id={payment_id}"
+        
+        logger.info(f"Creating GCash payment: payment_id={payment_id}, amount={amount_centavos} centavos (₱{payment.amount})")
+        logger.info(f"Success URL: {success_url}")
+        logger.info(f"Failed URL: {failed_url}")
         
         payload = {
             "data": {
@@ -3792,9 +4394,10 @@ def create_task_gcash_payment(request):
                     "type": "gcash",
                     "amount": amount_centavos,
                     "currency": "PHP",
+                    "description": f"Task Payment - {payment.task.title} (ID: {payment_id})",
                     "redirect": {
-                        "success": f"{request.build_absolute_uri('/payment/success/')}?payment_id={payment_id}",
-                        "failed": f"{request.build_absolute_uri('/payment/failed/')}?payment_id={payment_id}"
+                        "success": success_url,
+                        "failed": failed_url
                     }
                 }
             }
@@ -3802,7 +4405,13 @@ def create_task_gcash_payment(request):
 
         # Use live secret key
         secret_key = settings.PAYMONGO_SECRET_KEY
+        if not secret_key:
+            logger.error("PAYMONGO_SECRET_KEY not configured")
+            return JsonResponse({'error': 'Payment service not configured'}, status=500)
+        
         auth_header = base64.b64encode(f"{secret_key}:".encode()).decode()
+
+        logger.info(f"Payload: {json.dumps(payload, indent=2)}")
 
         response = requests.post(
             "https://api.paymongo.com/v1/sources",
@@ -3811,28 +4420,45 @@ def create_task_gcash_payment(request):
                 "content-type": "application/json",
                 "authorization": f"Basic {auth_header}"
             },
-            data=json.dumps(payload)
+            json=payload,
+            timeout=10
         )
+
+        logger.info(f"PayMongo response status: {response.status_code}")
+        logger.info(f"PayMongo response: {response.text}")
 
         if response.status_code == 200:
             result = response.json()
-            checkout_url = result["data"]["attributes"]["redirect"]["checkout_url"]
-            
-            logger.info(f"Task GCash payment created for payment {payment_id}: ₱{payment.amount}")
-            return JsonResponse({
-                "success": True,
-                "checkout_url": checkout_url,
-                "source_id": result["data"]["id"],
-                "amount": float(payment.amount)
-            })
+            try:
+                checkout_url = result["data"]["attributes"]["redirect"]["checkout_url"]
+                source_id = result["data"]["id"]
+                
+                # Store source_id in payment record for webhook tracking
+                payment.paymongo_source_id = source_id
+                payment.save()
+                
+                logger.info(f"✅ Task GCash payment created: payment_id={payment_id}, source_id={source_id}, checkout_url={checkout_url}")
+                return JsonResponse({
+                    "success": True,
+                    "checkout_url": checkout_url,
+                    "source_id": source_id,
+                    "amount": float(payment.amount),
+                    "payment_id": str(payment_id)
+                })
+            except KeyError as e:
+                logger.error(f"Invalid PayMongo response structure: {str(e)}")
+                logger.error(f"Full response: {result}")
+                return JsonResponse({'error': 'Invalid payment response'}, status=500)
         else:
-            logger.error(f"Task GCash payment creation failed: {response.text}")
-            return JsonResponse({'error': 'Payment creation failed'}, status=500)
+            logger.error(f"❌ Task GCash payment creation failed: Status={response.status_code}")
+            logger.error(f"Response: {response.text}")
+            return JsonResponse({'error': f'Payment creation failed: {response.status_code}'}, status=400)
             
-    except Payment.DoesNotExist:
-        return JsonResponse({'error': 'Payment not found'}, status=404)
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON in request body")
+        return JsonResponse({'error': 'Invalid request format'}, status=400)
     except Exception as e:
-        logger.error(f"Task GCash payment creation error: {str(e)}")
+        logger.error(f"Task GCash payment creation error: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -3853,7 +4479,7 @@ def create_task_card_payment(request):
         from .models import Payment
         payment = Payment.objects.get(id=payment_id, status='pending_payment')
         
-        amount_centavos = int(payment.amount * 100)
+        amount_centavos = int(float(payment.amount) * 100)
         
         payload = {
             "data": {

@@ -123,6 +123,15 @@ class Task(models.Model):
     def get_tags_list(self):
         """Return tags as a list"""
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['poster']),
+            models.Index(fields=['doer']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['status', 'created_at']),
+        ]
 
 
 class Message(models.Model):
@@ -138,6 +147,12 @@ class Message(models.Model):
     
     class Meta:
         ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['task']),
+            models.Index(fields=['sender']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['task', 'created_at']),
+        ]
     
     def __str__(self):
         return f"{self.sender.fullname}: {self.message[:50]}..."
@@ -316,10 +331,12 @@ class Payment(models.Model):
     proof_url = models.FileField(upload_to='payment_proofs/', null=True, blank=True)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
     paymongo_payment_id = models.CharField(max_length=255, blank=True, unique=True)  # Prevent duplicates
+    paymongo_source_id = models.CharField(max_length=255, blank=True)  # For GCash/Card sources
     reference_number = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         # Prevent duplicate payments for same task
@@ -333,7 +350,10 @@ class Payment(models.Model):
     def save(self, *args, **kwargs):
         """Calculate commission and net amount before saving"""
         if not self.commission_amount:
-            self.commission_amount = self.amount * 0.10  # 10% commission
+            # Convert to Decimal to handle type properly
+            from decimal import Decimal
+            commission_rate = Decimal('0.10')
+            self.commission_amount = self.amount * commission_rate  # 10% commission
             self.net_amount = self.amount - self.commission_amount
         super().save(*args, **kwargs)
     
@@ -520,6 +540,14 @@ class SystemWallet(models.Model):
     
     def add_revenue(self, amount, description=""):
         """Add revenue to wallet"""
+        # Convert amount to Decimal to avoid type mismatch
+        from decimal import Decimal
+        amount = Decimal(str(amount))
+        
+        # Ensure total_revenue is Decimal
+        if isinstance(self.total_revenue, float):
+            self.total_revenue = Decimal(str(self.total_revenue))
+        
         self.total_revenue += amount
         self.total_transactions += 1
         self.save()

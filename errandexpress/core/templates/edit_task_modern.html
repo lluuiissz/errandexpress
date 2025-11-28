@@ -5,69 +5,72 @@
 
 {% block extra_css %}
 <style>
+    /* Optimized form styles - minimal !important usage */
     .form-section {
-        @apply bg-white rounded-2xl p-10 shadow-sm border border-gray-100 mb-8;
-    }
-    .form-group {
-        @apply mb-6;
-    }
-    .form-label {
-        @apply block text-base font-semibold text-gray-800 mb-3;
-    }
-    .form-input {
-        @apply w-full p-6 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200 text-lg;
-    }
-    .form-textarea {
-        @apply w-full p-6 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200 resize-none text-lg min-h-[200px];
+        background: white;
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #f3f4f6;
+        margin-bottom: 2rem;
     }
     
-    /* Make all form inputs larger and more responsive */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Optimized form inputs - no !important */
     input[type="text"],
     input[type="email"],
     input[type="number"],
     input[type="date"],
     input[type="datetime-local"],
-    input[type="file"],
     select,
     textarea {
-        width: 100% !important;
-        padding: 1.5rem 1.75rem !important;
-        font-size: 1.125rem !important;
-        line-height: 1.75rem !important;
-        border-radius: 0.75rem !important;
-        border: 2px solid #e5e7eb !important;
-        transition: all 0.2s ease !important;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        transition: border-color 0.15s ease;
     }
     
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="number"]:focus,
-    input[type="date"]:focus,
-    input[type="datetime-local"]:focus,
+    input:focus,
     select:focus,
     textarea:focus {
-        border-color: #3b82f6 !important;
-        ring: 2px !important;
-        ring-color: rgba(59, 130, 246, 0.1) !important;
-        outline: none !important;
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     
     textarea {
-        min-height: 180px !important;
-        resize: vertical !important;
+        min-height: 120px;
+        resize: vertical;
     }
     
     select {
-        appearance: none !important;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-        background-position: right 1rem center !important;
-        background-repeat: no-repeat !important;
-        background-size: 1.5em 1.5em !important;
-        padding-right: 3rem !important;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.75rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25em 1.25em;
+        padding-right: 2.5rem;
     }
     
     /* Mobile responsive */
     @media (max-width: 640px) {
+        .form-section {
+            padding: 1.5rem;
+        }
+        
         input[type="text"],
         input[type="email"],
         input[type="number"],
@@ -75,28 +78,13 @@
         input[type="datetime-local"],
         select,
         textarea {
-            padding: 1rem 1.25rem !important;
-            font-size: 1rem !important;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
         }
         
         textarea {
-            min-height: 150px !important;
+            min-height: 100px;
         }
-    }
-    .price-preview {
-        @apply bg-gradient-to-r from-primary to-indigo-600 text-white rounded-2xl p-6 text-center;
-    }
-    .step-indicator {
-        @apply flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium;
-    }
-    .step-active {
-        @apply bg-primary text-white;
-    }
-    .step-completed {
-        @apply bg-mint text-white;
-    }
-    .step-pending {
-        @apply bg-gray-200 text-gray-600;
     }
 </style>
 {% endblock %}
@@ -429,8 +417,12 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+{% block extra_scripts %}
 <script>
-    lucide.createIcons();
+    // Initialize icons using the base template's lucide instance
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
 </script>
+{% endblock %}
 {% endblock %}

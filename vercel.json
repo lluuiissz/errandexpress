@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "buildCommand": "pip install -r errandexpress/requirements.txt && python errandexpress/manage.py collectstatic --noinput",
+  "outputDirectory": "staticfiles",
+  "env": {
+    "DJANGO_SECRET_KEY": "@DJANGO_SECRET_KEY",
+    "DATABASE_URL": "@DATABASE_URL",
+    "DEBUG": "False",
+    "ALLOWED_HOSTS": "@ALLOWED_HOSTS",
+    "SUPABASE_URL": "@SUPABASE_URL",
+    "SUPABASE_KEY": "@SUPABASE_KEY",
+    "PAYMONGO_SECRET_KEY": "@PAYMONGO_SECRET_KEY",
+    "PAYMONGO_PUBLIC_KEY": "@PAYMONGO_PUBLIC_KEY",
+    "PAYMONGO_WEBHOOK_SECRET": "@PAYMONGO_WEBHOOK_SECRET"
+  },
+  "functions": {
+    "errandexpress/wsgi.py": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
+}

@@ -37,8 +37,8 @@ class PayMongoClient:
         Amount should be in centavos (₱1 = 100 centavos)
         """
         try:
-            # Convert amount to centavos
-            amount_centavos = int(amount * 100)
+            # Convert amount to centavos (handle Decimal types)
+            amount_centavos = int(float(amount) * 100)
             
             payload = {
                 "data": {
@@ -99,16 +99,30 @@ class PayMongoClient:
             logger.error(f"PayMongo payment method attachment error: {str(e)}")
             return None
     
-    def create_source(self, amount, source_type="gcash", currency="PHP", success_url=None, failed_url=None):
+    def create_source(self, amount, source_type="gcash", currency="PHP", success_url=None, failed_url=None, description="ErrandExpress Payment"):
         """Create a payment source (for GCash, PayMaya, etc.)"""
         try:
-            amount_centavos = int(amount * 100)
+            # Convert amount to centavos (handle Decimal types)
+            amount_centavos = int(float(amount) * 100)
+            
+            # Validate amount
+            if amount_centavos <= 0:
+                logger.error(f"Invalid amount: {amount_centavos} centavos")
+                return None
             
             # Use provided URLs or fall back to default
             if not success_url:
                 success_url = f"https://{settings.ALLOWED_HOSTS[0]}/payment/success/"
             if not failed_url:
                 failed_url = f"https://{settings.ALLOWED_HOSTS[0]}/payment/failed/"
+            
+            # Ensure URLs are valid
+            if not success_url.startswith('http'):
+                logger.error(f"Invalid success URL: {success_url}")
+                return None
+            if not failed_url.startswith('http'):
+                logger.error(f"Invalid failed URL: {failed_url}")
+                return None
                 
             payload = {
                 "data": {
@@ -116,6 +130,7 @@ class PayMongoClient:
                         "amount": amount_centavos,
                         "currency": currency,
                         "type": source_type,
+                        "description": description,
                         "redirect": {
                             "success": success_url,
                             "failed": failed_url
@@ -124,16 +139,20 @@ class PayMongoClient:
                 }
             }
             
+            logger.info(f"Creating PayMongo source: type={source_type}, amount={amount_centavos} centavos, description={description}")
+            
             response = requests.post(
                 f"{self.base_url}/sources",
                 json=payload,
-                headers=self.headers
+                headers=self.headers,
+                timeout=10
             )
             
             if response.status_code == 200:
+                logger.info(f"PayMongo source created successfully")
                 return response.json()
             else:
-                logger.error(f"PayMongo source creation failed: {response.text}")
+                logger.error(f"PayMongo source creation failed: Status={response.status_code}, Response={response.text}")
                 return None
                 
         except Exception as e:
@@ -196,6 +215,8 @@ class ErrandExpressPayments:
     
     def calculate_total_amount(self, task_price):
         """Calculate total amount including system fee"""
+        # Convert to Decimal to handle both float and Decimal inputs
+        task_price = Decimal(str(task_price))
         return task_price + self.system_fee
     
     def create_system_fee_payment(self, task, payer):
@@ -237,7 +258,7 @@ class ErrandExpressPayments:
         
         try:
             payment_intent = self.paymongo.create_payment_intent(
-                amount=task.price,
+                amount=float(task.price),
                 description=f"ErrandExpress Task Payment - {task.title}"
             )
             
@@ -294,6 +315,36 @@ class ErrandExpressPayments:
             logger.error(f"GCash payment error: {str(e)}")
             return {'success': False, 'error': str(e)}
     
+    def process_card_payment(self, amount, description="ErrandExpress Payment", success_url=None, failed_url=None):
+        """Create card payment source
+        
+        Args:
+            amount: The payment amount
+            description: Payment description
+            success_url: Custom success redirect URL (optional)
+            failed_url: Custom failed redirect URL (optional)
+        """
+        try:
+            source = self.paymongo.create_source(
+                amount=amount,
+                source_type="card",
+                success_url=success_url,
+                failed_url=failed_url
+            )
+            
+            if source:
+                return {
+                    'success': True,
+                    'checkout_url': source['data']['attributes']['redirect']['checkout_url'],
+                    'source_id': source['data']['id']
+                }
+            else:
+                return {'success': False, 'error': 'Failed to create card payment'}
+                
+        except Exception as e:
+            logger.error(f"Card payment error: {str(e)}")
+            return {'success': False, 'error': str(e)}
+    
     def verify_payment(self, payment_intent_id):
         """Verify payment status"""
         try:
@@ -322,7 +373,7 @@ def format_amount_for_display(amount):
 
 def format_amount_for_paymongo(amount):
     """Convert amount to centavos for PayMongo API"""
-    return int(amount * 100)
+    return int(float(amount) * 100)
 
 
 def get_payment_method_display_name(method):

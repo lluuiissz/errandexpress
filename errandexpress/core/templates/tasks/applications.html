@@ -221,9 +221,9 @@
                     <div class="flex items-center space-x-3 pt-4 border-t">
                         <a href="{% url 'accept_application' app.id %}" 
                            class="btn btn-success flex-1"
-                           onclick="return confirm('Accept {{ app.doer.fullname }}\'s application? This will reject all other applications.')">
+                           onclick="return confirm('Choose {{ app.doer.fullname }} for this task? This will reject all other applications.')">
                             <i data-lucide="check" class="w-4 h-4 mr-2"></i>
-                            Accept Application
+                            Choose This Doer
                         </a>
                         <a href="{% url 'reject_application' app.id %}" 
                            class="btn btn-danger"

@@ -60,8 +60,8 @@ A full-stack Django + React application for connecting task posters with task do
 
 ### External Services
 - **PayMongo** - Payment processing
-- **Firebase** - Hosting and deployment
-- **Supabase** - Optional database
+- **Vercel** - Serverless deployment
+- **Supabase** - PostgreSQL database
 
 ## 🛠️ Installation
 
@@ -127,36 +127,51 @@ py manage.py runserver
 
 Visit `http://localhost:8000` in your browser.
 
-## 🚀 Deployment to Firebase
+## 🚀 Deployment to Vercel
 
 ### Prerequisites
-- Firebase account
-- Firebase CLI installed
-- Node.js installed
+- Vercel account (free at https://vercel.com)
+- GitHub account
+- Git installed
 
-### Steps
+### Quick Start
 
-1. **Initialize Firebase**
+1. **Push to GitHub**
 ```bash
-firebase init hosting
+git add .
+git commit -m "Ready for Vercel deployment"
+git push origin main
 ```
 
-2. **Build static files**
-```bash
-py manage.py collectstatic --noinput
-```
+2. **Connect to Vercel**
+- Go to https://vercel.com
+- Click "New Project"
+- Select your GitHub repository
+- Click "Import"
 
-3. **Deploy to Firebase**
-```bash
-firebase deploy
-```
+3. **Set Environment Variables**
+In Vercel dashboard → Settings → Environment Variables, add:
+- `DJANGO_SECRET_KEY` - Your Django secret key
+- `DATABASE_URL` - Supabase PostgreSQL connection
+- `DEBUG` - Set to `False`
+- `ALLOWED_HOSTS` - Your Vercel domain
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_KEY` - Your Supabase API key
+- `PAYMONGO_SECRET_KEY` - PayMongo secret key
+- `PAYMONGO_PUBLIC_KEY` - PayMongo public key
+- `PAYMONGO_WEBHOOK_SECRET` - PayMongo webhook secret
 
-### Production Settings
-- Set `DEBUG=False` in `.env`
-- Configure `ALLOWED_HOSTS` with your domain
-- Set up PostgreSQL database
-- Configure PayMongo webhook URL
-- Enable HTTPS
+4. **Deploy**
+- Click "Deploy"
+- Vercel will build and deploy automatically
+- Your app will be live at `https://your-project.vercel.app`
+
+### Post-Deployment
+- Update PayMongo webhook URL to your Vercel domain
+- Set up custom domain (optional)
+- Monitor logs in Vercel dashboard
+
+**For detailed instructions, see `VERCEL_DEPLOYMENT_GUIDE.md`**
 
 ## 📚 API Documentation
 
@@ -303,11 +318,12 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ## 📖 Documentation
 
+- `VERCEL_DEPLOYMENT_GUIDE.md` - Complete Vercel deployment guide
 - `TASK_AND_APPLICANT_RANKING.md` - Ranking system details
 - `PAYMENT_FIX_SUMMARY.md` - Payment system overview
 - `WEBHOOK_SETUP_GUIDE.md` - Webhook configuration
-- `DEPLOYMENT_GUIDE.md` - Deployment instructions
 - `API_DOCUMENTATION.md` - API reference
+- `QUICK_START_PAYMENT_TESTING.md` - Payment testing guide
 
 ---
 

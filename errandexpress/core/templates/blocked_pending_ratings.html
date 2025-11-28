@@ -1,0 +1,188 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Pending Rating Obligations - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <i data-lucide="alert-circle" class="w-8 h-8 text-red-600"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">System Access Blocked</h1>
+            <p class="text-lg text-gray-600">You have pending rating obligations</p>
+        </div>
+
+        <!-- Main Message -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-6 border-l-4 border-red-500">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                    <i data-lucide="warning" class="w-6 h-6 text-red-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">⚠️ Action Required</h2>
+                    <p class="text-gray-700 mb-4">{{ message }}</p>
+                    <p class="text-sm text-gray-600">
+                        Complete all pending payments and ratings to regain full system access.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Tasks List -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+                <h3 class="text-lg font-bold text-white">
+                    <i data-lucide="list" class="w-5 h-5 inline mr-2"></i>
+                    Pending Tasks ({{ count }})
+                </h3>
+            </div>
+
+            <div class="divide-y">
+                {% for item in pending_tasks %}
+                <div class="p-6 hover:bg-gray-50 transition">
+                    <!-- Task Info -->
+                    <div class="mb-4">
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">
+                            {{ item.task.title }}
+                        </h4>
+                        <p class="text-gray-600 mb-3">
+                            <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Task Doer: {{ item.task.doer.fullname }}
+                            </span>
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            Completed: {{ item.task.completed_at|date:"M d, Y" }}
+                        </p>
+                    </div>
+
+                    <!-- Payment Requirements -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h5 class="font-bold text-gray-900 mb-3">Payment Requirements:</h5>
+                        
+                        <!-- System Commission -->
+                        <div class="flex items-center gap-3 mb-3">
+                            {% if item.needs_system_fee %}
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-6 w-6 rounded-full bg-red-100">
+                                    <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-gray-900 font-medium">System Commission (Chat Unlock)</p>
+                                <p class="text-sm text-gray-600">₱2.00 - Required for all tasks</p>
+                            </div>
+                            <div class="text-right">
+                                <a href="{% url 'payment_system_fee' item.task.id %}" 
+                                   class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                    Pay Now
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-6 w-6 rounded-full bg-green-100">
+                                    <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-gray-900 font-medium">System Commission (Chat Unlock)</p>
+                                <p class="text-sm text-gray-600">₱2.00 - ✅ Paid</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Task Doer Payment (Online Only) -->
+                        {% if item.payment_method == 'online' %}
+                        <div class="flex items-center gap-3">
+                            {% if item.needs_doer_payment %}
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-6 w-6 rounded-full bg-red-100">
+                                    <i data-lucide="x" class="w-4 h-4 text-red-600"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-gray-900 font-medium">Task Doer Payment</p>
+                                <p class="text-sm text-gray-600">₱{{ item.task.price }} - Required for online payment</p>
+                            </div>
+                            <div class="text-right">
+                                <a href="{% url 'payment_task_doer' item.task.id %}" 
+                                   class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                    Pay Now
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center justify-center h-6 w-6 rounded-full bg-green-100">
+                                    <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-gray-900 font-medium">Task Doer Payment</p>
+                                <p class="text-sm text-gray-600">₱{{ item.task.price }} - ✅ Paid</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Rating Action -->
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-600 mb-3">
+                            After completing all payments above, you can rate the task doer:
+                        </p>
+                        <a href="{% url 'rate_user' item.task.id item.task.doer.id %}" 
+                           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                            <i data-lucide="star" class="w-4 h-4"></i>
+                            Rate Task Doer
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div class="flex gap-4">
+                <div class="flex-shrink-0">
+                    <i data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-blue-900 mb-2">Why am I blocked?</h4>
+                    <p class="text-blue-800 text-sm mb-3">
+                        To maintain system integrity and fairness, task posters must complete all payments and ratings for completed tasks before accessing other features.
+                    </p>
+                    <ul class="text-blue-800 text-sm space-y-1 ml-4">
+                        <li>✓ Ensures system revenue collection (₱2 per task)</li>
+                        <li>✓ Guarantees fair payment to task doers</li>
+                        <li>✓ Maintains user accountability</li>
+                        <li>✓ Protects platform integrity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8">
+            <p class="text-gray-600 mb-4">
+                Questions? Contact support at <a href="mailto:support@errandexpress.com" class="text-blue-600 hover:underline">support@errandexpress.com</a>
+            </p>
+            <a href="{% url 'dashboard' %}" 
+               class="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
