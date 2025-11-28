@@ -1,0 +1,10 @@
+<!-- Django Messages Integration with Professional Notifications -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message hidden" 
+             data-type="{{ message.tags }}" 
+             data-message="{{ message }}"
+             data-title="{% if 'success' in message.tags %}✓ Success{% elif 'error' in message.tags %}✕ Error{% elif 'warning' in message.tags %}⚠ Warning{% else %}ℹ Information{% endif %}">
+        </div>
+    {% endfor %}
+{% endif %}

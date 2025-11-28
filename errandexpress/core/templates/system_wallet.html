@@ -1,0 +1,193 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}System Wallet - ErrandExpress 🚀{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-20 lg:pb-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="font-poppins font-bold text-3xl text-text-primary mb-2">System Wallet</h1>
+        <p class="text-muted">Platform revenue and financial overview</p>
+    </div>
+    
+    <!-- Revenue Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Revenue -->
+        <div class="card card-hover" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-mint to-green-500 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="wallet" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="badge badge-mint">All Time</span>
+            </div>
+            <p class="text-sm text-muted mb-1">Total Revenue</p>
+            <p class="font-poppins font-bold text-3xl text-mint">₱{{ total_revenue|floatformat:2 }}</p>
+            <p class="text-xs text-muted mt-2">From {{ total_commissions }} transactions</p>
+        </div>
+        
+        <!-- This Month -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-primary to-indigo-600 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="badge badge-primary">This Month</span>
+            </div>
+            <p class="text-sm text-muted mb-1">Monthly Revenue</p>
+            <p class="font-poppins font-bold text-3xl text-primary">₱{{ monthly_revenue|floatformat:2 }}</p>
+            <p class="text-xs text-muted mt-2">{{ monthly_commissions }} transactions</p>
+        </div>
+        
+        <!-- Pending -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-accent to-yellow-500 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="badge badge-accent">Pending</span>
+            </div>
+            <p class="text-sm text-muted mb-1">Pending Payments</p>
+            <p class="font-poppins font-bold text-3xl text-accent">₱{{ pending_revenue|floatformat:2 }}</p>
+            <p class="text-xs text-muted mt-2">{{ pending_commissions }} transactions</p>
+        </div>
+    </div>
+    
+    <!-- Revenue Chart -->
+    <div class="card mb-8" data-aos="fade-up">
+        <h3 class="font-poppins font-semibold text-xl mb-6">Revenue Trend (Last 30 Days)</h3>
+        <div class="h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl flex items-center justify-center">
+            <div class="text-center">
+                <i data-lucide="bar-chart-3" class="w-16 h-16 text-primary mx-auto mb-4"></i>
+                <p class="text-muted">Revenue chart visualization</p>
+                <p class="text-sm text-muted">Integrate Chart.js or similar library</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="card" data-aos="fade-up">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-poppins font-semibold text-xl">Recent Transactions</h3>
+            <div class="flex items-center space-x-2">
+                <button class="btn-ghost text-sm" onclick="filterTransactions('all')">All</button>
+                <button class="btn-ghost text-sm" onclick="filterTransactions('paid')">Paid</button>
+                <button class="btn-ghost text-sm" onclick="filterTransactions('pending')">Pending</button>
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-muted">Date</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-muted">Task</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-muted">Poster</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-muted">Method</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-muted">Amount</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-muted">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for commission in recent_commissions %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4 text-sm">{{ commission.created_at|date:"M d, Y" }}</td>
+                        <td class="py-4 px-4">
+                            <a href="{% url 'task_detail' commission.task.id %}" class="font-medium text-primary hover:underline">
+                                {{ commission.task.title|truncatewords:5 }}
+                            </a>
+                        </td>
+                        <td class="py-4 px-4 text-sm">{{ commission.task.poster.fullname }}</td>
+                        <td class="py-4 px-4">
+                            <span class="badge {% if commission.payment_method == 'gcash' %}badge-mint{% else %}badge-accent{% endif %}">
+                                {{ commission.payment_method|upper }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 font-semibold text-mint">₱{{ commission.amount|floatformat:2 }}</td>
+                        <td class="py-4 px-4">
+                            <span class="badge {% if commission.status == 'paid' %}badge-mint{% elif commission.status == 'pending' %}badge-accent{% else %}badge-danger{% endif %}">
+                                {{ commission.status|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-muted">
+                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                            <p>No transactions yet</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if recent_commissions %}
+        <div class="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
+            <p class="text-sm text-muted">Showing {{ recent_commissions|length }} of {{ total_commissions }} transactions</p>
+            <div class="flex items-center space-x-2">
+                <button class="btn-ghost text-sm">Previous</button>
+                <button class="btn-primary text-sm">Next</button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        <div class="card text-center" data-aos="fade-up">
+            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="users" class="w-6 h-6 text-primary"></i>
+            </div>
+            <p class="font-poppins font-bold text-2xl text-text-primary">{{ active_users }}</p>
+            <p class="text-sm text-muted">Active Users</p>
+        </div>
+        
+        <div class="card text-center" data-aos="fade-up" data-aos-delay="100">
+            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="briefcase" class="w-6 h-6 text-mint"></i>
+            </div>
+            <p class="font-poppins font-bold text-2xl text-text-primary">{{ completed_tasks }}</p>
+            <p class="text-sm text-muted">Completed Tasks</p>
+        </div>
+        
+        <div class="card text-center" data-aos="fade-up" data-aos-delay="200">
+            <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="percent" class="w-6 h-6 text-accent"></i>
+            </div>
+            <p class="font-poppins font-bold text-2xl text-text-primary">{{ success_rate }}%</p>
+            <p class="text-sm text-muted">Success Rate</p>
+        </div>
+        
+        <div class="card text-center" data-aos="fade-up" data-aos-delay="300">
+            <div class="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="trending-up" class="w-6 h-6 text-purple-600"></i>
+            </div>
+            <p class="font-poppins font-bold text-2xl text-text-primary">₱{{ avg_transaction|floatformat:2 }}</p>
+            <p class="text-sm text-muted">Avg Transaction</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function filterTransactions(status) {
+        // Filter transactions by status
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            if (status === 'all') {
+                row.style.display = '';
+            } else {
+                const statusBadge = row.querySelector('td:last-child .badge');
+                if (statusBadge && statusBadge.textContent.toLowerCase().includes(status)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

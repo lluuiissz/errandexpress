@@ -1,0 +1,322 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Skill Validation - ErrandExpress{% endblock %}
+
+{% block extra_css %}
+<style>
+    .skill-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    .skill-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .skill-card.status-pending {
+        border-left: 4px solid #fbbf24;
+        background: linear-gradient(to right, #fffbeb, white);
+    }
+    .skill-card.status-verified {
+        border-left: 4px solid #22c55e;
+        background: linear-gradient(to right, #f0fdf4, white);
+    }
+    .skill-card.status-rejected {
+        border-left: 4px solid #ef4444;
+        background: linear-gradient(to right, #fef2f2, white);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-primary to-indigo-600 text-white">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">🏆 Skill Validation</h1>
+                    <p class="text-blue-100">Validate your skills to unlock premium task opportunities</p>
+                </div>
+                <div class="hidden md:flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                    <span class="font-semibold">{{ user_skills|length }} Skills Submitted</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Your Skills Status -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-6 h-6 text-primary"></i>
+                    Your Skills Status
+                </h2>
+            </div>
+            
+            <!-- Review Time Notice -->
+            <div class="mb-6 p-4 bg-blue-50 border-l-4 border-primary rounded-lg">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="clock" class="w-5 h-5 text-primary mt-0.5"></i>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900 mb-1">⏰ Quick Review Process</p>
+                        <p class="text-sm text-gray-700">All submitted skills will be reviewed and verified within <strong>24 hours</strong>. You'll receive a notification once your skill is approved or if additional information is needed.</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if user_skills %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for skill in user_skills %}
+                <div class="skill-card status-{{ skill.status }}">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-3">
+                        <h3 class="text-lg font-semibold text-gray-900">{{ skill.get_skill_name_display }}</h3>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            {% if skill.status == 'pending' %}
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">Pending</span>
+                            {% elif skill.status == 'verified' %}
+                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">✓ Verified</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Rejected</span>
+                            {% endif %}
+                            
+                            {% if skill.status != 'verified' %}
+                            <button onclick="deleteSkill('{{ skill.id }}', '{{ skill.get_skill_name_display }}')" class="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1 text-sm font-medium border border-red-200 hover:border-red-300" title="Delete this skill submission">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                <span>Delete</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if skill.test_score %}
+                    <div class="mb-3 flex items-center gap-2">
+                        <i data-lucide="target" class="w-4 h-4 text-green-600"></i>
+                        <span class="text-lg font-bold text-green-600">{{ skill.test_score }}% Score</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-sm text-gray-600 space-y-1 mb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                            <span>Submitted: {{ skill.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        {% if skill.verified_at %}
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                            <span>Verified: {{ skill.verified_at|date:"M d, Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if skill.notes %}
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
+                        <strong>Notes:</strong> {{ skill.notes }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <i data-lucide="award" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                <p class="text-gray-600 mb-2">You haven't submitted any skills for validation yet.</p>
+                <p class="text-gray-500">Start by submitting your first skill below!</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Submit New Skill -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <i data-lucide="plus-circle" class="w-6 h-6 text-primary"></i>
+                Submit New Skill for Validation
+            </h2>
+            
+            <!-- Available Skills Info -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div class="text-3xl mb-2">⌨️</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Typing</h3>
+                    <p class="text-sm text-gray-600">Fast and accurate typing skills. Complete an online typing test.</p>
+                    <div class="mt-3 text-xs text-gray-500">
+                        <div>• Min: 40 WPM</div>
+                        <div>• Accuracy: 95%+</div>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <div class="text-3xl mb-2">📊</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">PowerPoint</h3>
+                    <p class="text-sm text-gray-600">Creating presentations, slide design, animations.</p>
+                    <div class="mt-3 text-xs text-gray-500">
+                        <div>• Portfolio required</div>
+                        <div>• Sample slides</div>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-pink-50 rounded-xl border border-pink-200">
+                    <div class="text-3xl mb-2">🎨</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Graphics Design</h3>
+                    <p class="text-sm text-gray-600">Logo design, posters, digital art.</p>
+                    <div class="mt-3 text-xs text-gray-500">
+                        <div>• Portfolio required</div>
+                        <div>• Design samples</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submission Form -->
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="{{ form.skill_name.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Skill Type *
+                    </label>
+                    {{ form.skill_name }}
+                    {% if form.skill_name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.skill_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.proof_url.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Proof/Portfolio File
+                    </label>
+                    {{ form.proof_url }}
+                    <p class="mt-2 text-sm text-gray-600">
+                        <i data-lucide="info" class="w-4 h-4 inline"></i>
+                        Upload portfolio samples, certificates, or other proof. Accepted: PDF, DOC, DOCX, JPG, PNG (Max 5MB)
+                    </p>
+                    {% if form.proof_url.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.proof_url.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.notes.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Additional Information
+                    </label>
+                    {{ form.notes }}
+                    <p class="mt-2 text-sm text-gray-600">
+                        Tell us about your experience, previous work, or any additional details about your skill.
+                    </p>
+                    {% if form.notes.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Typing Test Info (shown when typing is selected) -->
+                <div id="typing-test-info" style="display: none;" class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">📝 Typing Test Required</h4>
+                            <p class="text-sm text-gray-700 mb-3">
+                                For typing skills, you'll need to complete an online typing test after submitting this form. 
+                                The test will measure your words per minute (WPM) and accuracy.
+                            </p>
+                            <div class="text-sm text-gray-700">
+                                <strong>Minimum Requirements:</strong>
+                                <ul class="list-disc list-inside ml-2 mt-1">
+                                    <li>Speed: 40+ WPM</li>
+                                    <li>Accuracy: 95%+</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full md:w-auto px-8 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                    Submit for Validation
+                </button>
+            </form>
+        </div>
+        
+        <!-- Validation Process -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <i data-lucide="list-checks" class="w-6 h-6 text-primary"></i>
+                Validation Process
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-primary">1</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Submit Application</h3>
+                    <p class="text-sm text-gray-600">Fill out the form with your skill information and supporting documents.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-purple-600">2</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Complete Test</h3>
+                    <p class="text-sm text-gray-600">For typing skills, complete the online test. Others require portfolio review.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-yellow-600">3</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Admin Review</h3>
+                    <p class="text-sm text-gray-600">Our team reviews your submission within 1-3 business days.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-green-600">4</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Get Verified</h3>
+                    <p class="text-sm text-gray-600">Once approved, access tasks requiring your validated skill!</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Initialize Lucide icons
+lucide.createIcons();
+
+// Show/hide typing test info based on skill selection
+document.addEventListener('DOMContentLoaded', function() {
+    const skillSelect = document.getElementById('{{ form.skill_name.id_for_label }}');
+    const typingTestInfo = document.getElementById('typing-test-info');
+    
+    function toggleTypingTestInfo() {
+        if (skillSelect && typingTestInfo) {
+            if (skillSelect.value === 'typing') {
+                typingTestInfo.style.display = 'block';
+            } else {
+                typingTestInfo.style.display = 'none';
+            }
+        }
+    }
+    
+    if (skillSelect) {
+        skillSelect.addEventListener('change', toggleTypingTestInfo);
+        toggleTypingTestInfo(); // Check initial state
+    }
+});
+
+// Delete skill function
+function deleteSkill(skillId, skillName) {
+    if (confirm(`Are you sure you want to delete "${skillName}" skill? This action cannot be undone.`)) {
+        window.location.href = `/skills/delete/${skillId}/`;
+    }
+}
+</script>
+{% endblock %}

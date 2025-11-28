@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Task - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="hero" style="margin-bottom: 2rem;">
+    <h1>Create New Task</h1>
+    <p>Post your task and connect with skilled students</p>
+</div>
+
+<div class="card" style="max-width: 800px;">
+    <h2>Task Details</h2>
+    
+    <form method="post" id="task-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">Task Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+                <div class="text-danger">{{ form.title.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">Description *</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <div class="text-danger">{{ form.description.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.category.id_for_label }}">Category *</label>
+            {{ form.category }}
+            {% if form.category.errors %}
+                <div class="text-danger">{{ form.category.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.tags.id_for_label }}">Tags</label>
+            {{ form.tags }}
+            <small class="text-muted">Separate tags with commas (e.g., urgent, easy, typing)</small>
+            {% if form.tags.errors %}
+                <div class="text-danger">{{ form.tags.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.price.id_for_label }}">Price (₱) *</label>
+                    {{ form.price }}
+                    <small class="text-muted">Minimum ₱10 + ₱2 system fee</small>
+                    {% if form.price.errors %}
+                        <div class="text-danger">{{ form.price.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.payment_method.id_for_label }}">Payment Method *</label>
+                    {{ form.payment_method }}
+                    {% if form.payment_method.errors %}
+                        <div class="text-danger">{{ form.payment_method.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.deadline.id_for_label }}">Deadline *</label>
+                    {{ form.deadline }}
+                    {% if form.deadline.errors %}
+                        <div class="text-danger">{{ form.deadline.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}">Location</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <div class="text-danger">{{ form.location.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.requirements.id_for_label }}">Requirements</label>
+            {{ form.requirements }}
+            <small class="text-muted">Special skills or qualifications needed</small>
+            {% if form.requirements.errors %}
+                <div class="text-danger">{{ form.requirements.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <button type="submit" class="btn btn-primary btn-block">Create Task</button>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-block">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.col-md-6 {
+    flex: 1;
+}
+.text-danger {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+.text-muted {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

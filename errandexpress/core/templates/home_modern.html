@@ -1,0 +1,211 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}ErrandExpress 🚀 - Smart Errands. Trusted Students.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full opacity-20 animate-float"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full opacity-20 animate-float" style="animation-delay: -3s;"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Left Content -->
+            <div class="text-center lg:text-left" data-aos="fade-right">
+                <h1 class="font-heading font-bold text-4xl md:text-6xl lg:text-7xl text-text-primary mb-6 leading-tight">
+                    Your Campus
+                    <span class="gradient-text">Task Marketplace</span>
+                </h1>
+                
+                <p class="font-body text-lg md:text-xl text-text-secondary mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                    Connect with fellow students to get tasks done or earn money. From deliveries to digital work, ErrandExpress makes it simple, safe, and rewarding.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn-modern bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-ui font-semibold text-lg shadow-lg hover:shadow-xl">
+                            Go to Dashboard
+                            <i data-lucide="arrow-right" class="w-5 h-5 ml-2 inline"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'signup' %}" class="btn-modern bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-ui font-semibold text-lg shadow-lg hover:shadow-xl animate-glow">
+                            Get Started
+                            <i data-lucide="rocket" class="w-5 h-5 ml-2 inline"></i>
+                        </a>
+                        
+                        <a href="{% url 'login' %}" class="btn-modern bg-white text-blue-600 px-8 py-4 rounded-2xl font-ui font-semibold text-lg border-2 border-blue-200 hover:border-blue-300 shadow-lg">
+                            Login
+                            <i data-lucide="log-in" class="w-5 h-5 ml-2 inline"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Real Stats -->
+                <div class="flex justify-center lg:justify-start space-x-8 mt-12" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center">
+                        <div class="font-heading font-bold text-3xl text-primary">{{ total_users|default:"1K+" }}</div>
+                        <div class="font-ui text-sm text-text-secondary">Active Users</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-heading font-bold text-3xl text-secondary">{{ total_tasks|default:"5K+" }}</div>
+                        <div class="font-ui text-sm text-text-secondary">Tasks Done</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-heading font-bold text-3xl text-accent">{{ avg_rating|floatformat:1|default:"4.9" }}★</div>
+                        <div class="font-ui text-sm text-text-secondary">Rating</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Illustration -->
+            <div class="flex justify-center lg:justify-end" data-aos="fade-left" data-aos-delay="300">
+                <div class="relative">
+                    <!-- Main Illustration Placeholder -->
+                    <div class="w-96 h-96 bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-2xl flex items-center justify-center relative overflow-hidden">
+                        <!-- Floating Cards -->
+                        <div class="absolute top-4 right-4 bg-white rounded-xl p-3 shadow-lg animate-float">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-secondary rounded-full"></div>
+                                <span class="font-ui text-sm text-text-secondary">Task Complete</span>
+                            </div>
+                        </div>
+                        
+                        <div class="absolute bottom-4 left-4 bg-white rounded-xl p-3 shadow-lg animate-float" style="animation-delay: -2s;">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-accent rounded-full"></div>
+                                <span class="font-ui text-sm text-text-secondary">₱25 Earned</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Center Icon -->
+                        <div class="text-center">
+                            <div class="w-24 h-24 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                                <i data-lucide="users" class="w-12 h-12 text-white"></i>
+                            </div>
+                            <p class="font-ui text-text-secondary">Student Collaboration</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Elements -->
+                    <div class="absolute -top-6 -left-6 w-12 h-12 bg-gradient-to-r from-secondary to-green-400 rounded-xl opacity-80 animate-float"></div>
+                    <div class="absolute -bottom-6 -right-6 w-16 h-16 bg-gradient-to-r from-accent to-yellow-400 rounded-2xl opacity-80 animate-float" style="animation-delay: -1s;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-20 bg-white relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16" data-aos="fade-up">
+            <div class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full mb-4">
+                <i data-lucide="info" class="w-4 h-4"></i>
+                <span class="text-sm font-medium">Get Started in 3 Steps</span>
+            </div>
+            <h2 class="font-heading font-bold text-4xl md:text-5xl text-text-primary mb-4">
+                How It Works
+            </h2>
+            <p class="font-body text-xl text-text-secondary max-w-2xl mx-auto">
+                Simple steps to start earning or getting help with your tasks
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Step 1 -->
+            <div class="text-center card-hover bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8" data-aos="fade-up" data-aos-delay="100">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="edit-3" class="w-8 h-8 text-white"></i>
+                </div>
+                <h3 class="font-heading font-semibold text-2xl text-text-primary mb-4">Post Tasks</h3>
+                <p class="font-body text-text-secondary leading-relaxed">
+                    Create tasks with clear descriptions, fair pricing, and choose between COD or GCash payment
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-ui font-medium text-sm">Step 1</span>
+                </div>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="text-center card-hover bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8" data-aos="fade-up" data-aos-delay="200">
+                <div class="w-16 h-16 bg-gradient-to-r from-secondary to-green-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="coins" class="w-8 h-8 text-white"></i>
+                </div>
+                <h3 class="font-heading font-semibold text-2xl text-text-primary mb-4">Earn Money</h3>
+                <p class="font-body text-text-secondary leading-relaxed">
+                    Complete tasks that match your skills and get paid securely through our platform
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full font-ui font-medium text-sm">Step 2</span>
+                </div>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="text-center card-hover bg-gradient-to-br from-yellow-50 to-amber-50 rounded-3xl p-8" data-aos="fade-up" data-aos-delay="300">
+                <div class="w-16 h-16 bg-gradient-to-r from-accent to-yellow-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="star" class="w-8 h-8 text-white"></i>
+                </div>
+                <h3 class="font-heading font-semibold text-2xl text-text-primary mb-4">Rate & Grow</h3>
+                <p class="font-body text-text-secondary leading-relaxed">
+                    Build your reputation through ratings and reviews to unlock better opportunities
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <span class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-ui font-medium text-sm">Step 3</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 relative overflow-hidden">
+    <div class="absolute inset-0">
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full"></div>
+    </div>
+    
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-aos="fade-up">
+        <h2 class="font-heading font-bold text-4xl md:text-5xl text-white mb-6">
+            Ready to Start Your Journey?
+        </h2>
+        <p class="font-body text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of students already earning and helping each other succeed
+        </p>
+        
+        {% if not user.is_authenticated %}
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'signup' %}" class="btn-modern bg-white text-blue-600 px-8 py-4 rounded-2xl font-ui font-semibold text-lg shadow-lg hover:shadow-xl">
+                Join as Student
+                <i data-lucide="graduation-cap" class="w-5 h-5 ml-2 inline"></i>
+            </a>
+            <a href="{% url 'signup' %}" class="btn-modern bg-accent text-gray-800 px-8 py-4 rounded-2xl font-ui font-semibold text-lg shadow-lg hover:shadow-xl">
+                Post Tasks
+                <i data-lucide="plus-circle" class="w-5 h-5 ml-2 inline"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">E</span>
+                </div>
+                <span class="font-heading font-bold text-xl">ErrandExpress</span>
+                <span class="text-lg">🚀</span>
+            </div>
+            <p class="font-ui text-gray-400 mb-6">Smart errands. Trusted students.</p>
+            <p class="font-ui text-sm text-gray-500">
+                © 2025 ErrandExpress. Built with ❤️ for the student community.
+            </p>
+        </div>
+    </div>
+</footer>
+{% endblock %}

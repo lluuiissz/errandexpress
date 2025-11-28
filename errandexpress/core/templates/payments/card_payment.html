@@ -1,0 +1,174 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Card Payment - ErrandExpress{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-4">
+                <i data-lucide="credit-card" class="w-8 h-8 text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Card Payment</h1>
+            <p class="text-gray-600">Pay ₱2 with your credit or debit card</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <!-- Task Info Section -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        {{ task.title|first|upper }}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-gray-900 mb-1">{{ task.title }}</h3>
+                        <p class="text-sm text-gray-600">Task Payment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Section -->
+            <div class="p-6 space-y-6">
+                <!-- Amount -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <span class="text-gray-700 font-medium">Amount</span>
+                        <span class="text-2xl font-bold text-gray-900">₱2.00</span>
+                    </div>
+                </div>
+
+                <!-- Test Card Info -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <p class="text-sm font-semibold text-yellow-900 mb-3">🧪 Test Card Details:</p>
+                    <div class="space-y-2 text-sm text-yellow-800">
+                        <p><strong>Card Number:</strong> 4343434343434345</p>
+                        <p><strong>Expiry:</strong> Any future date (e.g., 12/25)</p>
+                        <p><strong>CVC:</strong> Any 3 digits (e.g., 123)</p>
+                        <p><strong>Cardholder Name:</strong> Any name</p>
+                    </div>
+                </div>
+
+                <!-- Card Form -->
+                <form id="card-form" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Cardholder Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+                        <input type="text" id="cardholder_name" placeholder="John Doe" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none" required>
+                    </div>
+
+                    <!-- Card Number -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                        <input type="text" id="card_number" placeholder="4343 4343 4343 4345" maxlength="19" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none" required>
+                    </div>
+
+                    <!-- Expiry and CVC -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry (MM/YY)</label>
+                            <input type="text" id="expiry" placeholder="12/25" maxlength="5" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">CVC</label>
+                            <input type="text" id="cvc" placeholder="123" maxlength="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none" required>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl mt-6">
+                        <i data-lucide="lock" class="w-5 h-5"></i>
+                        <span>Pay ₱2.00</span>
+                    </button>
+
+                    <a href="{% url 'messages_chat' task.id %}" class="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium text-center block">
+                        Cancel
+                    </a>
+                </form>
+
+                <!-- Security Info -->
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex items-start gap-2 text-xs text-gray-600">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5"></i>
+                        <p>Your payment is secured by <strong>PayMongo</strong>. We never store your card details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <p class="text-sm text-blue-900">
+                <strong>💡 Tip:</strong> This is a test payment. Use the test card details above. After payment, you'll have unlimited messaging for this task.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Format card number with spaces
+document.getElementById('card_number').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\s/g, '');
+    let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+    e.target.value = formatted;
+});
+
+// Format expiry
+document.getElementById('expiry').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.slice(0, 2) + '/' + value.slice(2, 4);
+    }
+    e.target.value = value;
+});
+
+// Only allow numbers in CVC
+document.getElementById('cvc').addEventListener('input', function(e) {
+    e.target.value = e.target.value.replace(/\D/g, '');
+});
+
+// Handle form submission
+document.getElementById('card-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const button = this.querySelector('button[type="submit"]');
+    button.disabled = true;
+    button.innerHTML = '<i data-lucide="loader" class="w-5 h-5 inline mr-2 animate-spin"></i>Processing...';
+    
+    try {
+        // In a real implementation, you would send this to PayMongo
+        // For now, we'll use the test endpoint to confirm payment
+        const testEndpoint = '/test/confirm-payment/{{ task.id }}/';
+        const response = await fetch(testEndpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                alert('✅ Test payment successful! Chat is now unlocked.');
+                window.location.href = '{% url "messages_chat" task.id %}';
+            }
+        } else {
+            alert('❌ Payment failed. Please try again.');
+            button.disabled = false;
+            button.innerHTML = '<i data-lucide="credit-card" class="w-5 h-5"></i><span>Pay ₱2.00</span>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error processing payment.');
+        button.disabled = false;
+        button.innerHTML = '<i data-lucide="credit-card" class="w-5 h-5"></i><span>Pay ₱2.00</span>';
+    }
+});
+</script>
+
+<script src="{% static 'js/paymongo-live.js' %}"></script>
+{% endblock %}

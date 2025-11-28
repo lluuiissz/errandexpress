@@ -1,0 +1,280 @@
+{% extends "base_modern.html" %}
+
+{% block title %}Privacy Policy - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div class="text-center mb-6">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">🔒 Privacy Policy</h1>
+                <p class="text-gray-600">Last Updated: November 7, 2025</p>
+            </div>
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                <p class="text-sm text-gray-700">
+                    <strong>Your privacy matters to us.</strong> This Privacy Policy explains how ErrandExpress collects, uses, and protects your personal information. We are committed to keeping your data safe and secure.
+                </p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 space-y-8">
+            
+            <!-- 1. Information We Collect -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">1.</span> Information We Collect
+                </h2>
+                <div class="text-gray-700 space-y-4">
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">📝 Information You Provide:</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>Account Information:</strong> Full name, email address, phone number, password</li>
+                            <li><strong>Profile Information:</strong> Bio, profile picture, role (task poster/doer)</li>
+                            <li><strong>Payment Information:</strong> GCash number (stored securely)</li>
+                            <li><strong>Skill Validation:</strong> Test scores, portfolios, proof documents</li>
+                            <li><strong>Task Information:</strong> Task descriptions, requirements, deadlines</li>
+                            <li><strong>Communications:</strong> Messages, ratings, reviews, reports</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">🔍 Information We Collect Automatically:</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>Usage Data:</strong> Pages visited, features used, time spent on platform</li>
+                            <li><strong>Device Information:</strong> IP address, browser type, operating system</li>
+                            <li><strong>Location Data:</strong> General location (for task matching)</li>
+                            <li><strong>Cookies:</strong> Session data, preferences, authentication tokens</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. How We Use Your Information -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">2.</span> How We Use Your Information
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>We use your information to:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><strong>Provide Services:</strong> Create accounts, process tasks, facilitate payments</li>
+                        <li><strong>Match Tasks:</strong> Connect task posters with qualified doers</li>
+                        <li><strong>Process Payments:</strong> Handle transactions securely via PayMongo</li>
+                        <li><strong>Verify Skills:</strong> Review and validate user skills</li>
+                        <li><strong>Send Notifications:</strong> Task updates, messages, payment confirmations</li>
+                        <li><strong>Improve Platform:</strong> Analyze usage patterns, fix bugs, add features</li>
+                        <li><strong>Ensure Safety:</strong> Detect fraud, prevent abuse, resolve disputes</li>
+                        <li><strong>Customer Support:</strong> Respond to inquiries and resolve issues</li>
+                        <li><strong>Legal Compliance:</strong> Meet regulatory requirements</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 3. Information Sharing -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">3.</span> Information Sharing
+                </h2>
+                <div class="text-gray-700 space-y-4">
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">✅ We Share Information With:</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>Other Users:</strong> Your profile, ratings, and task-related information are visible to users you interact with</li>
+                            <li><strong>Payment Processors:</strong> PayMongo (for GCash payments) - only necessary payment data</li>
+                            <li><strong>Service Providers:</strong> Hosting (Supabase), email services - under strict confidentiality</li>
+                            <li><strong>Legal Authorities:</strong> When required by law or to protect rights and safety</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">❌ We Never:</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li>Sell your personal information to third parties</li>
+                            <li>Share your payment details with other users</li>
+                            <li>Disclose your private messages without consent</li>
+                            <li>Use your data for unrelated marketing purposes</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Data Security -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">4.</span> Data Security
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>We implement industry-standard security measures to protect your data:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><strong>Encryption:</strong> All data transmitted via HTTPS/TLS encryption</li>
+                        <li><strong>Secure Storage:</strong> Passwords hashed with bcrypt, data stored on secure servers</li>
+                        <li><strong>Access Control:</strong> Limited employee access to personal data</li>
+                        <li><strong>Payment Security:</strong> PCI-DSS compliant payment processing via PayMongo</li>
+                        <li><strong>Regular Audits:</strong> Security reviews and vulnerability assessments</li>
+                        <li><strong>Backup Systems:</strong> Regular data backups to prevent loss</li>
+                    </ul>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded mt-4">
+                        <p class="text-sm">
+                            <strong>⚠️ Important:</strong> While we take security seriously, no system is 100% secure. Please use strong passwords and never share your account credentials.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Your Privacy Rights -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">5.</span> Your Privacy Rights
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>You have the right to:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><strong>Access Your Data:</strong> Request a copy of all personal information we hold</li>
+                        <li><strong>Update Information:</strong> Edit your profile, contact details, and preferences</li>
+                        <li><strong>Delete Account:</strong> Permanently remove your account and associated data</li>
+                        <li><strong>Control Visibility:</strong> Adjust privacy settings for profile visibility</li>
+                        <li><strong>Opt-Out:</strong> Unsubscribe from non-essential emails and notifications</li>
+                        <li><strong>Data Portability:</strong> Download your data in a structured format</li>
+                        <li><strong>Object to Processing:</strong> Request restriction of certain data uses</li>
+                    </ul>
+                    <p class="mt-4">To exercise these rights, go to <strong>Settings > Privacy</strong> or contact support.</p>
+                </div>
+            </section>
+
+            <!-- 6. Cookies & Tracking -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">6.</span> Cookies & Tracking
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>We use cookies and similar technologies to:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><strong>Essential Cookies:</strong> Keep you logged in, remember preferences</li>
+                        <li><strong>Analytics Cookies:</strong> Understand how you use the platform</li>
+                        <li><strong>Security Cookies:</strong> Detect and prevent fraudulent activity</li>
+                    </ul>
+                    <p>You can control cookies through your browser settings, but some features may not work without them.</p>
+                </div>
+            </section>
+
+            <!-- 7. Data Retention -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">7.</span> Data Retention
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>We retain your information:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><strong>Active Accounts:</strong> As long as your account is active</li>
+                        <li><strong>Deleted Accounts:</strong> Up to 30 days for recovery, then permanently deleted</li>
+                        <li><strong>Transaction Records:</strong> 7 years for legal and tax compliance</li>
+                        <li><strong>Dispute Records:</strong> Until resolution + 1 year</li>
+                        <li><strong>Anonymized Data:</strong> May be retained indefinitely for analytics</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 8. Third-Party Services -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">8.</span> Third-Party Services
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>We use trusted third-party services:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><strong>PayMongo:</strong> Payment processing (GCash) - <a href="https://paymongo.com/privacy" class="text-blue-600 hover:underline" target="_blank">Privacy Policy</a></li>
+                        <li><strong>Supabase:</strong> Database hosting - <a href="https://supabase.com/privacy" class="text-blue-600 hover:underline" target="_blank">Privacy Policy</a></li>
+                        <li><strong>Email Service:</strong> Transactional emails and notifications</li>
+                    </ul>
+                    <p>These services have their own privacy policies. We recommend reviewing them.</p>
+                </div>
+            </section>
+
+            <!-- 9. Children's Privacy -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">9.</span> Children's Privacy
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>ErrandExpress is intended for users 18 years and older. If you are under 18:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>You must have parental or guardian consent</li>
+                        <li>Your parent/guardian is responsible for your account</li>
+                        <li>We do not knowingly collect data from children under 13</li>
+                    </ul>
+                    <p>If we discover a user is under 13, we will delete their account immediately.</p>
+                </div>
+            </section>
+
+            <!-- 10. International Users -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">10.</span> International Users
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>ErrandExpress is based in the Philippines. If you access from outside the Philippines:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>Your data may be transferred to and stored in the Philippines</li>
+                        <li>We comply with Philippine data protection laws</li>
+                        <li>By using our service, you consent to this transfer</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 11. Changes to Privacy Policy -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span class="text-green-600">11.</span> Changes to Privacy Policy
+                </h2>
+                <div class="text-gray-700 space-y-3">
+                    <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>Email notification to your registered address</li>
+                        <li>Prominent notice on the platform</li>
+                        <li>Updated "Last Modified" date at the top</li>
+                    </ul>
+                    <p>We encourage you to review this policy periodically.</p>
+                </div>
+            </section>
+
+            <!-- Contact -->
+            <section class="bg-green-50 rounded-xl p-6 border-l-4 border-green-500">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="shield" class="w-6 h-6 text-green-600"></i>
+                    Privacy Questions?
+                </h2>
+                <p class="text-gray-700 mb-3">
+                    If you have questions about this Privacy Policy or how we handle your data:
+                </p>
+                <ul class="text-gray-700 space-y-2">
+                    <li><strong>Email:</strong> privacy@errandexpress.com</li>
+                    <li><strong>Support:</strong> support@errandexpress.com</li>
+                    <li><strong>Settings:</strong> Manage privacy preferences in your account settings</li>
+                </ul>
+                <div class="mt-4 p-3 bg-white rounded-lg">
+                    <p class="text-sm text-gray-600">
+                        <strong>Data Protection Officer:</strong> For formal privacy requests or complaints, contact our DPO at dpo@errandexpress.com
+                    </p>
+                </div>
+            </section>
+
+            <!-- Back Button -->
+            <div class="text-center pt-6">
+                <a href="{% url 'home' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    <span>Back to Home</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

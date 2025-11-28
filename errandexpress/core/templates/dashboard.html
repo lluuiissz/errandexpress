@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="hero" style="margin-bottom: 2rem;">
+    <h1>Welcome to Your Dashboard</h1>
+    <p>Manage your ErrandExpress activities</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dashboard-card">
+        <h3>👤 Profile Information</h3>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Role:</strong> 
+            {% if user.role == 'task_poster' %}
+                👨‍🏫 Task Poster
+            {% elif user.role == 'task_doer' %}
+                👨‍🎓 Task Doer
+                {% if user.doer_type %}
+                    <br><small style="color: #666;">{{ user.get_doer_type_display }}</small>
+                {% endif %}
+            {% elif user.role == 'admin' %}
+                👮 Admin
+            {% else %}
+                {{ user.get_role_display }}
+            {% endif %}
+        </p>
+        <p><strong>Rating:</strong> ⭐ {{ user.avg_rating }}/10 ({{ user.total_ratings }} reviews)</p>
+        <div class="mt-2">
+            <a href="#" class="btn btn-secondary">Edit Profile</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h3>📊 Quick Stats</h3>
+        <p>Your ErrandExpress statistics will appear here once you start using the platform.</p>
+        <div class="mt-2">
+            <a href="#" class="btn btn-secondary">View Details</a>
+        </div>
+    </div>
+    
+    {% if user.role == 'task_poster' %}
+    <div class="dashboard-card">
+        <h3>📝 Post a Task</h3>
+        <p>Need help with an errand or task? Post it here and connect with skilled students.</p>
+        <div class="mt-2">
+            <a href="{% url 'create_task' %}" class="btn btn-primary">Create Task</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h3>📋 My Posted Tasks</h3>
+        <p>Manage and track your posted tasks and their progress.</p>
+        <div class="mt-2">
+            <a href="{% url 'my_tasks' %}" class="btn btn-secondary">View Tasks</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user.role == 'task_doer' %}
+    <div class="dashboard-card">
+        <h3>🔍 Find Tasks</h3>
+        <p>Browse available tasks that match your skills and interests.</p>
+        <div class="mt-2">
+            <a href="{% url 'browse_tasks' %}" class="btn btn-primary">Browse Tasks</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h3>✅ Skill Validation</h3>
+        <p>Validate your skills to access more task opportunities.</p>
+        <div class="mt-2">
+            <a href="{% url 'skill_validation' %}" class="btn btn-secondary">Validate Skills</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h3>📋 My Accepted Tasks</h3>
+        <p>Track your current and completed tasks.</p>
+        <div class="mt-2">
+            <a href="{% url 'my_tasks' %}" class="btn btn-secondary">View Tasks</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user.role == 'admin' %}
+    <div class="dashboard-card">
+        <h3>📊 Admin Dashboard</h3>
+        <p>View platform statistics, manage users, and oversee system operations.</p>
+        <div class="mt-2">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Open Dashboard</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h3>⚙️ Django Admin</h3>
+        <p>Access the full Django admin interface for advanced management.</p>
+        <div class="mt-2">
+            <a href="{% url 'admin:index' %}" class="btn btn-secondary">Django Admin</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="dashboard-card">
+        <h3>💬 Messages</h3>
+        <p>Check your conversations and notifications.</p>
+        <div class="mt-2">
+            <a href="#" class="btn btn-secondary">View Messages</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h3>⭐ Ratings & Reviews</h3>
+        <p>View your ratings and feedback from other users.</p>
+        <div class="mt-2">
+            <a href="#" class="btn btn-secondary">View Ratings</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

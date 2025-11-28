@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1>📊 Admin Dashboard</h1>
+        <p>System overview and management</p>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card users">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>{{ total_users }}</h3>
+                <p>Total Users</p>
+                <small>+{{ new_users_week }} this week</small>
+            </div>
+        </div>
+        
+        <div class="stat-card tasks">
+            <div class="stat-icon">📋</div>
+            <div class="stat-content">
+                <h3>{{ total_tasks }}</h3>
+                <p>Total Tasks</p>
+                <small>+{{ tasks_this_week }} this week</small>
+            </div>
+        </div>
+        
+        <div class="stat-card revenue">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <h3>₱{{ total_revenue }}</h3>
+                <p>Total Revenue</p>
+                <small>₱{{ revenue_this_month }} this month</small>
+            </div>
+        </div>
+        
+        <div class="stat-card skills">
+            <div class="stat-icon">🎓</div>
+            <div class="stat-content">
+                <h3>{{ pending_skills }}</h3>
+                <p>Pending Skills</p>
+                <small>{{ verified_skills }} verified</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Management Links -->
+    <div class="management-grid">
+        <div class="management-card">
+            <h3>👥 User Management</h3>
+            <p>Manage users, roles, and permissions</p>
+            <div class="user-breakdown">
+                <div class="breakdown-item">
+                    <span>Task Posters:</span>
+                    <strong>{{ task_posters }}</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Task Doers:</span>
+                    <strong>{{ task_doers }}</strong>
+                </div>
+            </div>
+            <a href="{% url 'admin_users' %}" class="btn btn-primary">Manage Users</a>
+        </div>
+        
+        <div class="management-card">
+            <h3>📋 Task Management</h3>
+            <p>Oversee tasks and resolve issues</p>
+            <div class="task-breakdown">
+                <div class="breakdown-item">
+                    <span>Open:</span>
+                    <strong>{{ open_tasks }}</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>In Progress:</span>
+                    <strong>{{ in_progress_tasks }}</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Completed:</span>
+                    <strong>{{ completed_tasks }}</strong>
+                </div>
+            </div>
+            <a href="{% url 'admin_tasks' %}" class="btn btn-primary">Manage Tasks</a>
+        </div>
+        
+        <div class="management-card">
+            <h3>🎓 Skill Validation</h3>
+            <p>Review and approve skill submissions</p>
+            <div class="skill-status">
+                {% if pending_skills > 0 %}
+                    <div class="alert alert-warning">
+                        <strong>{{ pending_skills }}</strong> skills awaiting review
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        All skills reviewed ✅
+                    </div>
+                {% endif %}
+            </div>
+            <a href="{% url 'admin_skill_validation' %}" class="btn btn-primary">Review Skills</a>
+        </div>
+        
+        <div class="management-card">
+            <h3>🚨 Reports & Issues</h3>
+            <p>Handle user reports and disputes</p>
+            <div class="reports-status">
+                {% if pending_reports > 0 %}
+                    <div class="alert alert-danger">
+                        <strong>{{ pending_reports }}</strong> reports pending
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        No pending reports ✅
+                    </div>
+                {% endif %}
+            </div>
+            <a href="{% url 'admin:core_report_changelist' %}" class="btn btn-primary">View Reports</a>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="activity-section">
+        <div class="activity-grid">
+            <div class="activity-card">
+                <h3>📋 Recent Tasks</h3>
+                <div class="activity-list">
+                    {% for task in recent_tasks %}
+                    <div class="activity-item">
+                        <div class="activity-content">
+                            <strong>{{ task.title|truncatechars:30 }}</strong>
+                            <small>by {{ task.poster.fullname }}</small>
+                        </div>
+                        <div class="activity-meta">
+                            <span class="status-badge status-{{ task.status }}">{{ task.get_status_display }}</span>
+                            <small>{{ task.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="no-activity">No recent tasks</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="activity-card">
+                <h3>👥 Recent Users</h3>
+                <div class="activity-list">
+                    {% for user in recent_users %}
+                    <div class="activity-item">
+                        <div class="activity-content">
+                            <strong>{{ user.fullname }}</strong>
+                            <small>{{ user.get_role_display }}</small>
+                        </div>
+                        <div class="activity-meta">
+                            <small>{{ user.date_joined|timesince }} ago</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="no-activity">No recent users</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Statistics -->
+    <div class="category-stats">
+        <h3>📊 Task Categories</h3>
+        <div class="category-grid">
+            {% for category in category_stats %}
+            <div class="category-item">
+                <div class="category-name">{{ category.category|title }}</div>
+                <div class="category-count">{{ category.count }} tasks</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.admin-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.admin-header h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.admin-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-left: 4px solid #e9ecef;
+}
+
+.stat-card.users { border-left-color: #667eea; }
+.stat-card.tasks { border-left-color: #28a745; }
+.stat-card.revenue { border-left-color: #ffc107; }
+.stat-card.skills { border-left-color: #17a2b8; }
+
+.stat-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.stat-content h3 {
+    margin: 0;
+    font-size: 2rem;
+    color: #333;
+}
+
+.stat-content p {
+    margin: 0.25rem 0;
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-content small {
+    color: #888;
+    font-size: 0.875rem;
+}
+
+.management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.management-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.management-card h3 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.management-card p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.user-breakdown,
+.task-breakdown {
+    margin-bottom: 1.5rem;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.skill-status,
+.reports-status {
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.activity-section {
+    margin-bottom: 3rem;
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.activity-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.activity-card h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.activity-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.activity-content strong {
+    display: block;
+    color: #333;
+}
+
+.activity-content small {
+    color: #666;
+}
+
+.activity-meta {
+    text-align: right;
+}
+
+.activity-meta small {
+    display: block;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-badge.status-open {
+    background: #28a745;
+    color: white;
+}
+
+.status-badge.status-in_progress {
+    background: #ffc107;
+    color: #212529;
+}
+
+.status-badge.status-completed {
+    background: #17a2b8;
+    color: white;
+}
+
+.no-activity {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+}
+
+.category-stats {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-stats h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.category-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid #667eea;
+}
+
+.category-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.category-count {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .management-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .activity-meta {
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

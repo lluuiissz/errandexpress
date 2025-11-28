@@ -1,0 +1,665 @@
+{% extends "base_complete.html" %}
+{% load static %}
+
+{% block title %}Messages - ErrandExpress{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Animations */
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .message-bubble { animation: slideIn 0.3s ease-out; }
+    .conversation-item { animation: fadeIn 0.2s ease-out; }
+    
+    /* Sidebar */
+    #conversations-sidebar {
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Conversation items */
+    .conversation-item {
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+    .conversation-item:hover {
+        background-color: #f9fafb;
+    }
+    .conversation-item.active {
+        background-color: #eff6ff;
+        border-left-color: #3b82f6;
+    }
+    
+    /* Messages */
+    #messages-container {
+        scroll-behavior: smooth;
+    }
+    
+    .message-sent {
+        animation: slideIn 0.3s ease-out;
+    }
+    .message-received {
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    /* Chat header */
+    .chat-header {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Input area */
+    #message-input-wrapper {
+        box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    #message-input {
+        transition: all 0.2s ease;
+        border-color: #e5e7eb;
+    }
+    #message-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Tablet optimizations */
+    @media (max-width: 1024px) {
+        .flex-1 { min-height: 0; }
+        #messages-container {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+        .flex.flex-col>div:last-child { flex-shrink: 0; }
+        
+        /* Better spacing on tablet */
+        .conversation-item {
+            padding: 0.75rem;
+        }
+        
+        .message-bubble {
+            max-width: 85%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .flex.flex-col.h-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .flex-1.flex.overflow-hidden.relative {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        .flex-1.flex.flex-col {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            position: relative;
+            padding-bottom: 0;
+        }
+        #messages-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        #message-input-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+            z-index: 99;
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+            max-width: 100vw;
+        }
+        form.flex.items-end.gap-3 {
+            display: flex !important;
+            gap: 0.75rem;
+            align-items: flex-end;
+            width: 100%;
+        }
+        form.flex.items-end.gap-3>div {
+            flex: 1;
+            min-width: 0;
+        }
+        form.flex.items-end.gap-3>button {
+            flex-shrink: 0;
+            padding: 0.75rem 1rem;
+            min-width: 50px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #message-input {
+            width: 100%;
+            min-height: 48px;
+            padding: 0.75rem 1rem;
+            border-radius: 9999px;
+            border: 2px solid #e5e7eb;
+            resize: none;
+            font-family: inherit;
+        }
+        .mb-3.p-3.bg-blue-50 {
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Mobile message styling */
+        .message-bubble {
+            max-width: 90%;
+        }
+        
+        .conversation-item {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .chat-header {
+            padding: 0.75rem;
+        }
+        
+        #messages-container {
+            padding: 0.75rem;
+            gap: 0.75rem;
+        }
+        
+        /* Better touch targets */
+        button {
+            min-height: 44px;
+            min-width: 44px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Messenger-Style Split Screen Layout -->
+<div class="flex flex-col h-screen bg-gray-50">
+
+    <!-- Mobile Backdrop Overlay -->
+    <div id="mobile-backdrop"
+        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30 opacity-0 pointer-events-none transition-opacity duration-300">
+    </div>
+
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Left Sidebar: Conversations List -->
+        <div id="conversations-sidebar" class="w-80 bg-white border-r border-gray-200 flex flex-col 
+                absolute lg:relative inset-y-0 left-0 z-40 
+                transform -translate-x-full lg:translate-x-0 
+                transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none">
+            <!-- Header -->
+            <div class="hidden lg:flex p-3 border-b border-gray-200 items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Messages</h1>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ conversations|length }} conversation{{ conversations|length|pluralize }}</p>
+                </div>
+            </div>
+
+            <!-- Mobile Header in Sidebar -->
+            <div class="lg:hidden p-3 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Conversations</h2>
+                <button id="close-sidebar" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5 text-gray-600"></i>
+                </button>
+            </div>
+
+            <!-- Conversations List -->
+            <div class="flex-1 overflow-y-auto">
+                {% if conversations %}
+                {% for conv in conversations %}
+                <a href="{% url 'messages_chat' conv.task.id %}"
+                    class="conversation-item block p-3 border-b border-gray-100 {% if active_task and active_task.id == conv.task.id %}active{% endif %}">
+                    <div class="flex items-start gap-2.5">
+                        <!-- Avatar -->
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                            {{ conv.other_user.fullname|first|upper }}
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <!-- Name & Unread Badge -->
+                            <div class="flex items-center justify-between mb-0.5">
+                                <h3 class="font-semibold text-sm text-gray-900 truncate">
+                                    {{ conv.other_user.fullname }}
+                                </h3>
+                                {% if conv.unread_count > 0 %}
+                                <span
+                                    class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {{ conv.unread_count }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+
+                            <!-- Task Title -->
+                            <p class="text-xs text-gray-500 truncate mb-0.5">
+                                {{ conv.task.title }}
+                            </p>
+
+                            <!-- Last Message -->
+                            {% if conv.last_message %}
+                            <p class="text-xs text-gray-600 truncate">
+                                {% if conv.last_message.sender == user %}<span class="text-blue-600">You:</span> {% endif %}{{ conv.last_message.message|truncatewords:6 }}
+                            </p>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                {{ conv.last_message.created_at|timesince }} ago
+                            </p>
+                            {% else %}
+                            <p class="text-xs text-gray-400">No messages yet</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right: Active Chat -->
+        <div class="flex-1 flex flex-col">
+            {% if active_task %}
+            <!-- Chat Header -->
+            <div class="chat-header p-4 bg-white border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <!-- Mobile Menu Button -->
+                    <button id="open-sidebar" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 z-50">
+                        <i data-lucide="menu" class="w-6 h-6 text-gray-700"></i>
+                    </button>
+
+                    <!-- Avatar -->
+                    <div
+                        class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                        {{ other_user.fullname|first|upper }}
+                    </div>
+
+                    <div>
+                        <h2 class="font-semibold text-gray-900">{{ other_user.fullname }}</h2>
+                        <p class="text-sm text-gray-500">{{ active_task.title }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Task Status -->
+                    <span class="px-3 py-1 rounded-full text-xs font-medium
+                        {% if active_task.status == 'completed' %}bg-green-100 text-green-700
+                        {% elif active_task.status == 'in_progress' %}bg-blue-100 text-blue-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ active_task.get_status_display }}
+                    </span>
+
+                    <!-- Delete Button -->
+                    <button onclick="deleteConversation('{{ active_task.id }}', '{{ active_task.title|escapejs }}')"
+                        class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
+                {% if active_messages %}
+                {% for message in active_messages %}
+                <div class="flex {% if message.sender == user %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="max-w-md">
+                        {% if message.sender == user %}
+                        <!-- Sent Message -->
+                        <div class="message-bubble message-sent bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2 shadow-sm">
+                            <p class="text-sm">{{ message.message }}</p>
+                        </div>
+                        {% else %}
+                        <!-- Received Message -->
+                        <div class="message-bubble message-received bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm px-4 py-2">
+                            <p class="text-sm">{{ message.message }}</p>
+                        </div>
+                        {% endif %}
+                        <p class="text-xs text-gray-400 mt-1 {% if message.sender == user %}text-right{% endif %}">
+                            {{ message.created_at|date:"g:i A" }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-8">
+                    <p class="text-gray-500">No messages yet. Start the conversation!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Message Input -->
+            <div class="p-4 bg-white border-t border-gray-200" id="message-input-wrapper">
+                {% if chat_access.allowed %}
+                <!-- Free Tier Warning -->
+                {% if chat_access.free_tier %}
+                <div class="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                    <p class="text-sm text-blue-900">
+                        <i data-lucide="info" class="w-4 h-4 inline"></i>
+                        <strong>{{ chat_access.messages_remaining }}</strong> free message{{ chat_access.messages_remaining|pluralize }} remaining. Pay ₱2 to unlock unlimited chat.
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Message Form -->
+                <form method="POST" action="{% url 'messages_chat' active_task.id %}" class="flex items-end gap-3">
+                    {% csrf_token %}
+                    <div class="flex-1">
+                        <textarea name="message_content" id="message-input" rows="1"
+                            class="w-full p-3 border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none max-h-32"
+                            placeholder="Type your message..." required></textarea>
+                    </div>
+                    <button type="submit"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-colors font-medium">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </form>
+                {% else %}
+                <!-- Payment Required -->
+                <div class="text-center py-6">
+                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="lock" class="w-8 h-8 text-amber-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Message Limit Reached</h3>
+                    <p class="text-sm text-gray-600 mb-4">{{ chat_access.reason }}</p>
+                    <button onclick="window.location.href='{% url 'payment_system_fee' active_task.id %}'"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i data-lucide="unlock" class="w-5 h-5 inline mr-2"></i>
+                        Unlock Chat - ₱2
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <!-- No Chat Selected - Mobile shows nothing, Desktop shows message -->
+            <div class="hidden lg:flex flex-1 items-center justify-center bg-gray-50">
+                <div class="text-center">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="message-square" class="w-10 h-10 text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Select a conversation</h3>
+                    <p class="text-sm text-gray-500">Choose from the left to start chatting</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="payment-modal"
+    class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <!-- Modal Header -->
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="credit-card" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Complete Payment</h3>
+            <p class="text-gray-600">Pay the task doer for completed work</p>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-600">Task Amount</span>
+                <span id="modal-amount" class="font-bold text-gray-900">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                <span class="font-bold text-gray-900">Total to Pay</span>
+                <span id="modal-total" class="font-bold text-2xl text-green-600">₱0.00</span>
+            </div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Payment Method</label>
+            <div class="space-y-2">
+                <button onclick="selectPaymentMethod('gcash')"
+                    class="payment-method-btn w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-all">
+                    <i data-lucide="smartphone" class="w-6 h-6 text-blue-600"></i>
+                    <div class="text-left flex-1">
+                        <div class="font-medium">GCash</div>
+                        <div class="text-xs text-gray-500">Instant payment</div>
+                    </div>
+                    <i data-lucide="check-circle" class="w-5 h-5 text-blue-600 hidden check-icon"></i>
+                </button>
+
+                <button onclick="selectPaymentMethod('cod')"
+                    class="payment-method-btn w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 transition-all">
+                    <i data-lucide="banknote" class="w-6 h-6 text-green-600"></i>
+                    <div class="text-left flex-1">
+                        <div class="font-medium">Cash on Delivery</div>
+                        <div class="text-xs text-gray-500">Pay in person</div>
+                    </div>
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600 hidden check-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+            <button onclick="closePaymentModal()"
+                class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+                Cancel
+            </button>
+            <button id="confirm-payment-btn" onclick="processTaskPayment()" disabled
+                class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                <span id="btn-text">Pay Now</span>
+                <span id="btn-loader" class="hidden">Processing...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Form (Hidden) -->
+<form id="delete-form" method="POST" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="delete_task_id" id="delete-task-id">
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/messages-payment.js' %}"></script>
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Mobile sidebar toggle with backdrop
+    const sidebar = document.getElementById('conversations-sidebar');
+    const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+    const closeBtn = document.getElementById('close-sidebar');
+    const backdrop = document.getElementById('mobile-backdrop');
+    const unreadBadge = document.getElementById('mobile-unread-badge');
+
+    // Calculate and show unread count
+    function updateUnreadBadge() {
+        let totalUnread = 0;
+        document.querySelectorAll('.bg-red-500.text-white.text-xs').forEach(badge => {
+            const count = parseInt(badge.textContent.trim());
+            if (!isNaN(count)) totalUnread += count;
+        });
+
+        if (totalUnread > 0 && unreadBadge) {
+            unreadBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+            unreadBadge.classList.remove('hidden');
+        } else if (unreadBadge) {
+            unreadBadge.classList.add('hidden');
+        }
+    }
+
+    // Open sidebar
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        if (backdrop) {
+            backdrop.classList.remove('opacity-0', 'pointer-events-none');
+            backdrop.classList.add('opacity-100');
+        }
+    }
+
+    // Close sidebar
+    function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        if (backdrop) {
+            backdrop.classList.add('opacity-0', 'pointer-events-none');
+            backdrop.classList.remove('opacity-100');
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSidebar();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            closeSidebar();
+        });
+    }
+
+    // Open sidebar (hamburger menu button)
+    const openSidebarBtn = document.getElementById('open-sidebar');
+    if (openSidebarBtn) {
+        openSidebarBtn.addEventListener('click', () => {
+            openSidebar();
+        });
+    }
+
+    // Close sidebar when clicking backdrop
+    if (backdrop) {
+        backdrop.addEventListener('click', () => {
+            closeSidebar();
+        });
+    }
+
+    // Close sidebar when clicking a conversation on mobile
+    document.querySelectorAll('#conversations-sidebar a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth < 1024) {
+                closeSidebar();
+            }
+        });
+    });
+
+    // Update unread badge on load
+    updateUnreadBadge();
+
+    // Auto-scroll to bottom of messages
+    const messagesContainer = document.getElementById('messages-container');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Auto-resize textarea
+    const messageInput = document.getElementById('message-input');
+    if (messageInput) {
+        messageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+        });
+
+        // Submit on Enter (without Shift)
+        messageInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+    }
+
+    // Auto-refresh for new messages using API (every 5 seconds)
+    {% if active_task %}
+    let lastMessageCount = {{ active_messages| length }};
+    let isPolling = false;
+    let lastMessageIds = new Set();
+
+    async function checkForNewMessages() {
+        if (isPolling) return;
+        isPolling = true;
+
+        try {
+            const response = await fetch(`/api/messages/{{ active_task.id }}/`);
+            const data = await response.json();
+
+            if (data.success && data.messages && data.messages.length > 0) {
+                // Check for new messages without reloading page
+                data.messages.forEach(msg => {
+                    if (!lastMessageIds.has(msg.id)) {
+                        lastMessageIds.add(msg.id);
+                        // Add new message to the conversation list
+                        addNewMessageToList(msg);
+                    }
+                });
+            }
+        } catch (error) {
+            console.log('Auto-refresh error:', error);
+        } finally {
+            isPolling = false;
+        }
+    }
+
+    function addNewMessageToList(message) {
+        // Find the conversation link for this task
+        const convLink = document.querySelector(`a[href*="/messages/{{ active_task.id }}/"]`);
+        if (convLink) {
+            // Find the last message paragraph (the one with truncated message)
+            const messageParagraphs = convLink.querySelectorAll('p');
+            if (messageParagraphs.length >= 2) {
+                // Update last message preview (second paragraph)
+                const lastMessageEl = messageParagraphs[1];
+                const preview = message.message.substring(0, 50) + (message.message.length > 50 ? '...' : '');
+                lastMessageEl.textContent = preview;
+                
+                // Update timestamp (third paragraph)
+                if (messageParagraphs.length >= 3) {
+                    messageParagraphs[2].textContent = 'just now';
+                }
+            }
+            
+            // Move conversation to top
+            const messagesList = convLink.closest('.overflow-y-auto');
+            if (messagesList) {
+                messagesList.insertBefore(convLink, messagesList.firstChild);
+            }
+        }
+    }
+
+    setInterval(checkForNewMessages, 5000); // Check every 5 seconds
+    {% endif %}
+
+    function deleteConversation(taskId, taskTitle) {
+        if (confirm(`Are you sure you want to delete the conversation for "${taskTitle}"?\n\nThis will permanently delete all messages in this conversation.`)) {
+            document.getElementById('delete-task-id').value = taskId;
+            document.getElementById('delete-form').submit();
+        }
+    }
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

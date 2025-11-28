@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ErrandExpress 🚀 - Smart Errands. Trusted Students.{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['Poppins', 'sans-serif'],
+                        'body': ['Inter', 'sans-serif'],
+                        'ui': ['Rubik', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#3B82F6',
+                        'secondary': '#22C55E',
+                        'accent': '#FACC15',
+                        'background': '#F9FAFB',
+                        'text-primary': '#111827',
+                        'text-secondary': '#6B7280',
+                        'error': '#EF4444',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-in',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #3B82F6' },
+                            '100%': { boxShadow: '0 0 20px #3B82F6, 0 0 30px #3B82F6' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <style>
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Modern button hover effects */
+        .btn-modern {
+            @apply transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg;
+        }
+        
+        /* Card hover effects */
+        .card-hover {
+            @apply transition-all duration-200 hover:scale-105 hover:shadow-xl;
+        }
+        
+        /* Chat bubble styles */
+        .chat-bubble-poster {
+            @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl rounded-br-md p-3 ml-auto max-w-xs;
+        }
+        
+        .chat-bubble-doer {
+            @apply bg-gray-100 text-gray-800 rounded-2xl rounded-bl-md p-3 mr-auto max-w-xs;
+        }
+        
+        /* Loading skeleton */
+        .skeleton {
+            @apply animate-pulse bg-gray-200 rounded;
+        }
+        
+        /* Scroll animations */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+        
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-background font-body text-text-primary min-h-screen">
+    <!-- Navigation -->
+    {% if user.is_authenticated %}
+    <nav class="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">E</span>
+                        </div>
+                        <span class="font-heading font-bold text-xl gradient-text">ErrandExpress</span>
+                        <span class="text-lg">🚀</span>
+                    </a>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-1 text-text-secondary hover:text-primary transition-colors">
+                        <i data-lucide="home" class="w-4 h-4"></i>
+                        <span class="font-ui">Home</span>
+                    </a>
+                    
+                    {% if user.role == 'task_poster' or user.role == 'admin' %}
+                    <a href="{% url 'create_task' %}" class="flex items-center space-x-1 text-text-secondary hover:text-primary transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span class="font-ui">Post Task</span>
+                    </a>
+                    {% endif %}
+                    
+                    {% if user.role == 'task_doer' or user.role == 'admin' %}
+                    <a href="{% url 'browse_tasks' %}" class="flex items-center space-x-1 text-text-secondary hover:text-primary transition-colors">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        <span class="font-ui">Browse Tasks</span>
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'notifications' %}" class="flex items-center space-x-1 text-text-secondary hover:text-primary transition-colors relative">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                        <span class="font-ui">Notifications</span>
+                        <span id="notification-badge" class="absolute -top-2 -right-2 bg-error text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </a>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm">{{ user.fullname.0|upper }}</span>
+                            </div>
+                            <span class="font-ui font-medium hidden md:block">{{ user.fullname }}</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-text-secondary"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                            <div class="p-2">
+                                <a href="{% url 'profile' %}" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                    <span class="font-ui">Profile</span>
+                                </a>
+                                <a href="{% url 'settings' %}" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i data-lucide="settings" class="w-4 h-4"></i>
+                                    <span class="font-ui">Settings</span>
+                                </a>
+                                <hr class="my-2">
+                                <a href="{% url 'logout' %}" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-red-50 text-error transition-colors">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                                    <span class="font-ui">Logout</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}pt-0{% else %}pt-0{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 text-center">
+            <div class="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p class="font-ui text-text-secondary">Loading...</p>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Initialize AOS animations
+        AOS.init({
+            duration: 600,
+            easing: 'ease-out-cubic',
+            once: true
+        });
+        
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-secondary text-white',
+                error: 'bg-error text-white',
+                warning: 'bg-accent text-gray-800',
+                info: 'bg-primary text-white'
+            };
+            
+            toast.className = `${colors[type]} px-6 py-4 rounded-xl shadow-lg transform translate-x-full transition-transform duration-300 flex items-center space-x-2 max-w-sm`;
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'x-circle',
+                warning: 'alert-triangle',
+                info: 'info'
+            };
+            
+            toast.innerHTML = `
+                <i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="font-ui">${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-70">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+        
+        // Loading overlay functions
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('loading-overlay').classList.add('flex');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('loading-overlay').classList.remove('flex');
+        }
+        
+        // Notification count updater
+        {% if user.is_authenticated %}
+        async function updateNotificationCount() {
+            try {
+                const response = await fetch('{% url "notification_count" %}');
+                const data = await response.json();
+                const badge = document.getElementById('notification-badge');
+                
+                if (data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to update notification count:', error);
+            }
+        }
+        
+        // Update notification count every 30 seconds
+        updateNotificationCount();
+        setInterval(updateNotificationCount, 30000);
+        {% endif %}
+        
+        // Smooth scroll reveal animation
+        function revealOnScroll() {
+            const reveals = document.querySelectorAll('.scroll-reveal');
+            
+            reveals.forEach(element => {
+                const windowHeight = window.innerHeight;
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', revealOnScroll);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            revealOnScroll();
+            
+            // Add hover effects to cards
+            document.querySelectorAll('.card-hover').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

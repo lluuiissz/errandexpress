@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test PayMongo Integration - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="test-payment-container">
+    <div class="test-header">
+        <h1>🧪 PayMongo Live Integration Test</h1>
+        <p>Test the ₱2 system fee payment with live PayMongo keys</p>
+    </div>
+    
+    <div class="test-content">
+        <div class="test-card">
+            <h3>🔑 API Keys Status</h3>
+            <div class="key-status">
+                <div class="key-item">
+                    <span>Public Key:</span>
+                    <code>{{ paymongo_public_key|slice:":20" }}...</code>
+                    <span class="status-live">LIVE</span>
+                </div>
+                <div class="key-item">
+                    <span>Secret Key:</span>
+                    <code>{{ paymongo_secret_key|slice:":20" }}...</code>
+                    <span class="status-live">LIVE</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-card">
+            <h3>💳 Test Payment Flow</h3>
+            <p>Click the button below to test the complete ₱2 payment process:</p>
+            
+            <div class="test-actions">
+                <button type="button" class="btn btn-primary btn-lg" 
+                        data-pay-fee data-task-id="test-task-123">
+                    💳 Test ₱2 Payment via GCash
+                </button>
+            </div>
+            
+            <div class="test-info">
+                <h4>What this test does:</h4>
+                <ul>
+                    <li>✅ Creates PayMongo payment intent</li>
+                    <li>✅ Generates GCash checkout URL</li>
+                    <li>✅ Opens payment window</li>
+                    <li>✅ Monitors payment completion</li>
+                    <li>✅ Tests webhook reception</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="test-card">
+            <h3>🔗 API Endpoints</h3>
+            <div class="endpoint-list">
+                <div class="endpoint-item">
+                    <span class="method">POST</span>
+                    <code>/api/create-payment-intent/</code>
+                    <span class="status-ready">READY</span>
+                </div>
+                <div class="endpoint-item">
+                    <span class="method">POST</span>
+                    <code>/api/create-gcash-payment/</code>
+                    <span class="status-ready">READY</span>
+                </div>
+                <div class="endpoint-item">
+                    <span class="method">POST</span>
+                    <code>/webhook/paymongo/</code>
+                    <span class="status-ready">READY</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-card">
+            <h3>📊 Test Results</h3>
+            <div id="test-results" class="test-results">
+                <p>Click the test button above to see results...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.test-payment-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.test-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.test-header h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.test-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.test-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.test-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.test-card h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.key-status {
+    display: grid;
+    gap: 1rem;
+}
+
+.key-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.key-item span:first-child {
+    font-weight: 600;
+    min-width: 100px;
+}
+
+.key-item code {
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    flex: 1;
+}
+
+.status-live {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.test-actions {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.test-info {
+    background: #e3f2fd;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.test-info h4 {
+    margin-bottom: 1rem;
+    color: #1565c0;
+}
+
+.test-info ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.test-info li {
+    margin-bottom: 0.5rem;
+    color: #1976d2;
+}
+
+.endpoint-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.endpoint-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.method {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 60px;
+    text-align: center;
+}
+
+.endpoint-item code {
+    background: #e9ecef;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    flex: 1;
+}
+
+.status-ready {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.test-results {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    min-height: 100px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-lg {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+}
+</style>
+
+<script src="{% static 'js/paymongo-live.js' %}"></script>
+
+<script>
+// Enhanced test logging
+document.addEventListener('DOMContentLoaded', function() {
+    const testResults = document.getElementById('test-results');
+    
+    // Override console.log for test results
+    const originalLog = console.log;
+    console.log = function(...args) {
+        originalLog.apply(console, args);
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const message = args.join(' ');
+        testResults.innerHTML += `[${timestamp}] ${message}\n`;
+        testResults.scrollTop = testResults.scrollHeight;
+    };
+    
+    // Log initial status
+    console.log('PayMongo Live Integration Test Started');
+    console.log('Public Key: {{ paymongo_public_key|slice:":20" }}...');
+    console.log('Endpoints Ready: /api/create-payment-intent/, /api/create-gcash-payment/, /webhook/paymongo/');
+    console.log('Ready for testing!');
+});
+</script>
+{% endblock %}

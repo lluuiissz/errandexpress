@@ -1,0 +1,344 @@
+{% extends "base_complete.html" %}
+{% load static %}
+
+{% block title %}Payments - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">💰 Payments</h1>
+        <p class="text-gray-600">Manage your transactions and payment history</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Earned/Spent -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between mb-2">
+                <i data-lucide="wallet" class="w-8 h-8 opacity-80"></i>
+                <span class="text-sm opacity-80">Total</span>
+            </div>
+            <div class="text-3xl font-bold mb-1">₱{{ stats.total_amount|floatformat:2 }}</div>
+            <div class="text-sm opacity-90">
+                {% if user.role == 'task_doer' %}Earned{% else %}Spent{% endif %}
+            </div>
+        </div>
+
+        <!-- Pending Payments -->
+        <div class="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between mb-2">
+                <i data-lucide="clock" class="w-8 h-8 opacity-80"></i>
+                <span class="text-sm opacity-80">Pending</span>
+            </div>
+            <div class="text-3xl font-bold mb-1">₱{{ stats.pending_amount|floatformat:2 }}</div>
+            <div class="text-sm opacity-90">{{ stats.pending_count }} payment(s)</div>
+        </div>
+
+        <!-- This Month -->
+        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between mb-2">
+                <i data-lucide="calendar" class="w-8 h-8 opacity-80"></i>
+                <span class="text-sm opacity-80">This Month</span>
+            </div>
+            <div class="text-3xl font-bold mb-1">₱{{ stats.month_amount|floatformat:2 }}</div>
+            <div class="text-sm opacity-90">{{ stats.month_count }} transaction(s)</div>
+        </div>
+
+        <!-- Success Rate -->
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+            <div class="flex items-center justify-between mb-2">
+                <i data-lucide="trending-up" class="w-8 h-8 opacity-80"></i>
+                <span class="text-sm opacity-80">Success Rate</span>
+            </div>
+            <div class="text-3xl font-bold mb-1">{{ stats.success_rate|floatformat:0 }}%</div>
+            <div class="text-sm opacity-90">{{ stats.completed_count }}/{{ stats.total_count }} completed</div>
+        </div>
+    </div>
+
+    <!-- Pending Payments Section -->
+    {% if pending_payments %}
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <i data-lucide="alert-circle" class="w-6 h-6 text-orange-500"></i>
+                Action Required
+            </h2>
+            <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium">
+                {{ pending_payments|length }} pending
+            </span>
+        </div>
+
+        <div class="space-y-4">
+            {% for payment in pending_payments %}
+            <div class="border-2 border-orange-100 rounded-xl p-4 hover:border-orange-300 transition-all">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold">
+                                {{ payment.other_user.fullname|first|upper }}
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ payment.task.title }}</h3>
+                                <p class="text-sm text-gray-500">{{ payment.other_user.fullname }}</p>
+                            </div>
+                        </div>
+                        <div class="ml-13 flex items-center gap-4 text-sm text-gray-600">
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                                Completed {{ payment.task.updated_at|timesince }} ago
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                {{ payment.task.location }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-2">
+                        <div class="text-2xl font-bold text-gray-900">₱{{ payment.task.price }}</div>
+                        {% if user.role == 'task_poster' %}
+                        <div class="flex flex-col gap-2 w-full sm:w-auto">
+                            <!-- Online Payment (GCash) - Primary Action -->
+                            <button onclick="openPaymentModal('{{ payment.task.id }}', '{{ payment.task.price }}')"
+                                    class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all text-sm font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                                <i data-lucide="wifi" class="w-4 h-4"></i>
+                                <span>Pay Online (GCash)</span>
+                            </button>
+                            <!-- COD Option -->
+                            <button onclick="openPaymentModal('{{ payment.task.id }}', '{{ payment.task.price }}', 'cod')"
+                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
+                                <i data-lucide="banknote" class="w-4 h-4"></i>
+                                <span>Cash on Delivery</span>
+                            </button>
+                        </div>
+                        {% else %}
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                            Awaiting Payment
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Payment History -->
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <i data-lucide="history" class="w-6 h-6 text-blue-500"></i>
+                Payment History
+            </h2>
+            
+            <!-- Filter Tabs -->
+            <div class="flex gap-2">
+                <button onclick="filterPayments('all')" 
+                        class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        data-filter="all">
+                    All
+                </button>
+                <button onclick="filterPayments('confirmed')" 
+                        class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        data-filter="confirmed">
+                    Paid
+                </button>
+                <button onclick="filterPayments('pending')" 
+                        class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        data-filter="pending">
+                    Pending
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                <input type="text" 
+                       id="search-payments"
+                       placeholder="Search by task name..."
+                       class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors">
+            </div>
+        </div>
+
+        <!-- Payment History Table -->
+        {% if payment_history %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b-2 border-gray-200">
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Task</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">
+                            {% if user.role == 'task_doer' %}From{% else %}To{% endif %}
+                        </th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Method</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Amount</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="payment-table-body">
+                    {% for payment in payment_history %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors payment-row" 
+                        data-status="{{ payment.status }}"
+                        data-task="{{ payment.task.title|lower }}">
+                        <td class="py-4 px-4 text-sm text-gray-600">
+                            {{ payment.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="font-medium text-gray-900">{{ payment.task.title }}</div>
+                            <div class="text-xs text-gray-500">{{ payment.task.location }}</div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                    {% if user.role == 'task_doer' %}
+                                        {{ payment.task.poster.fullname|first|upper }}
+                                    {% else %}
+                                        {{ payment.task.doer.fullname|first|upper }}
+                                    {% endif %}
+                                </div>
+                                <span class="text-sm text-gray-700">
+                                    {% if user.role == 'task_doer' %}
+                                        {{ payment.task.poster.fullname }}
+                                    {% else %}
+                                        {{ payment.task.doer.fullname }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium
+                                {% if payment.method == 'paymongo' %}bg-blue-100 text-blue-700
+                                {% else %}bg-green-100 text-green-700{% endif %}">
+                                <i data-lucide="{% if payment.method == 'paymongo' %}smartphone{% else %}banknote{% endif %}" class="w-3 h-3"></i>
+                                {% if payment.method == 'paymongo' %}GCash{% else %}COD{% endif %}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="font-bold text-gray-900">₱{{ payment.amount }}</span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
+                                {% if payment.status == 'confirmed' %}bg-green-100 text-green-700
+                                {% elif payment.status == 'pending_confirmation' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                <i data-lucide="{% if payment.status == 'confirmed' %}check-circle{% else %}clock{% endif %}" class="w-3 h-3"></i>
+                                {{ payment.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <button onclick="viewPaymentDetails('{{ payment.id }}')"
+                                    class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No payment history yet</h3>
+            <p class="text-gray-600">Your completed transactions will appear here</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Payment Modal (reuse from messages) -->
+<div id="payment-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="credit-card" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Complete Payment</h3>
+            <p class="text-gray-600">Pay the task doer for completed work</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-600">Task Amount</span>
+                <span id="modal-amount" class="font-bold text-gray-900">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                <span class="font-bold text-gray-900">Total to Pay</span>
+                <span id="modal-total" class="font-bold text-2xl text-green-600">₱0.00</span>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Payment Method</label>
+            <div class="space-y-2">
+                <button onclick="selectPaymentMethod('gcash')" 
+                        class="payment-method-btn w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-all">
+                    <i data-lucide="smartphone" class="w-6 h-6 text-blue-600"></i>
+                    <div class="text-left flex-1">
+                        <div class="font-medium">GCash</div>
+                        <div class="text-xs text-gray-500">Instant payment</div>
+                    </div>
+                    <i data-lucide="check-circle" class="w-5 h-5 text-blue-600 hidden check-icon"></i>
+                </button>
+                
+                <button onclick="selectPaymentMethod('cod')" 
+                        class="payment-method-btn w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 transition-all">
+                    <i data-lucide="banknote" class="w-6 h-6 text-green-600"></i>
+                    <div class="text-left flex-1">
+                        <div class="font-medium">Cash on Delivery</div>
+                        <div class="text-xs text-gray-500">Pay in person</div>
+                    </div>
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600 hidden check-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="closePaymentModal()" 
+                    class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+                Cancel
+            </button>
+            <button id="confirm-payment-btn" 
+                    onclick="processTaskPayment()"
+                    disabled
+                    class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                <span id="btn-text">Pay Now</span>
+                <span id="btn-loader" class="hidden">Processing...</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Details Modal -->
+<div id="details-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-900">Payment Details</h3>
+            <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div id="details-content">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/messages-payment.js' %}"></script>
+<script src="{% static 'js/payments-dashboard.js' %}"></script>
+<script>
+if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+}
+</script>
+{% endblock %}

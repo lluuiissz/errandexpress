@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}ErrandExpress - Your Campus Errand Service{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to ErrandExpress</h1>
+    <p>Your trusted campus errand and microtask service platform</p>
+    <p>Connect with students for quick tasks, skilled work, and campus errands</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h3>👨‍🏫 For Task Posters</h3>
+        <p>Need help with errands, typing, presentations, or graphics? Post your tasks and connect with skilled students.</p>
+        <div class="mt-3">
+            <a href="{% url 'signup' %}" class="btn btn-primary btn-block">Get Started</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>👨‍🎓 For Task Doers</h3>
+        <p>Earn money by helping with campus errands and using your skills. Validate your abilities and start earning.</p>
+        <div class="mt-3">
+            <a href="{% url 'signup' %}" class="btn btn-primary btn-block">Join Now</a>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-3">
+    <p>Already have an account? <a href="{% url 'login' %}" style="color: white; text-decoration: underline;">Login here</a></p>
+</div>
+{% endblock %}

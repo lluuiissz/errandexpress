@@ -1,0 +1,386 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate User - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="rating-container">
+    <div class="rating-header">
+        <h1>⭐ Rate User</h1>
+        <p>Share your experience working with {{ rated_user.fullname }}</p>
+    </div>
+    
+    <div class="rating-content">
+        <!-- Task Info -->
+        <div class="task-info-card">
+            <h3>Task: {{ task.title }}</h3>
+            <div class="task-details">
+                <span class="category">{{ task.get_category_display }}</span>
+                <span class="price">₱{{ task.price }}</span>
+                <span class="status">{{ task.get_status_display }}</span>
+            </div>
+            <p class="task-description">{{ task.description|truncatewords:25 }}</p>
+        </div>
+        
+        <!-- User Info -->
+        <div class="user-info-card">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {% if rated_user.profile_picture %}
+                        <img src="{{ rated_user.profile_picture.url }}" alt="{{ rated_user.fullname }}">
+                    {% else %}
+                        <div class="avatar-placeholder">{{ rated_user.fullname|first }}</div>
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h3>{{ rated_user.fullname }}</h3>
+                    <div class="user-role">
+                        {% if rated_user.role == 'task_poster' %}
+                            👨‍🏫 Task Poster
+                        {% elif rated_user.role == 'task_doer' %}
+                            👨‍🎓 Task Doer
+                            {% if rated_user.doer_type %}
+                                <small>({{ rated_user.get_doer_type_display }})</small>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="current-rating">
+                        Current Rating: ⭐ {{ rated_user.avg_rating }}/10 
+                        <small>({{ rated_user.total_ratings }} reviews)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rating Form -->
+        <div class="rating-form-card">
+            <h3>Your Rating</h3>
+            
+            <form method="post" class="rating-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.score.id_for_label }}">Rating Score *</label>
+                    <div class="rating-input">
+                        {{ form.score }}
+                        <div class="rating-scale">
+                            <div class="scale-labels">
+                                <span>1 - Poor</span>
+                                <span>5 - Average</span>
+                                <span>10 - Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if form.score.errors %}
+                        <div class="text-danger">{{ form.score.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.feedback.id_for_label }}">Feedback</label>
+                    {{ form.feedback }}
+                    <small class="form-text">
+                        Share details about your experience. This will help other users make informed decisions.
+                    </small>
+                    {% if form.feedback.errors %}
+                        <div class="text-danger">{{ form.feedback.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="rating-guidelines">
+                    <h4>Rating Guidelines</h4>
+                    <div class="guidelines-grid">
+                        <div class="guideline">
+                            <strong>Communication</strong>
+                            <p>Was the user responsive and clear in communication?</p>
+                        </div>
+                        <div class="guideline">
+                            <strong>Quality</strong>
+                            <p>Did they deliver quality work or provide clear requirements?</p>
+                        </div>
+                        <div class="guideline">
+                            <strong>Timeliness</strong>
+                            <p>Did they meet deadlines and respond promptly?</p>
+                        </div>
+                        <div class="guideline">
+                            <strong>Professionalism</strong>
+                            <p>Were they professional and respectful throughout?</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        ⭐ Submit Rating
+                    </button>
+                    <a href="{% url 'task_detail' task.id %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Rating Impact -->
+        <div class="rating-impact-card">
+            <h4>💡 Why Your Rating Matters</h4>
+            <ul>
+                <li>Helps build trust in the ErrandExpress community</li>
+                <li>Guides other users in choosing reliable partners</li>
+                <li>Encourages high-quality service and professionalism</li>
+                <li>Contributes to a safer and better platform for everyone</li>
+            </ul>
+            <p><small>Ratings are permanent and cannot be changed once submitted. Please rate fairly and honestly.</small></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.rating-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.rating-header h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.rating-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.rating-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.task-info-card,
+.user-info-card,
+.rating-form-card,
+.rating-impact-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.task-info-card h3,
+.user-info-card h3,
+.rating-form-card h3 {
+    margin-bottom: 1.5rem;
+    color: #333;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+.task-details {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.category {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.875rem;
+}
+
+.price {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.status {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.875rem;
+}
+
+.task-description {
+    color: #666;
+    line-height: 1.5;
+}
+
+.user-profile {
+    display: flex;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #667eea;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.user-details h3 {
+    margin: 0 0 0.5rem 0;
+    border: none;
+    padding: 0;
+}
+
+.user-role {
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.current-rating {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.rating-input {
+    margin-bottom: 1rem;
+}
+
+.rating-scale {
+    margin-top: 0.5rem;
+}
+
+.scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.form-text {
+    color: #666;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.text-danger {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.rating-guidelines {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.rating-guidelines h4 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.guideline {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.guideline strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.guideline p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.rating-impact-card {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+}
+
+.rating-impact-card h4 {
+    margin-bottom: 1rem;
+    color: #1565c0;
+}
+
+.rating-impact-card ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.rating-impact-card li {
+    margin-bottom: 0.5rem;
+    color: #1976d2;
+}
+
+.rating-impact-card p {
+    margin: 0;
+    color: #1565c0;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .user-profile {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .task-details {
+        justify-content: center;
+    }
+    
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .scale-labels {
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

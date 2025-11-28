@@ -1,0 +1,307 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Applications for {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-20 lg:pb-6">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'task_detail' task.id %}" class="inline-flex items-center text-muted hover:text-primary transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+            Back to Task
+        </a>
+    </div>
+    
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8" data-aos="fade-up">
+            <h1 class="font-poppins font-bold text-3xl text-text-primary mb-2">Task Applications</h1>
+            <p class="text-muted">Review and compare applicants for: <strong>{{ task.title }}</strong></p>
+            
+            <!-- Stats -->
+            <div class="flex items-center space-x-6 mt-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <span class="text-sm">{{ pending_count }} Pending</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span class="text-sm">{{ accepted_applications|length }} Accepted</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-gray-400"></div>
+                    <span class="text-sm">{{ rejected_applications|length }} Rejected</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="users" class="w-4 h-4 text-muted"></i>
+                    <span class="text-sm font-semibold">{{ total_count }} Total Applications</span>
+                </div>
+            </div>
+        </div>
+        
+        {% if pending_count == 0 and accepted_applications|length == 0 and rejected_applications|length == 0 %}
+        <!-- No Applications -->
+        <div class="card text-center py-12" data-aos="fade-up">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
+            </div>
+            <h3 class="font-semibold text-xl mb-2">No Applications Yet</h3>
+            <p class="text-muted">Your task hasn't received any applications yet. Check back later!</p>
+        </div>
+        {% else %}
+        
+        <!-- Pending Applications (Ranked) -->
+        {% if pending_applications %}
+        <div class="mb-8" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-poppins font-semibold text-2xl">Pending Applications</h2>
+                <div class="flex items-center space-x-2 text-sm text-muted">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span>Sorted by ranking score (best first)</span>
+                </div>
+            </div>
+            
+            <!-- Ranking Explanation -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                <div class="flex items-start space-x-3">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5"></i>
+                    <div>
+                        <h4 class="font-semibold text-blue-900 mb-1">Smart Ranking System</h4>
+                        <p class="text-sm text-blue-800">
+                            Applications are ranked by: <strong>(Rating × 10) + (Completed Tasks × 2) + (Newbie Bonus 15)</strong>. 
+                            Newbies with < 3 tasks get a +15 bonus to give them a fair chance!
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                {% for app in pending_applications %}
+                <div class="card hover:shadow-lg transition-shadow duration-300 {% if app.current_is_newbie %}border-2 border-purple-200{% endif %}" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center space-x-4">
+                            <!-- Avatar -->
+                            <div class="w-16 h-16 bg-gradient-to-r from-primary to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-xl">{{ app.doer.fullname.0|upper }}</span>
+                            </div>
+                            
+                            <!-- Doer Info -->
+                            <div>
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h3 class="font-semibold text-lg">{{ app.doer.fullname }}</h3>
+                                    {% if app.current_is_newbie %}
+                                    <span class="badge badge-purple flex items-center">
+                                        <i data-lucide="sparkles" class="w-3 h-3 mr-1"></i>
+                                        New Doer
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-sm text-muted">Applied {{ app.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Ranking Score -->
+                        <div class="text-right">
+                            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg px-4 py-2 border border-yellow-300">
+                                <p class="text-xs text-yellow-800 font-medium">Ranking Score</p>
+                                <p class="font-bold text-2xl text-yellow-900">{{ app.calculated_ranking_score|floatformat:1 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <!-- Rating -->
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-600"></i>
+                                <p class="text-xs text-muted">Rating</p>
+                            </div>
+                            <p class="font-semibold text-lg">
+                                {% if app.current_rating > 0 %}
+                                    {{ app.current_rating }}/10
+                                {% else %}
+                                    <span class="text-muted text-sm">No ratings yet</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <!-- Completed Tasks -->
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                                <p class="text-xs text-muted">Completed</p>
+                            </div>
+                            <p class="font-semibold text-lg">{{ app.current_completed }} tasks</p>
+                        </div>
+                        
+                        <!-- Newbie Bonus -->
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <i data-lucide="gift" class="w-4 h-4 text-purple-600"></i>
+                                <p class="text-xs text-muted">Bonus</p>
+                            </div>
+                            <p class="font-semibold text-lg">
+                                {% if app.current_is_newbie %}
+                                    <span class="text-purple-600">+15 pts</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Cover Letter -->
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-sm text-muted mb-2 flex items-center">
+                            <i data-lucide="file-text" class="w-4 h-4 mr-1"></i>
+                            Why they're a good fit:
+                        </h4>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-text-primary leading-relaxed">{{ app.cover_letter }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline -->
+                    {% if app.proposed_timeline %}
+                    <div class="mb-4">
+                        <div class="flex items-center space-x-2 text-sm">
+                            <i data-lucide="clock" class="w-4 h-4 text-muted"></i>
+                            <span class="text-muted">Timeline:</span>
+                            <span class="font-medium">{{ app.proposed_timeline }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Validated Skills -->
+                    {% if app.validated_skills_display %}
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-sm text-muted mb-2 flex items-center">
+                            <i data-lucide="award" class="w-4 h-4 mr-1"></i>
+                            Validated Skills:
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in app.validated_skills_display %}
+                            <span class="badge badge-success flex items-center">
+                                <i data-lucide="check-circle" class="w-3 h-3 mr-1"></i>
+                                {{ skill }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mb-4">
+                        <p class="text-sm text-muted italic">No validated skills yet</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Recent Ratings -->
+                    {% if app.recent_ratings %}
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-sm text-muted mb-2 flex items-center">
+                            <i data-lucide="message-square" class="w-4 h-4 mr-1"></i>
+                            Recent Feedback:
+                        </h4>
+                        <div class="space-y-2">
+                            {% for rating in app.recent_ratings %}
+                            <div class="bg-gray-50 rounded-lg p-3 text-sm">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="font-semibold text-yellow-600">{{ rating.score }}/10</span>
+                                    <span class="text-xs text-muted">{{ rating.created_at|timesince }} ago</span>
+                                </div>
+                                <p class="text-muted">{{ rating.feedback|truncatewords:20 }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center space-x-3 pt-4 border-t">
+                        <a href="{% url 'accept_application' app.id %}" 
+                           class="btn btn-success flex-1"
+                           onclick="return confirm('Accept {{ app.doer.fullname }}\'s application? This will reject all other applications.')">
+                            <i data-lucide="check" class="w-4 h-4 mr-2"></i>
+                            Accept Application
+                        </a>
+                        <a href="{% url 'reject_application' app.id %}" 
+                           class="btn btn-danger"
+                           onclick="return confirm('Reject this application?')">
+                            <i data-lucide="x" class="w-4 h-4 mr-2"></i>
+                            Reject
+                        </a>
+                        <a href="{% url 'profile' %}" class="btn btn-secondary">
+                            <i data-lucide="user" class="w-4 h-4 mr-2"></i>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Accepted Applications -->
+        {% if accepted_applications %}
+        <div class="mb-8" data-aos="fade-up">
+            <h2 class="font-poppins font-semibold text-2xl mb-4">Accepted Application</h2>
+            <div class="space-y-4">
+                {% for app in accepted_applications %}
+                <div class="card bg-green-50 border-2 border-green-300">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold">{{ app.doer.fullname.0|upper }}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg">{{ app.doer.fullname }}</h3>
+                                <p class="text-sm text-muted">Accepted {{ app.reviewed_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">
+                                <i data-lucide="check-circle" class="w-4 h-4 mr-1"></i>
+                                Accepted
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Rejected Applications -->
+        {% if rejected_applications %}
+        <div data-aos="fade-up">
+            <details class="cursor-pointer">
+                <summary class="font-poppins font-semibold text-xl mb-4 hover:text-primary transition-colors">
+                    Rejected Applications ({{ rejected_applications|length }})
+                </summary>
+                <div class="space-y-3 mt-4">
+                    {% for app in rejected_applications %}
+                    <div class="card bg-gray-50 opacity-75">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-semibold text-sm">{{ app.doer.fullname.0|upper }}</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">{{ app.doer.fullname }}</h4>
+                                    <p class="text-xs text-muted">Rejected {{ app.reviewed_at|timesince }} ago</p>
+                                </div>
+                            </div>
+                            <span class="badge badge-secondary">Rejected</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+        {% endif %}
+        
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

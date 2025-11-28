@@ -1,0 +1,220 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Apply for Task - {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-20 lg:pb-6">
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'task_detail' task.id %}" class="inline-flex items-center text-muted hover:text-primary transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+            Back to Task
+        </a>
+    </div>
+    
+    <div class="max-w-5xl mx-auto">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Application Form -->
+            <div class="lg:col-span-2">
+                <div class="card" data-aos="fade-up">
+                    <div class="mb-6">
+                        <h1 class="font-poppins font-bold text-3xl text-text-primary mb-2">Apply for Task</h1>
+                        <p class="text-muted">Show the poster why you're the best fit for this task</p>
+                    </div>
+                    
+                    <!-- Task Info Summary -->
+                    <div class="bg-gradient-to-r from-primary/10 to-indigo-500/10 rounded-xl p-4 mb-6">
+                        <h3 class="font-semibold text-lg mb-2">{{ task.title }}</h3>
+                        <div class="flex items-center space-x-4 text-sm text-muted">
+                            <span class="flex items-center">
+                                <i data-lucide="dollar-sign" class="w-4 h-4 mr-1"></i>
+                                ₱{{ task.price }}
+                            </span>
+                            <span class="flex items-center">
+                                <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                Due {{ task.deadline|date:"M d, Y" }}
+                            </span>
+                            <span class="flex items-center">
+                                <i data-lucide="tag" class="w-4 h-4 mr-1"></i>
+                                {{ task.get_category_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Application Form -->
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        <!-- Cover Letter -->
+                        <div>
+                            <label for="{{ form.cover_letter.id_for_label }}" class="block font-semibold text-text-primary mb-2">
+                                <i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>
+                                Cover Letter <span class="text-red-500">*</span>
+                            </label>
+                            <p class="text-sm text-muted mb-3">
+                                Explain why you're the perfect fit for this task. Mention your relevant skills, experience, and what makes you stand out. (Minimum 50 characters)
+                            </p>
+                            {{ form.cover_letter }}
+                            {% if form.cover_letter.errors %}
+                                <p class="text-red-500 text-sm mt-2">{{ form.cover_letter.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs text-muted mt-2">
+                                <span id="char-count">0</span> / 50 characters minimum
+                            </p>
+                        </div>
+                        
+                        <!-- Proposed Timeline -->
+                        <div>
+                            <label for="{{ form.proposed_timeline.id_for_label }}" class="block font-semibold text-text-primary mb-2">
+                                <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                                Proposed Timeline (Optional)
+                            </label>
+                            <p class="text-sm text-muted mb-3">
+                                When can you complete this task? Be realistic and specific.
+                            </p>
+                            {{ form.proposed_timeline }}
+                            {% if form.proposed_timeline.errors %}
+                                <p class="text-red-500 text-sm mt-2">{{ form.proposed_timeline.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs text-muted mt-2">
+                                Example: "I can complete this within 2 days" or "Available to start immediately"
+                            </p>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="flex items-center space-x-4">
+                            <button type="submit" class="btn btn-primary btn-lg flex-1">
+                                <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                                Submit Application
+                            </button>
+                            <a href="{% url 'task_detail' task.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Sidebar - Your Profile -->
+            <div class="lg:col-span-1">
+                <!-- Your Stats -->
+                <div class="card sticky top-6" data-aos="fade-up" data-aos-delay="100">
+                    <h3 class="font-poppins font-semibold text-lg mb-4">Your Profile</h3>
+                    
+                    <!-- Profile Summary -->
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-gradient-to-r from-primary to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-white font-bold text-2xl">{{ user.fullname.0|upper }}</span>
+                        </div>
+                        <h4 class="font-semibold text-lg">{{ user.fullname }}</h4>
+                        <p class="text-sm text-muted">{{ user.get_role_display }}</p>
+                    </div>
+                    
+                    <!-- Stats Grid -->
+                    <div class="space-y-4">
+                        <!-- Rating -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="star" class="w-5 h-5 text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-muted">Your Rating</p>
+                                    <p class="font-semibold">
+                                        {% if user_stats.rating > 0 %}
+                                            {{ user_stats.rating }}/10
+                                        {% else %}
+                                            No ratings yet
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% if user_stats.total_ratings > 0 %}
+                            <span class="text-xs text-muted">{{ user_stats.total_ratings }} review{{ user_stats.total_ratings|pluralize }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Completed Tasks -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-muted">Completed Tasks</p>
+                                    <p class="font-semibold">{{ user_stats.completed_tasks }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Newbie Badge -->
+                        {% if user_stats.is_newbie %}
+                        <div class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <i data-lucide="sparkles" class="w-5 h-5 text-purple-600"></i>
+                                <h4 class="font-semibold text-purple-900">New Doer Bonus!</h4>
+                            </div>
+                            <p class="text-sm text-purple-700">
+                                You get a <strong>+15 point ranking bonus</strong> for your first 3 tasks! This helps you compete with experienced doers.
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Tips -->
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <h4 class="font-semibold text-blue-900 mb-2 flex items-center">
+                            <i data-lucide="lightbulb" class="w-4 h-4 mr-2"></i>
+                            Application Tips
+                        </h4>
+                        <ul class="text-sm text-blue-800 space-y-2">
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span>Be specific about your relevant skills and experience</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span>Mention similar tasks you've completed</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span>Be realistic about your timeline</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span>Show enthusiasm and professionalism</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Character Counter Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const coverLetter = document.getElementById('{{ form.cover_letter.id_for_label }}');
+        const charCount = document.getElementById('char-count');
+        
+        if (coverLetter && charCount) {
+            coverLetter.addEventListener('input', function() {
+                const count = this.value.length;
+                charCount.textContent = count;
+                
+                if (count >= 50) {
+                    charCount.classList.remove('text-red-500');
+                    charCount.classList.add('text-green-500');
+                } else {
+                    charCount.classList.remove('text-green-500');
+                    charCount.classList.add('text-red-500');
+                }
+            });
+            
+            // Initial count
+            charCount.textContent = coverLetter.value.length;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Tasks - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="hero" style="margin-bottom: 2rem;">
+    <h1>Available Tasks</h1>
+    <p>Find tasks that match your skills and interests</p>
+</div>
+
+<!-- Filter Form -->
+<div class="card" style="margin-bottom: 2rem;">
+    <h3>Filter Tasks</h3>
+    <form method="get" class="filter-form">
+        <div class="row">
+            <div class="col-md-3">
+                {{ filter_form.search }}
+            </div>
+            <div class="col-md-2">
+                {{ filter_form.category }}
+            </div>
+            <div class="col-md-2">
+                {{ filter_form.min_price }}
+            </div>
+            <div class="col-md-2">
+                {{ filter_form.max_price }}
+            </div>
+            <div class="col-md-2">
+                {{ filter_form.sort_by }}
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Results Summary -->
+<div class="results-summary">
+    <p><strong>{{ total_tasks }}</strong> tasks found</p>
+</div>
+
+<!-- Tasks Grid -->
+<div class="tasks-grid">
+    {% for task in tasks %}
+    <div class="task-card">
+        <div class="task-header">
+            <h4><a href="{% url 'task_detail' task.id %}">{{ task.title }}</a></h4>
+            <span class="task-category">{{ task.get_category_display }}</span>
+        </div>
+        
+        <div class="task-meta">
+            <span class="task-price">₱{{ task.price }}</span>
+            <span class="task-deadline">Due: {{ task.deadline|date:"M d, Y" }}</span>
+        </div>
+        
+        <div class="task-description">
+            <p>{{ task.description|truncatewords:20 }}</p>
+        </div>
+        
+        <div class="task-tags">
+            {% for tag in task.get_tags_list %}
+                <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="task-footer">
+            <div class="task-poster">
+                <small>Posted by {{ task.poster.fullname }}</small>
+                <small>⭐ {{ task.poster.avg_rating }}/10</small>
+            </div>
+            <a href="{% url 'task_detail' task.id %}" class="btn btn-primary btn-sm">View Details</a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="no-tasks">
+        <h3>No tasks found</h3>
+        <p>Try adjusting your filters or check back later for new tasks.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if tasks.has_other_pages %}
+<div class="pagination-wrapper">
+    <div class="pagination">
+        {% if tasks.has_previous %}
+            <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="page-link">&laquo; First</a>
+            <a href="?page={{ tasks.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="page-link">Previous</a>
+        {% endif %}
+        
+        <span class="page-info">
+            Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
+        </span>
+        
+        {% if tasks.has_next %}
+            <a href="?page={{ tasks.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="page-link">Next</a>
+            <a href="?page={{ tasks.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="page-link">Last &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<style>
+.filter-form .row {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+.col-md-1, .col-md-2, .col-md-3 {
+    flex: 1;
+}
+.results-summary {
+    margin-bottom: 1.5rem;
+    color: #666;
+}
+.tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.task-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+.task-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+.task-header h4 a {
+    color: #333;
+    text-decoration: none;
+}
+.task-header h4 a:hover {
+    color: #667eea;
+}
+.task-category {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.task-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+.task-price {
+    color: #28a745;
+    font-size: 1.1rem;
+}
+.task-deadline {
+    color: #666;
+    font-size: 0.9rem;
+}
+.task-description {
+    margin-bottom: 1rem;
+    color: #555;
+    line-height: 1.5;
+}
+.task-tags {
+    margin-bottom: 1rem;
+}
+.tag {
+    display: inline-block;
+    background: #f8f9fa;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+.task-poster small {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+}
+.no-tasks {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.page-link {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #667eea;
+}
+.page-link:hover {
+    background: #667eea;
+    color: white;
+}
+.page-info {
+    padding: 0.5rem 1rem;
+    color: #666;
+}
+</style>
+{% endblock %}

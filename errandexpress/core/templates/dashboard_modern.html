@@ -1,0 +1,346 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Dashboard - ErrandExpress 🚀{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-20 lg:pb-6">
+    <!-- Welcome Header -->
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="font-poppins font-bold text-3xl text-text-primary mb-2">
+                Welcome back! 👋
+            </h1>
+            <p class="text-muted">Here's what's happening with your tasks today.</p>
+        </div>
+        <div class="flex-shrink-0">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="{{ user.fullname }}" class="w-16 h-16 rounded-full object-cover border-2 border-primary shadow-lg">
+            {% else %}
+            <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center border-2 border-primary shadow-lg">
+                <span class="text-white font-bold text-xl">{{ user.fullname.0|upper }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Active Tasks -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Active Tasks</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">{{ active_tasks_count|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="briefcase" class="w-6 h-6 text-primary"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +12%</span>
+                <span class="text-muted ml-2">from last week</span>
+            </div>
+        </div>
+        
+        <!-- Total Earnings -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Total Earnings</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">₱{{ total_earnings|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="wallet" class="w-6 h-6 text-mint"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +₱320</span>
+                <span class="text-muted ml-2">this month</span>
+            </div>
+        </div>
+        
+        <!-- Completion Rate -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Completion Rate</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">{{ completion_rate|default:95 }}%</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="target" class="w-6 h-6 text-accent"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +2%</span>
+                <span class="text-muted ml-2">improvement</span>
+            </div>
+        </div>
+        
+        <!-- Rating -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="400">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Average Rating</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">{{ avg_rating|default:4.8 }} ⭐</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="star" class="w-6 h-6 text-purple-500"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +0.2</span>
+                <span class="text-muted ml-2">this month</span>
+            </div>
+        </div>
+    </div>
+    
+    {% if user.role == 'task_poster' or user.role == 'admin' %}
+    <!-- Task Poster Dashboard -->
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4" data-aos="fade-up">
+                <a href="{% url 'create_task' %}" class="card card-hover flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                        <i data-lucide="plus-circle" class="w-6 h-6 text-primary"></i>
+                    </div>
+                    <p class="font-semibold text-sm">Post Task</p>
+                </a>
+                <a href="{% url 'messages_list' %}" class="card card-hover flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                        <i data-lucide="message-circle" class="w-6 h-6 text-primary"></i>
+                    </div>
+                    <p class="font-semibold text-sm">Messages</p>
+                </a>
+                <a href="{% url 'payments_dashboard' %}" class="card card-hover flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-3">
+                        <i data-lucide="wallet" class="w-6 h-6 text-mint"></i>
+                    </div>
+                    <p class="font-semibold text-sm">Payments</p>
+                </a>
+            </div>
+            
+            <!-- Your Tasks -->
+            <div class="card" data-aos="fade-up">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-poppins font-semibold text-xl">Your Tasks</h2>
+                    <a href="{% url 'browse_tasks' %}" class="text-primary hover:text-primary-600 text-sm font-medium">
+                        View All →
+                    </a>
+                </div>
+                
+                {% if user_tasks %}
+                <div class="space-y-4">
+                    {% for task in user_tasks|slice:":3" %}
+                    <div class="border border-gray-200 rounded-xl p-4 hover:border-primary/30 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-poppins font-semibold text-lg">{{ task.title }}</h3>
+                                    <span class="badge badge-primary">{{ task.category }}</span>
+                                </div>
+                                <p class="text-muted text-sm mb-3">{{ task.description|truncatewords:20 }}</p>
+                                <div class="flex items-center space-x-4 text-sm text-muted">
+                                    <span class="flex items-center">
+                                        <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                        Due {{ task.deadline|date:"M d" }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i data-lucide="dollar-sign" class="w-4 h-4 mr-1"></i>
+                                        ₱{{ task.price }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <span class="badge {% if task.status == 'open' %}badge-mint{% elif task.status == 'in_progress' %}badge-accent{% else %}badge-primary{% endif %}">
+                                    {{ task.get_status_display }}
+                                </span>
+                                <a href="{% url 'task_detail' task.id %}" class="btn-primary text-sm px-3 py-1">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <i data-lucide="inbox" class="w-12 h-12 text-muted mx-auto mb-3 opacity-50"></i>
+                    <p class="text-muted mb-4">No tasks yet</p>
+                    <a href="{% url 'create_task' %}" class="btn-primary">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Post Your First Task
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="card" data-aos="fade-up" data-aos-delay="500">
+                <h3 class="font-poppins font-semibold text-lg mb-4">Stats</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <span class="text-sm text-muted">Open Tasks</span>
+                        <span class="font-semibold">{{ open_tasks_count|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <span class="text-sm text-muted">Completed</span>
+                        <span class="font-semibold">{{ completed_tasks_count|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <span class="text-sm text-muted">Total Earned</span>
+                        <span class="font-semibold">₱{{ total_earnings|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Task Doer Dashboard -->
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4" data-aos="fade-up">
+                <a href="{% url 'browse_tasks' %}" class="card card-hover flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                        <i data-lucide="search" class="w-6 h-6 text-primary"></i>
+                    </div>
+                    <p class="font-semibold text-sm">Browse Tasks</p>
+                </a>
+                <a href="{% url 'messages_list' %}" class="card card-hover flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3">
+                        <i data-lucide="message-circle" class="w-6 h-6 text-primary"></i>
+                    </div>
+                    <p class="font-semibold text-sm">Messages</p>
+                </a>
+                <a href="{% url 'payments_dashboard' %}" class="card card-hover flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-3">
+                        <i data-lucide="wallet" class="w-6 h-6 text-mint"></i>
+                    </div>
+                    <p class="font-semibold text-sm">Earnings</p>
+                </a>
+            </div>
+            
+            <!-- Available Tasks -->
+            <div class="card" data-aos="fade-up">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-poppins font-semibold text-xl">Available Tasks</h2>
+                    <a href="{% url 'browse_tasks' %}" class="text-primary hover:text-primary-600 text-sm font-medium">
+                        View All →
+                    </a>
+                </div>
+                
+                {% if available_tasks %}
+                <div class="space-y-4">
+                    {% for task in available_tasks|slice:":3" %}
+                    <div class="border border-gray-200 rounded-xl p-4 hover:border-primary/30 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-poppins font-semibold text-lg">{{ task.title }}</h3>
+                                    <span class="badge badge-primary">{{ task.category }}</span>
+                                </div>
+                                <p class="text-muted text-sm mb-3">{{ task.description|truncatewords:20 }}</p>
+                                <div class="flex items-center space-x-4 text-sm text-muted">
+                                    <span class="flex items-center">
+                                        <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
+                                        Due {{ task.deadline|date:"M d" }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i data-lucide="dollar-sign" class="w-4 h-4 mr-1"></i>
+                                        ₱{{ task.price }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end space-y-2">
+                                <span class="font-poppins font-bold text-lg">₱{{ task.price }}</span>
+                                <a href="{% url 'task_detail' task.id %}" class="btn-primary text-sm px-3 py-1">
+                                    Apply
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <i data-lucide="inbox" class="w-12 h-12 text-muted mx-auto mb-3 opacity-50"></i>
+                    <p class="text-muted mb-4">No tasks available</p>
+                    <a href="{% url 'browse_tasks' %}" class="btn-primary">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        Browse All Tasks
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Your Skills -->
+            <div class="card" data-aos="fade-up" data-aos-delay="500">
+                <h3 class="font-poppins font-semibold text-lg mb-4">Your Skills</h3>
+                {% if user_skills %}
+                <div class="space-y-2">
+                    {% for skill in user_skills %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-sm font-medium">{{ skill.skill_name }}</span>
+                        <span class="badge badge-mint text-xs">Verified</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-sm text-muted mb-4">No skills added yet</p>
+                {% endif %}
+                <a href="{% url 'profile' %}" class="btn-ghost w-full mt-4">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    Add Skills
+                </a>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card" data-aos="fade-up" data-aos-delay="600">
+                <h3 class="font-poppins font-semibold text-lg mb-4">Stats</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <span class="text-sm text-muted">Applied</span>
+                        <span class="font-semibold">{{ applications_count|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <span class="text-sm text-muted">Accepted</span>
+                        <span class="font-semibold">{{ accepted_count|default:0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <span class="text-sm text-muted">Total Earned</span>
+                        <span class="font-semibold">₱{{ total_earnings|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Quick post form handler
+    document.getElementById('quick-post-form')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        showToast('Task posted successfully!', 'success');
+        this.reset();
+    });
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any dashboard-specific JavaScript here
+        console.log('Dashboard loaded');
+    });
+</script>
+{% endblock %}

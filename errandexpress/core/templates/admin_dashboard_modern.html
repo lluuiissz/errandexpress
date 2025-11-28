@@ -1,0 +1,500 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Admin Dashboard - ErrandExpress 🚀{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-20 lg:pb-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="font-poppins font-bold text-3xl text-text-primary mb-2">Admin Dashboard</h1>
+        <p class="text-muted">Monitor platform activity and manage system operations</p>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Users -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Total Users</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">{{ total_users|default:1247 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="users" class="w-6 h-6 text-primary"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +23</span>
+                <span class="text-muted ml-2">this week</span>
+            </div>
+        </div>
+        
+        <!-- Active Tasks -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Active Tasks</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">{{ active_tasks|default:89 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="briefcase" class="w-6 h-6 text-mint"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +12</span>
+                <span class="text-muted ml-2">from yesterday</span>
+            </div>
+        </div>
+        
+        <!-- ₱2 System Income -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">₱2 System Income</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">₱{{ system_income|default:2494 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="wallet" class="w-6 h-6 text-accent"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-mint">↗ +₱48</span>
+                <span class="text-muted ml-2">today</span>
+            </div>
+        </div>
+        
+        <!-- Pending Reports -->
+        <div class="card card-hover" data-aos="fade-up" data-aos-delay="400">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-muted text-sm font-medium">Pending Reports</p>
+                    <p class="font-poppins font-bold text-2xl text-text-primary">{{ pending_reports|default:7 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-danger"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-danger">↗ +3</span>
+                <span class="text-muted ml-2">needs attention</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="grid lg:grid-cols-2 gap-8 mb-8">
+        <!-- Revenue Chart -->
+        <div class="card" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-poppins font-semibold text-xl">Revenue Overview</h2>
+                <select class="input-field text-sm py-2 w-32">
+                    <option>Last 7 days</option>
+                    <option>Last 30 days</option>
+                    <option>Last 3 months</option>
+                </select>
+            </div>
+            
+            <!-- Simple Chart Placeholder -->
+            <div class="h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl flex items-center justify-center">
+                <div class="text-center">
+                    <i data-lucide="trending-up" class="w-12 h-12 text-primary mx-auto mb-2"></i>
+                    <p class="text-muted">Revenue chart would go here</p>
+                    <p class="text-sm text-muted">Use Chart.js or similar library</p>
+                </div>
+            </div>
+            
+            <!-- Chart Stats -->
+            <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
+                <div class="text-center">
+                    <p class="font-poppins font-bold text-lg text-text-primary">₱2,494</p>
+                    <p class="text-sm text-muted">Total Revenue</p>
+                </div>
+                <div class="text-center">
+                    <p class="font-poppins font-bold text-lg text-mint">+18.2%</p>
+                    <p class="text-sm text-muted">Growth Rate</p>
+                </div>
+                <div class="text-center">
+                    <p class="font-poppins font-bold text-lg text-text-primary">₱356</p>
+                    <p class="text-sm text-muted">Avg. Daily</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Categories -->
+        <div class="card" data-aos="fade-up" data-aos-delay="200">
+            <h2 class="font-poppins font-semibold text-xl mb-6">Task Categories</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-4 h-4 bg-primary rounded-full"></div>
+                        <span class="font-medium">PowerPoint</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-muted">45%</span>
+                        <span class="font-semibold">234</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-4 h-4 bg-mint rounded-full"></div>
+                        <span class="font-medium">Typing</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-muted">32%</span>
+                        <span class="font-semibold">167</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-4 h-4 bg-accent rounded-full"></div>
+                        <span class="font-medium">Graphics</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-muted">15%</span>
+                        <span class="font-semibold">78</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-4 h-4 bg-purple-500 rounded-full"></div>
+                        <span class="font-medium">Microtask</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm text-muted">8%</span>
+                        <span class="font-semibold">42</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Donut Chart Placeholder -->
+            <div class="mt-6 h-48 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl flex items-center justify-center">
+                <div class="text-center">
+                    <i data-lucide="pie-chart" class="w-12 h-12 text-primary mx-auto mb-2"></i>
+                    <p class="text-muted">Donut chart visualization</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Management Sections -->
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Recent Users -->
+        <div class="card" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-poppins font-semibold text-xl">Recent Users</h2>
+                <a href="#" class="text-primary hover:text-primary-600 text-sm font-medium">View All</a>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-primary to-indigo-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-semibold text-sm">M</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-sm">Maria Santos</p>
+                        <p class="text-xs text-muted">Task Doer • Joined 2h ago</p>
+                    </div>
+                    <span class="badge badge-mint">Active</span>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-mint to-green-400 rounded-full flex items-center justify-center">
+                        <span class="text-white font-semibold text-sm">J</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-sm">John Cruz</p>
+                        <p class="text-xs text-muted">Task Poster • Joined 5h ago</p>
+                    </div>
+                    <span class="badge badge-primary">Verified</span>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-accent to-yellow-400 rounded-full flex items-center justify-center">
+                        <span class="text-white font-semibold text-sm">A</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-sm">Anna Reyes</p>
+                        <p class="text-xs text-muted">Task Doer • Joined 1d ago</p>
+                    </div>
+                    <span class="badge badge-accent">Pending</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Skill Validation Queue -->
+        <div class="card" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-poppins font-semibold text-xl">Skill Validation</h2>
+                <span class="badge badge-accent">{{ pending_validations|default:5 }} pending</span>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="p-3 border border-gray-200 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-sm">PowerPoint Skills</span>
+                            <span class="badge badge-primary">Sarah M.</span>
+                        </div>
+                        <span class="text-xs text-muted">2h ago</span>
+                    </div>
+                    <p class="text-xs text-muted mb-3">Submitted presentation sample for review</p>
+                    <div class="flex items-center space-x-2">
+                        <button class="btn-primary text-xs px-3 py-1" onclick="approveSkill('skill_123')">
+                            <i data-lucide="check" class="w-3 h-3"></i>
+                            Approve
+                        </button>
+                        <button class="btn-ghost text-xs px-3 py-1" onclick="rejectSkill('skill_123')">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                            Reject
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-3 border border-gray-200 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium text-sm">Graphics Design</span>
+                            <span class="badge badge-primary">Mike D.</span>
+                        </div>
+                        <span class="text-xs text-muted">4h ago</span>
+                    </div>
+                    <p class="text-xs text-muted mb-3">Portfolio images uploaded for validation</p>
+                    <div class="flex items-center space-x-2">
+                        <button class="btn-primary text-xs px-3 py-1" onclick="approveSkill('skill_124')">
+                            <i data-lucide="check" class="w-3 h-3"></i>
+                            Approve
+                        </button>
+                        <button class="btn-ghost text-xs px-3 py-1" onclick="rejectSkill('skill_124')">
+                            <i data-lucide="x" class="w-3 h-3"></i>
+                            Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-ghost w-full mt-4">
+                View All Validations
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+        
+        <!-- Reports Queue -->
+        <div class="card" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-poppins font-semibold text-xl">Reports Queue</h2>
+                <span class="badge badge-danger">{{ pending_reports|default:3 }} urgent</span>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="p-3 border-l-4 border-danger bg-red-50 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-sm">Inappropriate Content</span>
+                        <span class="text-xs text-muted">1h ago</span>
+                    </div>
+                    <p class="text-xs text-muted mb-3">User reported offensive messages in task chat</p>
+                    <div class="flex items-center space-x-2">
+                        <button class="btn-primary text-xs px-3 py-1">
+                            <i data-lucide="eye" class="w-3 h-3"></i>
+                            Review
+                        </button>
+                        <button class="btn-ghost text-xs px-3 py-1">
+                            <i data-lucide="user-x" class="w-3 h-3"></i>
+                            Suspend
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-3 border-l-4 border-accent bg-yellow-50 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-sm">Payment Dispute</span>
+                        <span class="text-xs text-muted">3h ago</span>
+                    </div>
+                    <p class="text-xs text-muted mb-3">Task doer claims payment not received</p>
+                    <div class="flex items-center space-x-2">
+                        <button class="btn-primary text-xs px-3 py-1">
+                            <i data-lucide="eye" class="w-3 h-3"></i>
+                            Review
+                        </button>
+                        <button class="btn-ghost text-xs px-3 py-1">
+                            <i data-lucide="message-circle" class="w-3 h-3"></i>
+                            Contact
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-ghost w-full mt-4">
+                View All Reports
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="mt-8">
+        <div class="card" data-aos="fade-up">
+            <h2 class="font-poppins font-semibold text-xl mb-6">System Status</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-mint rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="server" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <p class="font-semibold text-mint">Server Status</p>
+                    <p class="text-sm text-muted">All systems operational</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="database" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <p class="font-semibold text-primary">Database</p>
+                    <p class="text-sm text-muted">99.9% uptime</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="credit-card" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <p class="font-semibold text-accent">PayMongo</p>
+                    <p class="text-sm text-muted">Connected & active</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="mail" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <p class="font-semibold text-purple-500">Notifications</p>
+                    <p class="text-sm text-muted">Email service active</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Validation Modal -->
+<div id="skill-modal" class="modal-backdrop hidden">
+    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full animate-scale-in">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-poppins font-semibold text-xl">Skill Validation</h3>
+            <button onclick="closeModal('skill-modal')" class="btn-icon">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        
+        <div id="skill-content">
+            <!-- Dynamic content will be loaded here -->
+        </div>
+        
+        <div class="flex items-center justify-end space-x-3 mt-6">
+            <button class="btn-ghost" onclick="closeModal('skill-modal')">Cancel</button>
+            <button class="btn-primary" onclick="rejectSkill()">
+                <i data-lucide="x" class="w-4 h-4"></i>
+                Reject
+            </button>
+            <button class="btn-primary" onclick="approveSkill()">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                Approve
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Approve skill validation
+    async function approveSkill(skillId) {
+        try {
+            showLoading();
+            const response = await fetch(`/api/admin/approve-skill/${skillId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            const data = await response.json();
+            hideLoading();
+            
+            if (data.success) {
+                showToast('Skill approved successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(data.error || 'Failed to approve skill', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            showToast('An error occurred. Please try again.', 'error');
+        }
+    }
+    
+    // Reject skill validation
+    async function rejectSkill(skillId) {
+        try {
+            showLoading();
+            const response = await fetch(`/api/admin/reject-skill/${skillId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    reason: 'Does not meet skill requirements'
+                })
+            });
+            
+            const data = await response.json();
+            hideLoading();
+            
+            if (data.success) {
+                showToast('Skill rejected', 'info');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showToast(data.error || 'Failed to reject skill', 'error');
+            }
+        } catch (error) {
+            hideLoading();
+            showToast('An error occurred. Please try again.', 'error');
+        }
+    }
+    
+    // Close modal
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-refresh data every 30 seconds
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/admin/dashboard-stats/');
+                const data = await response.json();
+                
+                // Update KPI cards with new data
+                if (data.success) {
+                    // Update stats without full page reload
+                    console.log('Dashboard stats updated');
+                }
+            } catch (error) {
+                console.error('Failed to update dashboard stats:', error);
+            }
+        }, 30000);
+        
+        // Add click handlers for modal backdrop
+        document.querySelectorAll('.modal-backdrop').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

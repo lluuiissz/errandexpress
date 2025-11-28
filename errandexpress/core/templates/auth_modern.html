@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ErrandExpress 🚀 - Smart Errands. Trusted Students.{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'heading': ['Poppins', 'sans-serif'],
+                        'body': ['Inter', 'sans-serif'],
+                        'ui': ['Rubik', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#3B82F6',
+                        'secondary': '#22C55E',
+                        'accent': '#FACC15',
+                        'background': '#F9FAFB',
+                        'text-primary': '#111827',
+                        'text-secondary': '#6B7280',
+                        'error': '#EF4444',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.3s ease-in',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #3B82F6' },
+                            '100%': { boxShadow: '0 0 20px #3B82F6, 0 0 30px #3B82F6' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Modern button hover effects */
+        .btn-modern {
+            transition: all 0.3s ease-in-out;
+            transform: translateY(0);
+        }
+        
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body class="bg-background font-body text-text-primary min-h-screen">
+    <div class="min-h-screen grid lg:grid-cols-2">
+        <!-- Left Side - Illustration -->
+        <div class="hidden lg:flex bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden">
+            <!-- Background Elements -->
+            <div class="absolute inset-0">
+                <div class="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full animate-float"></div>
+                <div class="absolute bottom-20 right-20 w-24 h-24 bg-white/10 rounded-2xl animate-float" style="animation-delay: -2s;"></div>
+                <div class="absolute top-1/2 left-10 w-16 h-16 bg-white/10 rounded-xl animate-float" style="animation-delay: -4s;"></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="flex flex-col justify-center items-center text-center text-white p-12 relative z-10">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">E</span>
+                    </div>
+                    <span class="font-heading font-bold text-2xl">ErrandExpress</span>
+                    <span class="text-2xl">🚀</span>
+                </div>
+                
+                <!-- Illustration Placeholder -->
+                <div class="w-80 h-80 bg-white/10 rounded-3xl flex items-center justify-center mb-8 backdrop-blur-sm">
+                    <div class="text-center">
+                        <div class="w-24 h-24 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="users" class="w-12 h-12 text-white"></i>
+                        </div>
+                        <p class="font-ui text-white/80">Student Collaboration</p>
+                    </div>
+                </div>
+                
+                <!-- Features -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                            <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                        </div>
+                        <span class="font-ui">Secure PayMongo Integration</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                            <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                        </div>
+                        <span class="font-ui">Skill Validation System</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                            <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                        </div>
+                        <span class="font-ui">Real-time Chat & Notifications</span>
+                    </div>
+                </div>
+                
+                <!-- Tagline -->
+                <p class="font-body text-lg text-white/80 mt-8 max-w-md">
+                    "Smart errands. Trusted students."
+                </p>
+            </div>
+        </div>
+        
+        <!-- Right Side - Form -->
+        <div class="flex items-center justify-center p-8 lg:p-12 bg-white">
+            <div class="w-full max-w-md">
+                {% block form_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Logo (visible on small screens) -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-sm">E</span>
+            </div>
+            <span class="font-heading font-bold text-lg gradient-text">ErrandExpress</span>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+        
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-secondary text-white',
+                error: 'bg-error text-white',
+                warning: 'bg-accent text-gray-800',
+                info: 'bg-primary text-white'
+            };
+            
+            toast.className = `${colors[type]} px-6 py-4 rounded-xl shadow-lg transform translate-x-full transition-transform duration-300 flex items-center space-x-2 max-w-sm`;
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'x-circle',
+                warning: 'alert-triangle',
+                info: 'info'
+            };
+            
+            toast.innerHTML = `
+                <i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="font-ui">${message}</span>
+                <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-70">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+        
+        // Show Django messages as toasts
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                showToast('{{ message|escapejs }}', '{{ message.tags }}');
+            {% endfor %}
+        });
+    </script>
+</body>
+</html>

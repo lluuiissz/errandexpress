@@ -1,0 +1,116 @@
+{% extends 'auth_modern.html' %}
+
+{% block title %}Login - ErrandExpress 🚀{% endblock %}
+
+{% block form_content %}
+<div class="animate-slide-up">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="font-heading font-bold text-3xl text-text-primary mb-2">Welcome Back!</h1>
+        <p class="font-body text-text-secondary">Sign in to continue your errand journey</p>
+    </div>
+    
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Email Field -->
+        <div>
+            <label for="email" class="block font-ui font-medium text-text-primary mb-2">
+                Email Address
+            </label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-lucide="mail" class="w-5 h-5 text-text-secondary"></i>
+                </div>
+                <input type="email" id="email" name="email" required
+                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-ui"
+                       placeholder="your.email@example.com">
+            </div>
+        </div>
+        
+        <!-- Password Field -->
+        <div>
+            <label for="password" class="block font-ui font-medium text-text-primary mb-2">
+                Password
+            </label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-lucide="lock" class="w-5 h-5 text-text-secondary"></i>
+                </div>
+                <input type="password" id="password" name="password" required
+                       class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-ui"
+                       placeholder="Enter your password">
+                <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <i data-lucide="eye" id="eye-icon" class="w-5 h-5 text-text-secondary hover:text-text-primary cursor-pointer"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between">
+            <label class="flex items-center">
+                <input type="checkbox" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                <span class="ml-2 font-ui text-sm text-text-secondary">Remember me</span>
+            </label>
+            <a href="#" class="font-ui text-sm text-primary hover:text-blue-700 transition-colors">
+                Forgot password?
+            </a>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="w-full btn-modern bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-ui font-semibold text-lg shadow-lg hover:shadow-xl">
+            Sign In
+            <i data-lucide="arrow-right" class="w-5 h-5 ml-2 inline"></i>
+        </button>
+    </form>
+    
+    <!-- Divider -->
+    <div class="relative my-8">
+        <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+            <span class="px-4 bg-white font-ui text-text-secondary">Don't have an account?</span>
+        </div>
+    </div>
+    
+    <!-- Sign Up Link -->
+    <div class="text-center">
+        <a href="{% url 'signup' %}" class="btn-modern bg-white text-primary border-2 border-primary py-3 px-8 rounded-xl font-ui font-semibold hover:bg-primary hover:text-white transition-all duration-200 inline-flex items-center">
+            Create Account
+            <i data-lucide="user-plus" class="w-5 h-5 ml-2"></i>
+        </a>
+    </div>
+    
+    <!-- Back to Home -->
+    <div class="text-center mt-6">
+        <a href="{% url 'home' %}" class="font-ui text-sm text-text-secondary hover:text-primary transition-colors inline-flex items-center">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+            Back to Home
+        </a>
+    </div>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const eyeIcon = document.getElementById('eye-icon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            eyeIcon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            passwordField.type = 'password';
+            eyeIcon.setAttribute('data-lucide', 'eye');
+        }
+        
+        lucide.createIcons();
+    }
+    
+    // Initialize icons when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}
