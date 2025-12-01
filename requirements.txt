@@ -7,7 +7,7 @@ django-filter==23.4
 # Database
 psycopg2-binary==2.9.9
 dj-database-url==2.1.0
-supabase==2.3.0
+supabase==1.0.3
 
 # Environment Variables
 python-dotenv==1.0.0
