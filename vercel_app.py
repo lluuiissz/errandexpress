@@ -8,6 +8,9 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'errandexpress'))
 # Set Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'errandexpress.settings')
 
+# Set environment defaults for Vercel
+os.environ.setdefault('DEBUG', 'False')
+
 # Import Django and setup
 import django
 django.setup()
