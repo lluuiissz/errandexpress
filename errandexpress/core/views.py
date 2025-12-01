@@ -5108,6 +5108,17 @@ def payments_dashboard(request):
         
         pending_payments_list = []
         for task in pending_tasks:
+            # Check if poster has already rated the doer
+            already_rated = Rating.objects.filter(
+                task=task,
+                rater=user,
+                rated=task.doer
+            ).exists()
+            
+            # Skip tasks that have already been rated
+            if already_rated:
+                continue
+            
             try:
                 payment = Payment.objects.get(task=task)
                 if payment.status in ['pending_payment', 'pending_confirmation']:
@@ -5130,6 +5141,17 @@ def payments_dashboard(request):
         
         pending_payments_list = []
         for task in pending_tasks:
+            # Check if doer has already rated the poster
+            already_rated = Rating.objects.filter(
+                task=task,
+                rater=user,
+                rated=task.poster
+            ).exists()
+            
+            # Skip tasks that have already been rated
+            if already_rated:
+                continue
+            
             try:
                 payment = Payment.objects.get(task=task)
                 if payment.status in ['pending_payment', 'pending_confirmation']:
