@@ -1,11 +1,19 @@
 {
   "version": 2,
-  "buildCommand": "pip install -r errandexpress/requirements.txt && python errandexpress/manage.py collectstatic --noinput",
-  "outputDirectory": "staticfiles",
-  "functions": {
-    "errandexpress/wsgi.py": {
-      "memory": 1024,
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "vercel_app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.9"
+      }
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "vercel_app.py"
+    }
+  ]
 }
