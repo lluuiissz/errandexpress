@@ -1,0 +1,62 @@
+<!-- Payment Modal Component -->
+<!-- Reusable payment modal for task payments -->
+<div id="payment-modal"
+    class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all">
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="credit-card" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Complete Payment</h3>
+            <p class="text-gray-600">Pay the task doer for completed work</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-600">Task Amount</span>
+                <span id="modal-amount" class="font-bold text-gray-900">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                <span class="font-bold text-gray-900">Total to Pay</span>
+                <span id="modal-total" class="font-bold text-2xl text-green-600">₱0.00</span>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3">Payment Method</label>
+            <div class="space-y-2">
+                <button onclick="selectPaymentMethod('gcash')"
+                    class="payment-method-btn w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-all">
+                    <i data-lucide="smartphone" class="w-6 h-6 text-blue-600"></i>
+                    <div class="text-left flex-1">
+                        <div class="font-medium">GCash</div>
+                        <div class="text-xs text-gray-500">Instant payment</div>
+                    </div>
+                    <i data-lucide="check-circle" class="w-5 h-5 text-blue-600 hidden check-icon"></i>
+                </button>
+
+                <button onclick="selectPaymentMethod('cod')"
+                    class="payment-method-btn w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 transition-all">
+                    <i data-lucide="banknote" class="w-6 h-6 text-green-600"></i>
+                    <div class="text-left flex-1">
+                        <div class="font-medium">Cash on Delivery</div>
+                        <div class="text-xs text-gray-500">Pay in person</div>
+                    </div>
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600 hidden check-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="closePaymentModal()"
+                class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+                Cancel
+            </button>
+            <button id="confirm-payment-btn" onclick="processTaskPayment()" disabled
+                class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                <span id="btn-text">Pay Now</span>
+                <span id="btn-loader" class="hidden">Processing...</span>
+            </button>
+        </div>
+    </div>
+</div>

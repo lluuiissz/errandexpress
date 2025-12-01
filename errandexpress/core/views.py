@@ -2430,6 +2430,17 @@ def rate_user(request, task_id, user_id):
         rated=rated_user
     ).first()
     
+    # Check payment status for template
+    payment_completed = False
+    if request.user == task.poster and rated_user == task.doer:
+        payment = Payment.objects.filter(
+            task=task,
+            payer=request.user,
+            receiver=task.doer,
+            status='confirmed'
+        ).first()
+        payment_completed = bool(payment)
+    
     if request.method == 'POST':
         # Prevent duplicate ratings
         if existing_rating:
@@ -2472,7 +2483,8 @@ def rate_user(request, task_id, user_id):
         'task': task,
         'rated_user': rated_user,
         'already_rated': bool(existing_rating),
-        'existing_rating': existing_rating
+        'existing_rating': existing_rating,
+        'payment_completed': payment_completed,  # NEW: Payment status for template
     }
     
     return render(request, 'ratings/rate_user.html', context)
