@@ -315,6 +315,8 @@ class Payment(models.Model):
     
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('pending_payment', 'Pending Payment'),  # Waiting for online payment
+        ('pending_confirmation', 'Pending Confirmation'),  # Waiting for manual confirmation (COD)
         ('confirmed', 'Confirmed'),
         ('disputed', 'Disputed'),
         ('refunded', 'Refunded'),
@@ -329,7 +331,7 @@ class Payment(models.Model):
     net_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)  # Amount after commission
     method = models.CharField(max_length=20, choices=METHOD_CHOICES)
     proof_url = models.FileField(upload_to='payment_proofs/', null=True, blank=True)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='pending')
     paymongo_payment_id = models.CharField(max_length=255, blank=True, unique=True)  # Prevent duplicates
     paymongo_source_id = models.CharField(max_length=255, blank=True)  # For GCash/Card sources
     reference_number = models.CharField(max_length=100, blank=True)

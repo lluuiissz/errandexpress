@@ -574,39 +574,65 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
     
     FLOWS:
     A. COD: Manual confirmation by poster
-    B. GCash: Automatic via PayMongo webhook
+    B. GCash/PayMongo: Automatic via PayMongo webhook
     """
     from .models import Task, Payment
     
     try:
+        # Add detailed logging
+        logger.info(f"🔄 Processing task completion payment: task_id={task_id}, method={payment_method}")
+        
         task = Task.objects.get(id=task_id, poster=poster)
         
+        # Detailed validation with specific error messages
         if task.status != 'in_progress':
-            return {'success': False, 'error': 'Task is not in progress'}
+            logger.error(f"❌ Invalid task status: {task.status} (expected: in_progress)")
+            return {
+                'success': False, 
+                'message': f'Task status is "{task.status}", not "in_progress". Cannot process payment.'
+            }
         
         if not task.doer:
-            return {'success': False, 'error': 'No doer assigned to this task'}
+            logger.error(f"❌ No doer assigned to task {task_id}")
+            return {
+                'success': False, 
+                'message': 'No doer assigned to this task. Cannot process payment.'
+            }
         
         # Check if payment already exists
         existing_payment = Payment.objects.filter(task=task).first()
-        if existing_payment and existing_payment.status == 'paid':
-            return {'success': False, 'error': 'Task payment already completed'}
+        if existing_payment:
+            if existing_payment.status == 'confirmed':
+                logger.warning(f"⚠️ Payment already confirmed for task {task_id}")
+                return {
+                    'success': False, 
+                    'message': 'Payment already completed for this task'
+                }
+            else:
+                # Reuse existing pending payment
+                logger.info(f"♻️ Reusing existing payment: {existing_payment.id}, status={existing_payment.status}")
+                return {
+                    'success': True,
+                    'payment_id': str(existing_payment.id),
+                    'status': existing_payment.status,
+                    'amount': float(task.price),
+                    'message': 'Payment record already exists'
+                }
         
         # 🔹 STEP 5A: COD Flow (Manual Confirmation)
         if payment_method.lower() == 'cod':
             # Create payment record as pending manual confirmation
             payment = Payment.objects.create(
                 task=task,
-                poster=poster,
-                doer=task.doer,
+                payer=poster,  # Fixed: use 'payer' not 'poster'
+                receiver=task.doer,  # Fixed: use 'receiver' not 'doer'
                 amount=task.price,
                 method='cod',
                 status='pending_confirmation',  # Waiting for poster to confirm
-                description=f'Task payment for "{task.title}"'
             )
             
             # Task remains in_progress until manual confirmation
-            logger.info(f"COD payment created for task {task_id} - awaiting manual confirmation")
+            logger.info(f"✅ COD payment created: payment_id={payment.id}, task_id={task_id}")
             
             # Notify doer that task is completed, awaiting payment
             Notification.objects.create(
@@ -619,42 +645,53 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
             
             return {
                 'success': True, 
-                'payment_id': payment.id,
+                'payment_id': str(payment.id),
                 'status': 'pending_confirmation',
+                'amount': float(task.price),
                 'message': 'Task completed. Please confirm COD payment when received.'
             }
         
-        # 🔹 STEP 5B: GCash Flow (Automatic via PayMongo)
-        elif payment_method.lower() == 'gcash':
+        # 🔹 STEP 5B: GCash/PayMongo Flow (Automatic via PayMongo)
+        elif payment_method.lower() in ['gcash', 'paymongo']:
             # Create payment record as pending online payment
             payment = Payment.objects.create(
                 task=task,
-                poster=poster,
-                doer=task.doer,
+                payer=poster,  # Fixed: use 'payer' not 'poster'
+                receiver=task.doer,  # Fixed: use 'receiver' not 'doer'
                 amount=task.price,
-                method='gcash',
+                method='paymongo',  # Use 'paymongo' as method
                 status='pending_payment',  # Waiting for PayMongo confirmation
-                description=f'Task payment for "{task.title}"'
             )
             
-            logger.info(f"GCash payment initiated for task {task_id} - amount: ₱{task.price}")
+            logger.info(f"✅ PayMongo payment initiated: payment_id={payment.id}, task_id={task_id}, amount=₱{task.price}")
             
             return {
                 'success': True,
-                'payment_id': payment.id,
+                'payment_id': str(payment.id),
                 'status': 'pending_payment',
                 'amount': float(task.price),
                 'message': 'Proceed to GCash payment'
             }
         
         else:
-            return {'success': False, 'error': 'Invalid payment method'}
+            logger.error(f"❌ Invalid payment method: {payment_method}")
+            return {
+                'success': False, 
+                'message': f'Invalid payment method: {payment_method}. Use "cod" or "paymongo".'
+            }
             
     except Task.DoesNotExist:
-        return {'success': False, 'error': 'Task not found'}
+        logger.error(f"❌ Task not found: {task_id}")
+        return {
+            'success': False, 
+            'message': 'Task not found or you do not have permission to access it'
+        }
     except Exception as e:
-        logger.error(f"Task completion payment error: {str(e)}")
-        return {'success': False, 'error': str(e)}
+        logger.error(f"❌ Task completion payment error: {str(e)}", exc_info=True)
+        return {
+            'success': False, 
+            'message': f'Payment processing error: {str(e)}'
+        }
 
 
 def confirm_cod_payment(payment_id, poster):
@@ -4132,36 +4169,66 @@ def paymongo_webhook(request):
                 except Exception as e:
                     logger.error(f"❌ Error processing task doer payment: {str(e)}", exc_info=True)
             
-            # 🔹 STEP 5B: Main Task Payment (GCash) - OLD
-            elif "Task payment" in description or (amount_pesos > 2.0 and amount_pesos < 100000):
-                logger.info("📝 Processing as LEGACY TASK PAYMENT")
+            # 🔹 STEP 5B: Main Task Payment (PayMongo/GCash)
+            elif "Task Payment" in description or (amount_pesos > 2.0 and amount_pesos < 100000):
+                logger.info(f"📝 Processing as MAIN TASK PAYMENT: ₱{amount_pesos}")
                 
-                # Extract task ID from description
                 try:
-                    import re
-                    uuid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-                    match = re.search(uuid_pattern, description)
+                    # Try to find payment by source_id first (most reliable)
+                    payment = None
+                    try:
+                        payment = Payment.objects.get(
+                            paymongo_source_id=source_id,
+                            status='pending_payment'
+                        )
+                        logger.info(f"Found payment by source_id: {payment.id}")
+                    except Payment.DoesNotExist:
+                        logger.info("Payment not found by source_id, trying task ID extraction...")
+                        
+                        # Fallback: Extract task ID from description
+                        import re
+                        uuid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+                        match = re.search(uuid_pattern, description)
+                        
+                        if match:
+                            task_id = match.group(0)
+                            logger.info(f"Extracted task_id from description: {task_id}")
+                            
+                            # Find the pending payment record
+                            payment = Payment.objects.get(
+                                task__id=task_id,
+                                method='paymongo',  # Fixed: use 'paymongo' method
+                                status='pending_payment'
+                            )
+                            logger.info(f"Found payment by task_id: {payment.id}")
                     
-                    if match:
-                        task_id = match.group(0)
-                    else:
-                        # Fallback: try to extract from quotes
-                        task_id = description.split('"')[1] if '"' in description else description.split(" ")[-1]
+                    if not payment:
+                        logger.error("Could not find payment record")
+                        return JsonResponse({'error': 'Payment not found'}, status=404)
                     
-                    logger.info(f"Extracted task_id: {task_id}")
+                    # Verify amount matches
+                    if float(payment.amount) != amount_pesos:
+                        logger.error(f"Amount mismatch: expected ₱{payment.amount}, got ₱{amount_pesos}")
+                        return JsonResponse({'error': 'Amount mismatch'}, status=400)
                     
-                    # Find the pending payment record
-                    payment = Payment.objects.get(
-                        task__id=task_id,
-                        method='gcash',
-                        status='pending_payment'
-                    )
-                    
-                    # Mark main task payment as paid
-                    payment.status = 'paid'
+                    # Mark main task payment as confirmed
+                    payment.status = 'confirmed'  # Fixed: use 'confirmed' not 'paid'
                     payment.paid_at = timezone.now()
                     payment.paymongo_payment_id = source_id
                     payment.save()
+                    
+                    logger.info(f"✅ Payment confirmed: {payment.id}")
+                    
+                    # 💰 ADD COMMISSION TO SYSTEM WALLET
+                    from .models import SystemWallet
+                    from decimal import Decimal
+                    wallet = SystemWallet.get_or_create_wallet()
+                    commission_amount = payment.commission_amount  # Already calculated in Payment.save()
+                    wallet.add_revenue(
+                        amount=commission_amount,
+                        description=f"Commission from task payment: {payment.task.title}"
+                    )
+                    logger.info(f"💰 Commission added to wallet: ₱{commission_amount}")
                     
                     # 🔔 COMPLETE TASK AUTOMATICALLY
                     task = payment.task
@@ -4169,17 +4236,20 @@ def paymongo_webhook(request):
                     task.completed_at = timezone.now()
                     task.save()
                     
-                    # Notify both users
+                    logger.info(f"✅ Task completed: {task.id}")
+                    
+                    # Notify task poster (payer)
                     Notification.objects.create(
-                        user=payment.poster,
+                        user=payment.payer,  # Fixed: use 'payer' not 'poster'
                         type='payment_confirmed',
                         title='Task Payment Confirmed! 💰',
                         message=f'GCash payment of ₱{amount_pesos} confirmed. Task "{task.title}" completed!',
                         related_task=task
                     )
                     
+                    # Notify task doer (receiver)
                     Notification.objects.create(
-                        user=payment.doer,
+                        user=payment.receiver,  # Fixed: use 'receiver' not 'doer'
                         type='payment_received',
                         title='Payment Received! 🎉',
                         message=f'You received ₱{amount_pesos} for task "{task.title}". Task completed!',
@@ -4188,29 +4258,30 @@ def paymongo_webhook(request):
                     
                     # 🔹 STEP 6: Prompt for ratings
                     Notification.objects.create(
-                        user=payment.poster,
+                        user=payment.payer,  # Fixed: use 'payer' not 'poster'
                         type='rate_reminder',
                         title='Please Rate Your Doer',
-                        message=f'Task "{task.title}" completed. Please rate {payment.doer.fullname}.',
+                        message=f'Task "{task.title}" completed. Please rate {payment.receiver.fullname}.',
                         related_task=task
                     )
                     
                     Notification.objects.create(
-                        user=payment.doer,
+                        user=payment.receiver,  # Fixed: use 'receiver' not 'doer'
                         type='rate_reminder',
                         title='Please Rate Your Poster',
-                        message=f'Task "{task.title}" completed. Please rate {payment.poster.fullname}.',
+                        message=f'Task "{task.title}" completed. Please rate {payment.payer.fullname}.',
                         related_task=task
                     )
                     
-                    logger.info(f"✅ Task payment CONFIRMED - task {task_id} completed automatically")
+                    logger.info(f"✅ Task payment CONFIRMED - task {task.id} completed automatically via webhook")
                     
                 except Payment.DoesNotExist:
-                    logger.error(f"❌ Payment record not found for task payment: {task_id}")
+                    logger.error(f"❌ Payment record not found for task payment")
                 except Task.DoesNotExist:
-                    logger.error(f"❌ Task not found for payment: {task_id}")
+                    logger.error(f"❌ Task not found for payment")
                 except Exception as e:
-                    logger.error(f"❌ Error processing task payment: {str(e)}")
+                    logger.error(f"❌ Error processing task payment: {str(e)}", exc_info=True)
+
         
         elif event_type == "source.chargeable":
             # Handle GCash payment source creation

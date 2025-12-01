@@ -29,7 +29,7 @@ class MessagesPaymentHandler {
     showToast(message, type = 'success') {
         const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
         const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
-        
+
         const toast = document.createElement('div');
         toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-50 animate-slide-in`;
         toast.innerHTML = `
@@ -41,11 +41,11 @@ class MessagesPaymentHandler {
             </div>
         `;
         document.body.appendChild(toast);
-        
+
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
-        
+
         setTimeout(() => {
             toast.remove();
         }, 5000);
@@ -55,7 +55,7 @@ class MessagesPaymentHandler {
         const btn = document.getElementById('confirm-payment-btn');
         const btnText = document.getElementById('btn-text');
         const btnLoader = document.getElementById('btn-loader');
-        
+
         if (isLoading) {
             btn.disabled = true;
             btnText.classList.add('hidden');
@@ -80,35 +80,27 @@ class MessagesPaymentHandler {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken()
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     payment_method: 'paymongo'
                 })
             });
 
+            // Check if response is OK
+            if (!completeResponse.ok) {
+                const errorData = await completeResponse.json();
+                throw new Error(errorData.message || errorData.error || `Server error: ${completeResponse.status}`);
+            }
+
             const completeData = await completeResponse.json();
+            console.log('✅ Payment initiation response:', completeData);
 
             if (!completeData.success) {
-                throw new Error(completeData.message || 'Failed to initiate payment');
+                throw new Error(completeData.message || completeData.error || 'Failed to initiate payment');
             }
 
             const paymentId = completeData.payment_id;
 
-            // Step 2: Create payment intent
-            console.log('📝 Creating payment intent...');
-            const intentResponse = await fetch(`${this.baseUrl}/api/create-task-payment-intent/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCSRFToken()
-                },
-                body: JSON.stringify({ 
-                    payment_id: paymentId
-                })
-            });
-
-            const intentData = await intentResponse.json();
-
-            // Step 3: Create GCash source
+            // Step 2: Create GCash source (skip payment intent for now)
             console.log('💳 Creating GCash source...');
             const gcashResponse = await fetch(`${this.baseUrl}/api/create-task-gcash-payment/`, {
                 method: 'POST',
@@ -116,20 +108,26 @@ class MessagesPaymentHandler {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken()
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     payment_id: paymentId
                 })
             });
 
+            if (!gcashResponse.ok) {
+                const errorData = await gcashResponse.json();
+                throw new Error(errorData.error || `GCash creation failed: ${gcashResponse.status}`);
+            }
+
             const gcashData = await gcashResponse.json();
+            console.log('✅ GCash response:', gcashData);
 
             if (gcashData.success && gcashData.checkout_url) {
                 // Close modal
                 closePaymentModal();
-                
+
                 // Show info
                 this.showToast('Opening GCash payment...', 'info');
-                
+
                 // Open GCash checkout
                 const paymentWindow = window.open(
                     gcashData.checkout_url,
@@ -168,7 +166,7 @@ class MessagesPaymentHandler {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': this.getCSRFToken()
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     payment_method: 'cod'
                 })
             });
@@ -178,7 +176,7 @@ class MessagesPaymentHandler {
             if (data.success) {
                 closePaymentModal();
                 this.showToast('COD payment recorded. Awaiting confirmation.', 'success');
-                
+
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
@@ -201,7 +199,7 @@ class MessagesPaymentHandler {
                 if (paymentWindow.closed) {
                     clearInterval(checkInterval);
                     console.log('🔍 Payment window closed, checking status...');
-                    
+
                     setTimeout(() => {
                         this.checkTaskPaymentStatus(paymentId);
                     }, 2000);
@@ -232,10 +230,10 @@ class MessagesPaymentHandler {
             );
 
             const data = await response.json();
-            
+
             if (data.status === 'confirmed') {
                 this.showToast('Payment successful! Task completed.', 'success');
-                
+
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
@@ -257,19 +255,19 @@ function openPaymentModal(taskId, amount) {
     messagesPayment.currentTaskId = taskId;
     messagesPayment.currentAmount = parseFloat(amount);
     messagesPayment.selectedMethod = null;
-    
+
     document.getElementById('modal-amount').textContent = `₱${amount}`;
     document.getElementById('modal-total').textContent = `₱${amount}`;
     document.getElementById('payment-modal').classList.remove('hidden');
     document.getElementById('confirm-payment-btn').disabled = true;
-    
+
     // Reset payment method buttons
     document.querySelectorAll('.payment-method-btn').forEach(btn => {
         btn.classList.remove('border-blue-500', 'border-green-500', 'bg-blue-50', 'bg-green-50');
         btn.classList.add('border-gray-200');
         btn.querySelector('.check-icon').classList.add('hidden');
     });
-    
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -281,23 +279,23 @@ function closePaymentModal() {
 
 function selectPaymentMethod(method) {
     messagesPayment.selectedMethod = method;
-    
+
     // Update UI
     document.querySelectorAll('.payment-method-btn').forEach(btn => {
         btn.classList.remove('border-blue-500', 'border-green-500', 'bg-blue-50', 'bg-green-50');
         btn.classList.add('border-gray-200');
         btn.querySelector('.check-icon').classList.add('hidden');
     });
-    
+
     const selectedBtn = event.currentTarget;
     const color = method === 'gcash' ? 'blue' : 'green';
     selectedBtn.classList.remove('border-gray-200');
     selectedBtn.classList.add(`border-${color}-500`, `bg-${color}-50`);
     selectedBtn.querySelector('.check-icon').classList.remove('hidden');
-    
+
     // Enable confirm button
     document.getElementById('confirm-payment-btn').disabled = false;
-    
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -312,10 +310,10 @@ function processTaskPayment() {
 }
 
 // Close modal on backdrop click
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('payment-modal');
     if (modal) {
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === this) {
                 closePaymentModal();
             }
