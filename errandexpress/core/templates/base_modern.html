@@ -137,8 +137,8 @@
                         <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                             <span class="text-white font-bold text-sm">E</span>
                         </div>
-                        <span class="font-heading font-bold text-xl gradient-text">ErrandExpress</span>
-                        <span class="text-lg">🚀</span>
+                        <span class="font-heading font-bold text-lg sm:text-xl gradient-text">ErrandExpress</span>
+                        <span class="text-base sm:text-lg">🚀</span>
                     </a>
                 </div>
                 
@@ -170,14 +170,19 @@
                     </a>
                 </div>
                 
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i data-lucide="menu" class="w-6 h-6 text-text-secondary"></i>
+                </button>
+                
                 <!-- User Menu -->
-                <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-4">
                     <div class="relative group">
                         <button class="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors">
                             <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                                 <span class="text-white font-semibold text-sm">{{ user.fullname.0|upper }}</span>
                             </div>
-                            <span class="font-ui font-medium hidden md:block">{{ user.fullname }}</span>
+                            <span class="font-ui font-medium hidden lg:block">{{ user.fullname }}</span>
                             <i data-lucide="chevron-down" class="w-4 h-4 text-text-secondary"></i>
                         </button>
                         
@@ -200,6 +205,76 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden">
+            <div class="fixed right-0 top-0 h-full w-64 bg-white shadow-xl transform translate-x-full transition-transform duration-300" id="mobile-menu-drawer">
+                <div class="p-4">
+                    <!-- Close Button -->
+                    <button id="mobile-menu-close" class="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                    
+                    <!-- User Info -->
+                    <div class="mb-6 pt-8">
+                        <div class="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-semibold">{{ user.fullname.0|upper }}</span>
+                            </div>
+                            <div>
+                                <p class="font-ui font-medium text-sm">{{ user.fullname }}</p>
+                                <p class="text-xs text-text-secondary">{{ user.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <nav class="space-y-1">
+                        <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i data-lucide="home" class="w-5 h-5 text-text-secondary"></i>
+                            <span class="font-ui">Home</span>
+                        </a>
+                        
+                        {% if user.role == 'task_poster' or user.role == 'admin' %}
+                        <a href="{% url 'create_task' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i data-lucide="plus-circle" class="w-5 h-5 text-text-secondary"></i>
+                            <span class="font-ui">Post Task</span>
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.role == 'task_doer' or user.role == 'admin' %}
+                        <a href="{% url 'browse_tasks' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i data-lucide="search" class="w-5 h-5 text-text-secondary"></i>
+                            <span class="font-ui">Browse Tasks</span>
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'notifications' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors relative">
+                            <i data-lucide="bell" class="w-5 h-5 text-text-secondary"></i>
+                            <span class="font-ui">Notifications</span>
+                            <span id="mobile-notification-badge" class="bg-error text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden ml-auto">0</span>
+                        </a>
+                        
+                        <hr class="my-3">
+                        
+                        <a href="{% url 'profile' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i data-lucide="user" class="w-5 h-5 text-text-secondary"></i>
+                            <span class="font-ui">Profile</span>
+                        </a>
+                        
+                        <a href="{% url 'settings' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i data-lucide="settings" class="w-5 h-5 text-text-secondary"></i>
+                            <span class="font-ui">Settings</span>
+                        </a>
+                        
+                        <a href="{% url 'logout' %}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-50 text-error transition-colors">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                            <span class="font-ui">Logout</span>
+                        </a>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -311,6 +386,71 @@
         // Update notification count every 30 seconds
         updateNotificationCount();
         setInterval(updateNotificationCount, 30000);
+        
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        
+        function openMobileMenu() {
+            mobileMenu.classList.remove('hidden');
+            setTimeout(() => {
+                mobileMenuDrawer.classList.remove('translate-x-full');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMobileMenu() {
+            mobileMenuDrawer.classList.add('translate-x-full');
+            setTimeout(() => {
+                mobileMenu.classList.add('hidden');
+            }, 300);
+            document.body.style.overflow = '';
+        }
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+        }
+        
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+        
+        if (mobileMenu) {
+            mobileMenu.addEventListener('click', function(e) {
+                if (e.target === mobileMenu) {
+                    closeMobileMenu();
+                }
+            });
+        }
+        
+        // Update mobile notification badge too
+        async function updateNotificationCount() {
+            try {
+                const response = await fetch('{% url "notification_count" %}');
+                const data = await response.json();
+                const badge = document.getElementById('notification-badge');
+                const mobileBadge = document.getElementById('mobile-notification-badge');
+                
+                if (data.count > 0) {
+                    const countText = data.count > 99 ? '99+' : data.count;
+                    if (badge) {
+                        badge.textContent = countText;
+                        badge.classList.remove('hidden');
+                    }
+                    if (mobileBadge) {
+                        mobileBadge.textContent = countText;
+                        mobileBadge.classList.remove('hidden');
+                    }
+                } else {
+                    if (badge) badge.classList.add('hidden');
+                    if (mobileBadge) mobileBadge.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Failed to update notification count:', error);
+            }
+        }
         {% endif %}
         
         // Smooth scroll reveal animation
