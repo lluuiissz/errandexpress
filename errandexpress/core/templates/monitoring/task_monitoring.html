@@ -202,181 +202,153 @@
                     <div>
                         <p class="text-gray-500 text-xs">Price</p>
                         <p class="font-medium text-gray-900">₱{{ task.price }}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-xs">Deadline</p>
-                        <p class="font-medium text-gray-900">{{ task.deadline|date:"M d, Y" }}</p>
-                    </div>
-                </div>
-
-                <div class="text-center py-12 px-6">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="inbox" class="w-10 h-10 text-gray-400"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No tasks yet</h3>
-                    <p class="text-gray-600">
-                        {% if role == 'poster' %}
-                        You haven't posted any tasks yet
-                        {% else %}
-                        You haven't been assigned any tasks yet
-                        {% endif %}
-                    </p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Feedback Modal -->
-        <div id="feedback-modal"
-            class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <i data-lucide="star" class="w-6 h-6 text-yellow-500"></i>
-                        Rate Task
-                    </h3>
-                    <button onclick="closeFeedbackModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <i data-lucide="x" class="w-6 h-6"></i>
-                    </button>
-                </div>
-
-                <div id="task-info" class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                    <div class="text-xs text-blue-600 font-medium mb-1">Task</div>
-                    <div id="task-title" class="font-semibold text-gray-900"></div>
-                </div>
-
-                <!-- Rating Scale -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-4">Select Rating (1-10)</label>
-                    <div class="flex gap-2 justify-center flex-wrap">
-                        {% for i in "1234567890" %}
-                        <button onclick="setRating({{ forloop.counter }})"
-                            class="rating-btn w-10 h-10 rounded-lg border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-all font-semibold text-gray-700 text-sm"
-                            data-rating="{{ forloop.counter }}">
-                            {{ forloop.counter }}
+                        <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <i data-lucide="star" class="w-6 h-6 text-yellow-500"></i>
+                            Rate Task
+                        </h3>
+                        <button onclick="closeFeedbackModal()"
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i data-lucide="x" class="w-6 h-6"></i>
                         </button>
-                        {% endfor %}
                     </div>
-                    <div id="rating-display" class="text-center mt-4 text-2xl font-bold text-yellow-600 hidden">
-                        <span id="selected-rating">0</span>/10 ⭐
+
+                    <div id="task-info" class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <div class="text-xs text-blue-600 font-medium mb-1">Task</div>
+                        <div id="task-title" class="font-semibold text-gray-900"></div>
                     </div>
-                </div>
 
-                <!-- Feedback Text -->
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Feedback (Optional)</label>
-                    <textarea id="feedback-text" placeholder="Share your experience..."
-                        class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-sm"
-                        rows="3"></textarea>
-                </div>
+                    <!-- Rating Scale -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-4">Select Rating (1-10)</label>
+                        <div class="flex gap-2 justify-center flex-wrap">
+                            {% for i in "1234567890" %}
+                            <button onclick="setRating({{ forloop.counter }})"
+                                class="rating-btn w-10 h-10 rounded-lg border-2 border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-all font-semibold text-gray-700 text-sm"
+                                data-rating="{{ forloop.counter }}">
+                                {{ forloop.counter }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div id="rating-display" class="text-center mt-4 text-2xl font-bold text-yellow-600 hidden">
+                            <span id="selected-rating">0</span>/10 ⭐
+                        </div>
+                    </div>
 
-                <!-- Actions -->
-                <div class="flex gap-3">
-                    <button onclick="closeFeedbackModal()"
-                        class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">
-                        Cancel
-                    </button>
-                    <button onclick="submitFeedback()" id="submit-feedback-btn" disabled
-                        class="flex-1 px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                        Submit
-                    </button>
+                    <!-- Feedback Text -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Feedback (Optional)</label>
+                        <textarea id="feedback-text" placeholder="Share your experience..."
+                            class="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-sm"
+                            rows="3"></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-3">
+                        <button onclick="closeFeedbackModal()"
+                            class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">
+                            Cancel
+                        </button>
+                        <button onclick="submitFeedback()" id="submit-feedback-btn" disabled
+                            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-500 text-white rounded-lg hover:from-yellow-600 hover:to-amber-600 transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            Submit
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {% endblock %}
+            {% endblock %}
 
-        {% block extra_scripts %}
-        <script>
-            let selectedTaskId = null;
-            let selectedRating = 0;
+            {% block extra_scripts %}
+            <script>
+                let selectedTaskId = null;
+                let selectedRating = 0;
 
-            function openFeedbackModal(taskId, taskTitle) {
-                selectedTaskId = taskId;
-                selectedRating = 0;
-                document.getElementById('task-title').textContent = taskTitle;
-                document.getElementById('feedback-text').value = '';
-                document.getElementById('rating-display').classList.add('hidden');
-                document.getElementById('submit-feedback-btn').disabled = true;
-                document.querySelectorAll('.rating-btn').forEach(btn => {
-                    btn.classList.remove('bg-yellow-100', 'border-yellow-400');
-                });
-                document.getElementById('feedback-modal').classList.remove('hidden');
-            }
-
-            function closeFeedbackModal() {
-                document.getElementById('feedback-modal').classList.add('hidden');
-                selectedTaskId = null;
-                selectedRating = 0;
-            }
-
-            function setRating(rating) {
-                selectedRating = rating;
-                document.getElementById('selected-rating').textContent = rating;
-                document.getElementById('rating-display').classList.remove('hidden');
-                document.getElementById('submit-feedback-btn').disabled = false;
-
-                document.querySelectorAll('.rating-btn').forEach(btn => {
-                    btn.classList.remove('bg-yellow-100', 'border-yellow-400');
-                });
-                document.querySelector(`[data-rating="${rating}"]`).classList.add('bg-yellow-100', 'border-yellow-400');
-            }
-
-            async function submitFeedback() {
-                if (!selectedRating || !selectedTaskId) {
-                    alert('Please select a rating');
-                    return;
+                function openFeedbackModal(taskId, taskTitle) {
+                    selectedTaskId = taskId;
+                    selectedRating = 0;
+                    document.getElementById('task-title').textContent = taskTitle;
+                    document.getElementById('feedback-text').value = '';
+                    document.getElementById('rating-display').classList.add('hidden');
+                    document.getElementById('submit-feedback-btn').disabled = true;
+                    document.querySelectorAll('.rating-btn').forEach(btn => {
+                        btn.classList.remove('bg-yellow-100', 'border-yellow-400');
+                    });
+                    document.getElementById('feedback-modal').classList.remove('hidden');
                 }
 
-                const feedback = document.getElementById('feedback-text').value;
-                const btn = document.getElementById('submit-feedback-btn');
-                btn.disabled = true;
-                btn.textContent = 'Submitting...';
+                function closeFeedbackModal() {
+                    document.getElementById('feedback-modal').classList.add('hidden');
+                    selectedTaskId = null;
+                    selectedRating = 0;
+                }
 
-                try {
-                    const response = await fetch(`/api/submit-feedback/${selectedTaskId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
-                        },
-                        body: JSON.stringify({
-                            score: selectedRating,
-                            feedback: feedback
-                        })
+                function setRating(rating) {
+                    selectedRating = rating;
+                    document.getElementById('selected-rating').textContent = rating;
+                    document.getElementById('rating-display').classList.remove('hidden');
+                    document.getElementById('submit-feedback-btn').disabled = false;
+
+                    document.querySelectorAll('.rating-btn').forEach(btn => {
+                        btn.classList.remove('bg-yellow-100', 'border-yellow-400');
                     });
+                    document.querySelector(`[data-rating="${rating}"]`).classList.add('bg-yellow-100', 'border-yellow-400');
+                }
 
-                    const data = await response.json();
-
-                    if (data.success) {
-                        alert('Rating submitted successfully!');
-                        closeFeedbackModal();
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.error);
+                async function submitFeedback() {
+                    if (!selectedRating || !selectedTaskId) {
+                        alert('Please select a rating');
+                        return;
                     }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Failed to submit rating');
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = 'Submit Rating';
-                }
-            }
 
-            document.addEventListener('DOMContentLoaded', function () {
-                const modal = document.getElementById('feedback-modal');
-                if (modal) {
-                    modal.addEventListener('click', function (e) {
-                        if (e.target === this) {
+                    const feedback = document.getElementById('feedback-text').value;
+                    const btn = document.getElementById('submit-feedback-btn');
+                    btn.disabled = true;
+                    btn.textContent = 'Submitting...';
+
+                    try {
+                        const response = await fetch(`/api/submit-feedback/${selectedTaskId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                            },
+                            body: JSON.stringify({
+                                score: selectedRating,
+                                feedback: feedback
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            alert('Rating submitted successfully!');
                             closeFeedbackModal();
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.error);
                         }
-                    });
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Failed to submit rating');
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Submit Rating';
+                    }
                 }
 
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            });
-        </script>
-        {% endblock %}
+                document.addEventListener('DOMContentLoaded', function () {
+                    const modal = document.getElementById('feedback-modal');
+                    if (modal) {
+                        modal.addEventListener('click', function (e) {
+                            if (e.target === this) {
+                                closeFeedbackModal();
+                            }
+                        });
+                    }
+
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                });
+            </script>
+            {% endblock %}
