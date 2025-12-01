@@ -8,9 +8,20 @@
         "maxLambdaSize": "15mb",
         "runtime": "python3.9"
       }
+    },
+    {
+      "src": "build.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "errandexpress/staticfiles"
+      }
     }
   ],
   "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/errandexpress/staticfiles/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "vercel_app.py"

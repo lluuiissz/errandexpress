@@ -1,0 +1,62 @@
+# Django & Web Framework
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-filter==23.4
+django-extensions==3.2.3
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# API & HTTP
+requests==2.31.0
+httpx==0.25.2
+
+# Task Queue
+celery==5.3.4
+redis==5.0.1
+
+# Payment Processing
+paymongo==1.0.0
+
+# Image Processing
+Pillow==10.1.0
+
+# Security
+django-cors-headers==4.3.1
+cryptography==41.0.7
+
+# Production Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+slugify==0.0.1
+
+# Supabase (Optional)
+supabase==2.0.2
+postgrest-py==0.13.0
+
+# Google Sheets (Optional)
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.107.0
+
+# Monitoring & Logging
+sentry-sdk==1.39.1
+
+# Development (Optional)
+django-debug-toolbar==4.2.0
+factory-boy==3.3.0
+faker==21.0.0
+
+# Testing
+pytest==7.4.3
+pytest-django==4.7.0
+pytest-cov==4.1.0
