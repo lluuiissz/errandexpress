@@ -23,7 +23,7 @@ class User(AbstractUser):
     fullname = models.CharField(max_length=255)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='task_doer')
     doer_type = models.CharField(max_length=20, choices=DOER_TYPE_CHOICES, null=True, blank=True)
-    avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+    avg_rating = models.DecimalField(max_digits=4, decimal_places=2, default=0.00)
     total_ratings = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=15, blank=True)
