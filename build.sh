@@ -1,12 +1,11 @@
 #!/bin/bash
+# Vercel build script for Django
 
-# Install dependencies
+echo "Installing dependencies..."
 pip install -r requirements.txt
 
-# Navigate to Django project
+echo "Collecting static files..."
 cd errandexpress
-
-# Collect static files
 python manage.py collectstatic --noinput
 
 echo "Build completed successfully!"

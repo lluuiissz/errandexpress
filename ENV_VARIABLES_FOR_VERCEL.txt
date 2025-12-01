@@ -1,20 +1,20 @@
 # ========================================
 # ErrandExpress Environment Variables
-# For Vercel Deployment
+# For Vercel Deployment with Supabase
 # ========================================
-
-# CRITICAL: Copy these values to Vercel Dashboard
-# Go to: Vercel Dashboard → Your Project → Settings → Environment Variables
 
 # Django Settings
 DJANGO_SECRET_KEY=(u-a=4n#($(jtcmlk*$-2235n&k-_^o1ivcz2()6yhgypx7@0s
 DEBUG=False
 ALLOWED_HOSTS=.vercel.app,localhost,127.0.0.1
 
-# Database Configuration
-# For Vercel: Use PostgreSQL (Supabase, Railway, or Neon)
-# For local testing: sqlite:///db.sqlite3
-DATABASE_URL=sqlite:///db.sqlite3
+# Supabase PostgreSQL Database
+# Get from: Supabase Dashboard → Settings → Database → Connection String
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT].supabase.co:5432/postgres
+
+# Supabase Settings
+SUPABASE_URL=https://[YOUR-PROJECT].supabase.co
+SUPABASE_KEY=your-supabase-anon-key
 
 # PayMongo API Keys (Optional - for payments)
 # Get from: https://dashboard.paymongo.com/developers/api_keys
@@ -22,30 +22,19 @@ PAYMONGO_PUBLIC_KEY=pk_test_your_key_here
 PAYMONGO_SECRET_KEY=sk_test_your_key_here
 PAYMONGO_WEBHOOK_SECRET=whsec_your_secret_here
 
-# Supabase Settings (Optional - if using Supabase PostgreSQL)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-supabase-anon-key
-
 # ========================================
-# How to Use This File
+# How to Add to Vercel
 # ========================================
-
-# FOR LOCAL DEVELOPMENT:
-# 1. Copy this file to: errandexpress/.env
-# 2. Update the values as needed
-# 3. The .env file is gitignored (won't be committed)
-
-# FOR VERCEL DEPLOYMENT:
-# 1. Go to Vercel Dashboard
+# 1. Go to Vercel Dashboard → Your Project
 # 2. Settings → Environment Variables
 # 3. Add each variable above
 # 4. Check all 3 boxes (Production, Preview, Development)
-# 5. Click Save for each
+# 5. Click Save
 
 # ========================================
 # Required Variables for Vercel
 # ========================================
 # DJANGO_SECRET_KEY - REQUIRED
+# DATABASE_URL - REQUIRED (Supabase PostgreSQL)
 # ALLOWED_HOSTS - REQUIRED
-# DEBUG - REQUIRED
-# DATABASE_URL - OPTIONAL (defaults to SQLite)
+# DEBUG - REQUIRED (set to False)

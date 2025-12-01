@@ -1,17 +1,17 @@
-from django.core.wsgi import get_wsgi_application
 import os
 import sys
 
-# Add errandexpress to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'errandexpress'))
+# Add Django project to path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(BASE_DIR, '..', 'errandexpress'))
 
-# Configure Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'errandexpress.settings')
-os.environ.setdefault('DEBUG', 'False')
+# Configure Django settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'errandexpress.settings'
 
 # Initialize Django
 import django
 django.setup()
 
-# Get application
+# Get WSGI application
+from django.core.wsgi import get_wsgi_application
 app = get_wsgi_application()
