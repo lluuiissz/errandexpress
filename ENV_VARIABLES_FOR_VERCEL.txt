@@ -1,0 +1,51 @@
+# ========================================
+# ErrandExpress Environment Variables
+# For Vercel Deployment
+# ========================================
+
+# CRITICAL: Copy these values to Vercel Dashboard
+# Go to: Vercel Dashboard → Your Project → Settings → Environment Variables
+
+# Django Settings
+DJANGO_SECRET_KEY=(u-a=4n#($(jtcmlk*$-2235n&k-_^o1ivcz2()6yhgypx7@0s
+DEBUG=False
+ALLOWED_HOSTS=.vercel.app,localhost,127.0.0.1
+
+# Database Configuration
+# For Vercel: Use PostgreSQL (Supabase, Railway, or Neon)
+# For local testing: sqlite:///db.sqlite3
+DATABASE_URL=sqlite:///db.sqlite3
+
+# PayMongo API Keys (Optional - for payments)
+# Get from: https://dashboard.paymongo.com/developers/api_keys
+PAYMONGO_PUBLIC_KEY=pk_test_your_key_here
+PAYMONGO_SECRET_KEY=sk_test_your_key_here
+PAYMONGO_WEBHOOK_SECRET=whsec_your_secret_here
+
+# Supabase Settings (Optional - if using Supabase PostgreSQL)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-supabase-anon-key
+
+# ========================================
+# How to Use This File
+# ========================================
+
+# FOR LOCAL DEVELOPMENT:
+# 1. Copy this file to: errandexpress/.env
+# 2. Update the values as needed
+# 3. The .env file is gitignored (won't be committed)
+
+# FOR VERCEL DEPLOYMENT:
+# 1. Go to Vercel Dashboard
+# 2. Settings → Environment Variables
+# 3. Add each variable above
+# 4. Check all 3 boxes (Production, Preview, Development)
+# 5. Click Save for each
+
+# ========================================
+# Required Variables for Vercel
+# ========================================
+# DJANGO_SECRET_KEY - REQUIRED
+# ALLOWED_HOSTS - REQUIRED
+# DEBUG - REQUIRED
+# DATABASE_URL - OPTIONAL (defaults to SQLite)
