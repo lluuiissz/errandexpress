@@ -2331,6 +2331,18 @@ def task_monitoring(request):
         # Faculty view: Monitor posted tasks
         tasks = Task.objects.filter(poster=user).select_related('doer').order_by('-created_at')
         
+        # Add rating status for each task
+        for task in tasks:
+            if task.status == 'completed' and task.doer:
+                # Check if poster has rated the doer
+                task.user_has_rated = Rating.objects.filter(
+                    task=task,
+                    rater=user,
+                    rated=task.doer
+                ).exists()
+            else:
+                task.user_has_rated = False
+        
         # Calculate statistics
         total_tasks = tasks.count()
         completed_tasks = tasks.filter(status='completed').count()
@@ -2352,6 +2364,18 @@ def task_monitoring(request):
     elif user.role == 'task_doer':
         # Student view: Monitor assigned tasks
         tasks = Task.objects.filter(doer=user).select_related('poster').order_by('-created_at')
+        
+        # Add rating status for each task
+        for task in tasks:
+            if task.status == 'completed' and task.poster:
+                # Check if doer has rated the poster
+                task.user_has_rated = Rating.objects.filter(
+                    task=task,
+                    rater=user,
+                    rated=task.poster
+                ).exists()
+            else:
+                task.user_has_rated = False
         
         # Calculate statistics
         total_tasks = tasks.count()
