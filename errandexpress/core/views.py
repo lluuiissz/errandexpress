@@ -328,8 +328,15 @@ def get_matched_tasks_for_user(user):
         status='verified'
     ).values_list('skill_name', flat=True))
     
-    # Base query for open tasks
-    base_tasks = Task.objects.filter(status='open').select_related('poster')
+    # Base query for open tasks (exclude user's own posted tasks)
+    base_tasks = Task.objects.filter(status='open').exclude(poster=user).select_related('poster')
+    
+    # Debug logging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"🔍 Matching tasks for {user.username} (doer_type: {user.doer_type})")
+    logger.info(f"   Validated skills: {user_skills}")
+    logger.info(f"   Total open tasks (excluding own): {base_tasks.count()}")
     
     # 🧹 FILTER OUT TASKS THAT SHOULD BE HIDDEN (3-minute window logic)
     # ✅ OPTIMIZED: Use database queries instead of Python loop
@@ -361,18 +368,23 @@ def get_matched_tasks_for_user(user):
     tasks_to_exclude = list(tasks_with_old_apps) + list(tasks_with_single_app)
     
     # Exclude hidden tasks
+    logger.info(f"   Excluding {len(tasks_to_exclude)} tasks (3-min window)")
     base_tasks = base_tasks.exclude(id__in=tasks_to_exclude)
+    logger.info(f"   After 3-min filter: {base_tasks.count()} tasks")
     
     if user.doer_type == 'microtasker':
         # Show all microtasks (simple tasks that don't require special skills)
+        logger.info(f"   Filtering for MICROTASKER")
         tasks = base_tasks.filter(
             Q(category='microtask') | 
             Q(tags__icontains='microtask')
         )
     elif user.doer_type == 'skilled':
         # Show only tasks that match validated skills
+        logger.info(f"   Filtering for SKILLED doer")
         if not user_skills:
             # No validated skills = no skilled tasks
+            logger.info(f"   ❌ No validated skills - returning empty queryset")
             tasks = Task.objects.none()
         else:
             skill_queries = Q()
@@ -384,9 +396,12 @@ def get_matched_tasks_for_user(user):
                 elif skill == 'graphics':
                     skill_queries |= Q(category='graphics') | Q(tags__icontains='graphics')
             
+            logger.info(f"   Applying skill filters for: {user_skills}")
             tasks = base_tasks.filter(skill_queries)
+            logger.info(f"   After skill filter: {tasks.count()} tasks")
     else:  # both
         # Show microtasks + skilled tasks that match user's skills
+        logger.info(f"   Filtering for BOTH type doer")
         microtask_query = Q(category='microtask') | Q(tags__icontains='microtask')
         
         skill_queries = Q()
@@ -398,7 +413,15 @@ def get_matched_tasks_for_user(user):
             elif skill == 'graphics':
                 skill_queries |= Q(category='graphics') | Q(tags__icontains='graphics')
         
-        tasks = base_tasks.filter(microtask_query | skill_queries)
+        # If user has skills, show microtasks + skill-matched tasks
+        # If no skills, show only microtasks
+        if user_skills:
+            logger.info(f"   Showing microtasks + tasks for skills: {user_skills}")
+            tasks = base_tasks.filter(microtask_query | skill_queries)
+        else:
+            logger.info(f"   No skills - showing only microtasks")
+            tasks = base_tasks.filter(microtask_query)
+
     
     # 🧠 SMART RANKING ALGORITHM (FIXED - Real-time Poster Ratings)
     # Priority = (Skill Match × 3) + (Poster Rating × 2) + (Urgency × 1)
@@ -441,6 +464,13 @@ def get_matched_tasks_for_user(user):
             output_field=DecimalField(max_digits=7, decimal_places=2)
         )
     ).order_by('-priority_score', '-created_at')
+    
+    # Debug logging - show what was matched
+    matched_count = tasks.count()
+    logger.info(f"   ✅ Matched {matched_count} tasks")
+    if matched_count > 0:
+        categories = list(tasks.values_list('category', flat=True).distinct())
+        logger.info(f"   Categories: {categories}")
     
     return tasks
 
@@ -1305,6 +1335,12 @@ def browse_tasks(request):
         messages.error(request, "Only Task Doers can browse tasks.")
         return redirect('dashboard')
     
+    # Get user's validated skills
+    user_skills = StudentSkill.objects.filter(
+        student=request.user,
+        status='verified'
+    ).values_list('skill_name', flat=True)
+    
     # Get filter form
     filter_form = TaskFilterForm(request.GET)
     
@@ -1349,13 +1385,28 @@ def browse_tasks(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Get skill counts for filter display
+    skill_task_counts = {}
+    if user_skills:
+        for skill in user_skills:
+            count = Task.objects.filter(
+                status='open',
+                category=skill
+            ).count()
+            skill_task_counts[skill] = count
+    
     context = {
         'tasks': page_obj,
         'filter_form': filter_form,
-        'total_tasks': total_tasks
+        'total_tasks': total_tasks,
+        'user_skills': list(user_skills),  # User's validated skills
+        'user_doer_type': request.user.doer_type,  # User's doer type
+        'skill_task_counts': skill_task_counts,  # Count of tasks per skill
+        'has_validated_skills': len(user_skills) > 0,
     }
     
     return render(request, 'browse_tasks_modern.html', context)
+
 
 
 @login_required

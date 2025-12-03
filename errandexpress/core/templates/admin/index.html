@@ -1,0 +1,300 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+    /* Dashboard Specific Styles */
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-subtitle {
+        color: var(--gray-600);
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    /* App List */
+    .app-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .module {
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        border: 2px solid var(--gray-200);
+        transition: all var(--transition-base);
+    }
+
+    .module:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .module h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .module h2 a {
+        color: var(--gray-800);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+    }
+
+    .module h2 a:hover {
+        color: var(--primary-color);
+    }
+
+    .module table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .module tr {
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .module tr:last-child {
+        border-bottom: none;
+    }
+
+    .module th,
+    .module td {
+        padding: 0.75rem 0.5rem;
+        text-align: left;
+    }
+
+    .module th {
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .module td a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color var(--transition-fast);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .module td a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    .module td a::before {
+        content: '→';
+        font-weight: bold;
+    }
+
+    .addlink::before {
+        content: '+ ';
+        font-weight: bold;
+    }
+
+    .changelink::before {
+        content: '✎ ';
+    }
+
+    /* Recent Actions */
+    #recent-actions-module {
+        grid-column: 1 / -1;
+    }
+
+    #recent-actions-module h2 {
+        color: var(--gray-800);
+    }
+
+    #recent-actions-module ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #recent-actions-module li {
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #recent-actions-module li:last-child {
+        border-bottom: none;
+    }
+
+    #recent-actions-module a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    #recent-actions-module a:hover {
+        text-decoration: underline;
+    }
+
+    .mini {
+        color: var(--gray-500);
+        font-size: 0.85rem;
+    }
+
+    /* Stats Cards */
+    .admin-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all var(--transition-base);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--gray-900);
+        line-height: 1;
+        margin-top: 0.5rem;
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .module {
+        animation: fadeInUp 0.5s ease-out backwards;
+    }
+
+    .module:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .module:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .module:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    .module:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+
+    @media (max-width: 768px) {
+        .app-list {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .admin-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-title">Dashboard Overview</div>
+<div class="dashboard-subtitle">Manage your ErrandExpress platform</div>
+
+<div id="content-main">
+    {% if app_list %}
+    <div class="app-list">
+        {% for app in app_list %}
+        <div class="module">
+            <h2>
+                <a href="{{ app.app_url }}">{{ app.name }}</a>
+            </h2>
+            <table>
+                {% for model in app.models %}
+                <tr>
+                    {% if model.admin_url %}
+                    <td><a href="{{ model.admin_url }}">{{ model.name }}</a></td>
+                    {% else %}
+                    <td>{{ model.name }}</td>
+                    {% endif %}
+
+                    {% if model.add_url %}
+                    <td><a href="{{ model.add_url }}" class="addlink">Add</a></td>
+                    {% else %}
+                    <td>&nbsp;</td>
+                    {% endif %}
+
+                    {% if model.admin_url %}
+                    <td><a href="{{ model.admin_url }}" class="changelink">Change</a></td>
+                    {% else %}
+                    <td>&nbsp;</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>You don't have permission to view or edit anything.</p>
+    {% endif %}
+</div>
+{% endblock %}

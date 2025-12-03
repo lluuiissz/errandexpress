@@ -1,0 +1,286 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Enhanced Change Form Styling */
+    #content-main {
+        background: transparent;
+    }
+
+    /* Form Title */
+    #content h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Form Container */
+    .form-row {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .form-row:last-child {
+        border-bottom: none;
+    }
+
+    .form-row label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 0.95rem;
+    }
+
+    /* Input Fields */
+    .form-row input[type="text"],
+    .form-row input[type="number"],
+    .form-row input[type="email"],
+    .form-row input[type="url"],
+    .form-row input[type="password"],
+    .form-row input[type="date"],
+    .form-row input[type="time"],
+    .form-row input[type="datetime-local"],
+    .form-row textarea,
+    .form-row select {
+        width: 100%;
+        max-width: 600px;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: all var(--transition-base);
+        background: white;
+    }
+
+    .form-row input:focus,
+    .form-row textarea:focus,
+    .form-row select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-row textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-row .help {
+        display: block;
+        margin-top: 0.5rem;
+        color: var(--gray-500);
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+
+    /* Error Messages */
+    .form-row .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .form-row .errorlist li {
+        color: var(--error);
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        background: #fee;
+        border: 1px solid #fcc;
+        border-radius: var(--radius-sm);
+        margin-top: 0.25rem;
+    }
+
+    /* Fieldsets */
+    .module,
+    fieldset.module {
+        background: white;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .module h2,
+    fieldset.module h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin: 0 0 1.25rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    /* Submit Row */
+    .submit-row {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 1.25rem 1.5rem;
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        border: 2px solid var(--gray-200);
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+
+    .submit-row input[type="submit"],
+    .submit-row button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-base);
+        font-size: 0.95rem;
+    }
+
+    .submit-row .default,
+    .submit-row input[name="_save"] {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .submit-row .default:hover,
+    .submit-row input[name="_save"]:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .submit-row input[type="submit"]:not(.default) {
+        background: white;
+        color: var(--gray-700);
+        border: 2px solid var(--gray-300);
+    }
+
+    .submit-row input[type="submit"]:not(.default):hover {
+        background: var(--gray-100);
+        border-color: var(--gray-400);
+    }
+
+    .deletelink,
+    .deletelink-box a {
+        background: var(--error) !important;
+        color: white !important;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all var(--transition-base);
+        display: inline-block;
+        border: none;
+    }
+
+    .deletelink:hover,
+    .deletelink-box a:hover {
+        background: #dc2626 !important;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Inline Forms */
+    .inline-group {
+        background: white;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .inline-group h2 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--gray-200);
+    }
+
+    .inline-related {
+        background: var(--gray-50);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+    }
+
+    /* Checkboxes and Radio */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: auto;
+        margin-right: 0.5rem;
+        cursor: pointer;
+    }
+
+    /* File Upload */
+    input[type="file"] {
+        padding: 0.5rem;
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--radius-sm);
+        width: 100%;
+        max-width: 600px;
+        cursor: pointer;
+    }
+
+    /* Object Tools */
+    .object-tools {
+        float: right;
+        margin: 0 0 1rem 1rem;
+    }
+
+    .object-tools a {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all var(--transition-base);
+        box-shadow: var(--shadow-md);
+    }
+
+    .object-tools a:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .submit-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .submit-row input,
+        .submit-row button,
+        .deletelink {
+            width: 100%;
+            text-align: center;
+        }
+
+        .object-tools {
+            float: none;
+            margin-bottom: 1rem;
+        }
+
+        .form-row input,
+        .form-row textarea,
+        .form-row select {
+            max-width: 100%;
+        }
+    }
+</style>
+{% endblock %}
