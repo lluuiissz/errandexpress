@@ -1,212 +1,340 @@
-# ErrandExpress - Task Marketplace Platform
+# ErrandExpress 🚀
 
-A full-stack Django + React application for connecting task posters with task doers. Features smart task ranking, applicant selection, real-time messaging, and integrated payment processing.
+> A secure task marketplace platform connecting task posters with skilled doers
 
-## 🚀 Features
+[![Django](https://img.shields.io/badge/Django-4.2.7-green.svg)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12.2-blue.svg)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-blue.svg)](https://supabase.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Task Management
-- **Smart Task Ranking** - Tasks ranked by poster rating, skill match, and urgency
-- **3-Minute Application Window** - Multiple doers can apply within 3 minutes
-- **Task Categories** - Microtasks, Typing, PowerPoint, Graphics Design
-- **Real-time Status** - Open, In Progress, Completed, Cancelled
+## 📋 Table of Contents
 
-### Applicant System
-- **Intelligent Ranking** - Applicants ranked by rating, experience, and newbie bonus
-- **Validated Skills Display** - Show verified skills with badges
-- **Recent Feedback** - Display last 3 ratings for each applicant
-- **Fair Selection** - Newbie bonus encourages new doers
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Secure Commission System](#secure-commission-system)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [System Architecture](#system-architecture)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
+- [License](#license)
 
-### User System
-- **Dual Roles** - Task Posters and Task Doers
-- **Skill Validation** - Typing test, PowerPoint, Graphics Design verification
-- **Rating System** - 1-10 scale with feedback
-- **User Profiles** - Complete profile management
+---
 
-### Communication
-- **Real-time Chat** - Embedded chat between poster and doer
-- **Typing Indicators** - See when someone is typing
-- **Message Polling** - Optimized 5-second polling
-- **Chat Unlocking** - Automatic unlock on payment
+## 🎯 Overview
 
-### Payments
-- **PayMongo Integration** - GCash and Card payments
-- **System Commission** - ₱2 fee per task
-- **Payment Methods** - Cash on Delivery (COD) and Online Payment
-- **Webhook Confirmation** - Real-time payment verification
-- **System Wallet** - Track earnings and spending
+**ErrandExpress** is a gig economy platform that facilitates trusted transactions between task posters and task doers. Similar to TaskRabbit or Fiverr, it provides a secure marketplace for local services, errands, and micro-tasks.
 
-### Admin Features
-- **Admin Dashboard** - Monitor all activities
-- **Skill Validation** - Approve/reject skill submissions
-- **Payment Tracking** - View all transactions
-- **Audit Logs** - Complete action history
-- **User Management** - Manage users and roles
+### What Makes ErrandExpress Different?
 
-## 📋 Tech Stack
+- **🔒 Secure Commission System**: 10% commission paid upfront before messaging
+- **💬 Chat Lock**: Prevents platform bypass through contact info exchange
+- **✅ Skill Validation**: Verified skills through automated testing
+- **💰 Transparent Pricing**: Clear commission breakdown (90% to doer, 10% to platform)
+- **🇵🇭 Local Payment**: Integrated with PayMongo for Philippine payments
+
+---
+
+## ✨ Key Features
+
+### For Task Posters
+
+- ✅ **Create Tasks** - Post tasks with detailed descriptions, pricing, and deadlines
+- ✅ **Browse Applicants** - Review doer profiles, ratings, and validated skills
+- ✅ **Secure Messaging** - Chat with doers after commission payment
+- ✅ **Safe Payments** - Pay through GCash or credit/debit cards
+- ✅ **Rate & Review** - Build trust through transparent feedback
+
+### For Task Doers
+
+- ✅ **Find Work** - Browse tasks matching your skills and location
+- ✅ **Skill Validation** - Prove your expertise through automated tests
+- ✅ **Flexible Income** - Choose tasks that fit your schedule
+- ✅ **Guaranteed Payment** - Secure payment system protects your earnings
+- ✅ **Build Reputation** - Earn ratings and grow your profile
+
+### For the Platform
+
+- ✅ **Revenue Protection** - 10% commission secured before contact
+- ✅ **Fraud Prevention** - Chat lock prevents off-platform transactions
+- ✅ **Trust Building** - Rating system ensures quality
+- ✅ **Scalable Model** - Commission grows with platform
+
+---
+
+## 🔒 Secure Commission System
+
+### How It Works
+
+```
+1. Task Created (₱100)
+   ↓
+2. Doer Accepts Task
+   ↓
+3. Poster Pays ₱10 Commission (10%)
+   ↓
+4. Chat Unlocks - Unlimited Messaging
+   ↓
+5. Task Completed
+   ↓
+6. Poster Pays ₱90 to Doer
+```
+
+### Why Commission Before Messaging?
+
+**Problem:** Users could exchange contact info in free messages and complete transactions off-platform.
+
+**Solution:** Require commission payment BEFORE the first message.
+
+**Benefits:**
+- ✅ Platform revenue secured upfront
+- ✅ Prevents bypass through contact exchange
+- ✅ All transactions stay on platform
+- ✅ Users can't complete deals off-platform
+
+### Payment Breakdown
+
+For a ₱100 task:
+- **Total Task Amount:** ₱100
+- **Commission (10%) - Paid First:** ₱10
+- **Doer Receives - Paid After Completion:** ₱90
+
+**Total Poster Pays:** ₱100  
+**Platform Revenue:** ₱10 (10%)  
+**Doer Receives:** ₱90 (90%)
+
+---
+
+## 🛠️ Tech Stack
 
 ### Backend
-- **Django 4.2** - Web framework
-- **Django REST Framework** - API endpoints
-- **PostgreSQL/SQLite** - Database
-- **Celery** - Task queue
-- **Redis** - Caching
+- **Framework:** Django 4.2.7
+- **Language:** Python 3.12.2
+- **Database:** PostgreSQL (Supabase)
+- **Backup DB:** MySQL (XAMPP)
+- **Authentication:** Django Auth + Sessions
 
 ### Frontend
-- **HTML5/CSS3** - Markup and styling
-- **Tailwind CSS** - Utility-first CSS
-- **Lucide Icons** - Icon library
-- **JavaScript** - Client-side logic
-- **Fetch API** - HTTP requests
+- **HTML5** - Semantic markup
+- **CSS3** - Vanilla CSS (responsive design)
+- **JavaScript** - Vanilla JS
+- **Icons:** Lucide Icons
 
-### External Services
-- **PayMongo** - Payment processing
-- **Vercel** - Serverless deployment
-- **Supabase** - PostgreSQL database
+### Payment Integration
+- **PayMongo** - Philippine payment gateway
+- **Methods:** GCash, Credit/Debit Cards
 
-## 🛠️ Installation
+### Infrastructure
+- **Cloud Database:** Supabase (PostgreSQL)
+- **Local Backup:** MySQL via XAMPP
+- **Dual-Write System:** Automatic backup replication
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.8+
-- pip
-- Git
-- PostgreSQL (optional, SQLite for development)
 
-### Setup
+- Python 3.12.2 or higher
+- PostgreSQL (or Supabase account)
+- MySQL (XAMPP) - Optional for backup
+- Git
+
+### Installation
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/errandexpress.git
-cd ErrandExpressv2
-```
+   ```bash
+   git clone https://github.com/lluuiissz/errandexpress.git
+   cd errandexpress
+   ```
 
 2. **Create virtual environment**
-```bash
-py -m venv venv
-venv\Scripts\activate
-```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
 3. **Install dependencies**
-```bash
-cd errandexpress
-pip install -r requirements.txt
+   ```bash
+   cd errandexpress
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` and add your credentials:
+   ```env
+   # Database
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_KEY=your_supabase_key
+   
+   # Payment
+   PAYMONGO_PUBLIC_KEY=your_paymongo_public_key
+   PAYMONGO_SECRET_KEY=your_paymongo_secret_key
+   
+   # Django
+   SECRET_KEY=your_django_secret_key
+   DEBUG=True
+   ```
+
+5. **Run migrations**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Create superuser**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+7. **Run development server**
+   ```bash
+   python manage.py runserver
+   ```
+
+8. **Access the application**
+   - Frontend: http://127.0.0.1:8000/
+   - Admin: http://127.0.0.1:8000/admin/
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    USER INTERFACE                        │
+│  (Web Browser - Responsive Design)                      │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│                  DJANGO APPLICATION                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │   Views      │  │   Models     │  │  Templates   │ │
+│  │  (Logic)     │  │  (Data)      │  │   (UI)       │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│                    DATA LAYER                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │  PostgreSQL  │  │    MySQL     │  │  Supabase    │ │
+│  │  (Primary)   │  │  (Backup)    │  │  (Cloud)     │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│              EXTERNAL SERVICES                           │
+│  ┌──────────────┐  ┌──────────────┐                    │
+│  │   PayMongo   │  │    Email     │                    │
+│  │  (Payment)   │  │ (Notifications)│                  │
+│  └──────────────┘  └──────────────┘                    │
+└─────────────────────────────────────────────────────────┘
 ```
 
-4. **Create .env file**
-```bash
-cp .env.example .env
-```
+### Database Models
 
-5. **Configure environment variables**
-```
-DEBUG=True
-SECRET_KEY=your-secret-key-here
-DATABASE_URL=sqlite:///db.sqlite3
-PAYMONGO_SECRET_KEY=your-paymongo-key
-PAYMONGO_PUBLIC_KEY=your-paymongo-public-key
-```
+**Core Models:**
+- `User` - User accounts (posters and doers)
+- `Task` - Task information and status
+- `TaskApplication` - Task applications
+- `Message` - Chat messages
+- `SystemCommission` - Commission tracking
+- `SystemWallet` - Platform revenue
+- `Notification` - User notifications
+- `Rating` - Reviews and ratings
+- `Skill` - User skills and validation
 
-6. **Run migrations**
-```bash
-py manage.py migrate
-```
-
-7. **Create superuser**
-```bash
-py manage.py createsuperuser
-```
-
-8. **Collect static files**
-```bash
-py manage.py collectstatic --noinput
-```
-
-9. **Run development server**
-```bash
-py manage.py runserver
-```
-
-Visit `http://localhost:8000` in your browser.
-
-## 🚀 Deployment to Vercel
-
-### Prerequisites
-- Vercel account (free at https://vercel.com)
-- GitHub account
-- Git installed
-
-### Quick Start
-
-1. **Push to GitHub**
-```bash
-git add .
-git commit -m "Ready for Vercel deployment"
-git push origin main
-```
-
-2. **Connect to Vercel**
-- Go to https://vercel.com
-- Click "New Project"
-- Select your GitHub repository
-- Click "Import"
-
-3. **Set Environment Variables**
-In Vercel dashboard → Settings → Environment Variables, add:
-- `DJANGO_SECRET_KEY` - Your Django secret key
-- `DATABASE_URL` - Supabase PostgreSQL connection
-- `DEBUG` - Set to `False`
-- `ALLOWED_HOSTS` - Your Vercel domain
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_KEY` - Your Supabase API key
-- `PAYMONGO_SECRET_KEY` - PayMongo secret key
-- `PAYMONGO_PUBLIC_KEY` - PayMongo public key
-- `PAYMONGO_WEBHOOK_SECRET` - PayMongo webhook secret
-
-4. **Deploy**
-- Click "Deploy"
-- Vercel will build and deploy automatically
-- Your app will be live at `https://your-project.vercel.app`
-
-### Post-Deployment
-- Update PayMongo webhook URL to your Vercel domain
-- Set up custom domain (optional)
-- Monitor logs in Vercel dashboard
-
-**For detailed instructions, see `VERCEL_DEPLOYMENT_GUIDE.md`**
+---
 
 ## 📚 API Documentation
 
 ### Authentication
-- `POST /api/auth/login/` - Login
-- `POST /api/auth/signup/` - Register
-- `POST /api/auth/logout/` - Logout
+
+```
+POST   /signup/          # Register new user
+POST   /login/           # Login
+POST   /logout/          # Logout
+GET    /profile/         # View profile
+```
 
 ### Tasks
-- `GET /api/tasks/` - List tasks
-- `POST /api/tasks/` - Create task
-- `GET /api/tasks/{id}/` - Get task details
-- `PUT /api/tasks/{id}/` - Update task
-- `DELETE /api/tasks/{id}/` - Delete task
 
-### Applications
-- `GET /api/tasks/{id}/applications/` - List applications
-- `POST /api/tasks/{id}/apply/` - Apply for task
-- `PUT /api/applications/{id}/` - Update application status
+```
+GET    /tasks/browse/              # Browse tasks
+GET    /tasks/<task_id>/           # Task details
+POST   /tasks/create/              # Create task
+POST   /tasks/<task_id>/accept/    # Accept task
+POST   /tasks/<task_id>/complete/  # Mark complete
+```
 
-### Messages
-- `GET /api/messages/` - List messages
-- `POST /api/messages/` - Send message
-- `GET /api/messages/poll/` - Poll for new messages
+### Messaging
+
+```
+GET    /messages/                  # List conversations
+GET    /messages/<task_id>/        # View chat
+POST   /tasks/<task_id>/message/   # Send message
+```
 
 ### Payments
-- `POST /api/payments/` - Create payment
-- `GET /api/payments/{id}/` - Get payment status
-- `POST /webhook/paymongo/` - PayMongo webhook
+
+```
+GET    /payment/commission/<task_id>/     # Commission payment
+POST   /payment/commission/<task_id>/     # Process commission
+GET    /payment/task-doer/<task_id>/      # Doer payment
+POST   /payment/task-doer/<task_id>/      # Process doer payment
+```
+
+---
+
+## 🔐 Security Features
+
+- **Password Hashing:** PBKDF2 with salt
+- **CSRF Protection:** Django middleware
+- **XSS Prevention:** Template auto-escaping
+- **SQL Injection Prevention:** Django ORM
+- **Payment Security:** PayMongo PCI compliance
+- **Chat Lock:** Commission required before messaging
+- **Session Management:** Secure cookie handling
+
+---
+
+## 📱 User Flows
+
+### Task Poster Flow
+
+1. Create account / Login
+2. Create task with details and pricing
+3. Review applications from doers
+4. Accept one applicant
+5. **Pay ₱10 commission to unlock chat**
+6. Chat with doer about task details
+7. Doer completes task
+8. Pay ₱90 to doer
+9. Rate and review doer
+
+### Task Doer Flow
+
+1. Create account / Login
+2. Validate skills (optional)
+3. Browse available tasks
+4. Apply for tasks
+5. Get accepted by poster
+6. **Wait for poster to pay commission**
+7. Chat with poster after commission paid
+8. Complete task
+9. Receive ₱90 payment
+10. Rate and review poster
+
+---
 
 ## 🧪 Testing
 
 ### Run Tests
 ```bash
-py manage.py test
+python manage.py test
 ```
 
 ### Test Coverage
@@ -215,116 +343,114 @@ coverage run --source='.' manage.py test
 coverage report
 ```
 
-### Manual Testing
-1. Create task as task_poster
-2. Apply as task_doer
-3. View applications
-4. Accept/reject applications
-5. Start chat
-6. Complete task
-7. Rate user
+### Manual Testing Checklist
 
-## 📊 Database Schema
-
-### Core Models
-- **User** - User accounts (task_poster, task_doer, admin)
-- **Task** - Task listings
-- **TaskApplication** - Applications from doers
-- **Message** - Chat messages
-- **Rating** - User ratings
-- **StudentSkill** - Validated skills
-- **Payment** - Payment records
-- **SystemCommission** - System fees
-- **Notification** - User notifications
-
-## 🔐 Security
-
-- CSRF protection enabled
-- SQL injection prevention (Django ORM)
-- XSS protection (template escaping)
-- Password hashing (Django default)
-- Secure session management
-- HTTPS recommended for production
-- API authentication via session/token
-
-## 📝 Configuration
-
-### Settings
-- `DEBUG` - Development mode
-- `SECRET_KEY` - Django secret key
-- `ALLOWED_HOSTS` - Allowed domains
-- `DATABASES` - Database configuration
-- `INSTALLED_APPS` - Django apps
-- `MIDDLEWARE` - Request/response middleware
-
-### PayMongo
-- Set `PAYMONGO_SECRET_KEY` in environment
-- Set `PAYMONGO_PUBLIC_KEY` in environment
-- Configure webhook URL in PayMongo dashboard
-- Test with test keys first
-
-## 🐛 Troubleshooting
-
-### Database Issues
-```bash
-# Reset database
-py manage.py migrate zero core
-py manage.py migrate
-
-# Create superuser
-py manage.py createsuperuser
-```
-
-### Static Files
-```bash
-# Collect static files
-py manage.py collectstatic --noinput
-
-# Clear cache
-py manage.py clear_cache
-```
-
-### Payment Issues
-- Verify PayMongo keys
-- Check webhook URL
-- Review payment logs
-- Test with test payment
-
-## 📞 Support
-
-For issues and questions:
-1. Check documentation files
-2. Review error logs
-3. Check Django debug page (development)
-4. Contact admin
-
-## 📄 License
-
-This project is licensed under the MIT License - see LICENSE file for details.
-
-## 👥 Contributors
-
-- Admin Team
-- Development Team
-
-## 🎯 Roadmap
-
-- [ ] Mobile app (React Native)
-- [ ] Video chat integration
-- [ ] Advanced analytics
-- [ ] Machine learning recommendations
-- [ ] Blockchain payments
-- [ ] Multi-language support
-
-## 📖 Documentation
-
-- `VERCEL_DEPLOYMENT_GUIDE.md` - Complete Vercel deployment guide
-- `TASK_AND_APPLICANT_RANKING.md` - Ranking system details
-- `PAYMENT_FIX_SUMMARY.md` - Payment system overview
-- `WEBHOOK_SETUP_GUIDE.md` - Webhook configuration
-- `API_DOCUMENTATION.md` - API reference
-- `QUICK_START_PAYMENT_TESTING.md` - Payment testing guide
+- [ ] Create task with ₱100 price
+- [ ] Verify commission calculated as ₱10
+- [ ] Apply for task as doer
+- [ ] Accept application as poster
+- [ ] Try to send message (should be locked)
+- [ ] Pay ₱10 commission
+- [ ] Verify chat unlocks
+- [ ] Send unlimited messages
+- [ ] Complete task
+- [ ] Pay ₱90 to doer
+- [ ] Verify system wallet has ₱10
 
 ---
 
-**Made with ❤️ by ErrandExpress Team**
+## 📊 Project Status
+
+**Version:** 2.0.0 - Secure Commission System  
+**Status:** Active Development  
+**Last Updated:** January 9, 2026
+
+### Recent Updates
+
+- ✅ Implemented secure commission-before-messaging system
+- ✅ Removed "5 free messages" vulnerability
+- ✅ Added commission payment page
+- ✅ Updated chat lock UI
+- ✅ Fixed template syntax errors
+- ✅ Added comprehensive documentation
+
+### Roadmap
+
+- [ ] Mobile app (React Native)
+- [ ] Email notifications
+- [ ] SMS notifications
+- [ ] Advanced search filters
+- [ ] Task categories expansion
+- [ ] Admin analytics dashboard
+- [ ] Dispute resolution system
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Contribution Guidelines
+
+- Follow PEP 8 style guide for Python
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation as needed
+- Ensure all tests pass before submitting PR
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👥 Team
+
+**Developer:** Luis  
+**GitHub:** [@lluuiissz](https://github.com/lluuiissz)  
+**Repository:** [errandexpress](https://github.com/lluuiissz/errandexpress)
+
+---
+
+## 📞 Support
+
+For support, email: [your-email@example.com]  
+For bugs and feature requests, please [open an issue](https://github.com/lluuiissz/errandexpress/issues)
+
+---
+
+## 🙏 Acknowledgments
+
+- Django community for the excellent framework
+- PayMongo for payment integration
+- Supabase for database hosting
+- Lucide for beautiful icons
+- All contributors and testers
+
+---
+
+## 📸 Screenshots
+
+### Home Page
+![Home Page](screenshots/home.png)
+
+### Browse Tasks
+![Browse Tasks](screenshots/browse.png)
+
+### Chat Interface
+![Chat](screenshots/chat.png)
+
+### Commission Payment
+![Payment](screenshots/payment.png)
+
+---
+
+**Made with ❤️ in the Philippines**
