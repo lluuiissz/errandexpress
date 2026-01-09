@@ -42,6 +42,7 @@ urlpatterns = [
     
     # Payment System
     path('payment/system-fee/<uuid:task_id>/', views.payment_system_fee, name='payment_system_fee'),
+    path('payment/commission/<uuid:task_id>/', views.payment_commission, name='payment_commission'),
     path('payment/task-doer/<uuid:task_id>/', views.payment_task_doer, name='payment_task_doer'),
     path('payment/task-doer-process/<uuid:task_id>/', views.payment_task_doer_process, name='payment_task_doer_process'),
     path('payment/task-doer-card/<uuid:task_id>/', views.payment_task_doer_card, name='payment_task_doer_card'),

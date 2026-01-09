@@ -478,13 +478,22 @@ def get_matched_tasks_for_user(user):
 def handle_task_creation_with_payment(poster, title, description, category, tags, price, payment_method, deadline, location=None, requirements=None):
     """
     💸 COMPREHENSIVE PAYMENT ALGORITHM - STEP 1: Task Creation
-    Creates task and handles ₱2 system fee based on payment method
+    Creates task and calculates 10% commission from task amount
     
-    LOGIC:
-    - COD: commission_status = "unpaid", chat_unlocked = False
-    - GCash: commission_status = "paid", chat_unlocked = True
+    NEW LOGIC (10% Commission System):
+    - Calculate 10% commission from task price
+    - Store commission breakdown (task_amount, commission, doer_receives)
+    - Chat starts LOCKED for all tasks (unlocks after 5 free messages)
+    - Commission deducted automatically after 5th message
     """
     from .models import SystemCommission
+    from decimal import Decimal
+    
+    # Calculate 10% commission
+    task_price = Decimal(str(price))
+    commission_percentage = Decimal('10.00')
+    commission_amount = (task_price * commission_percentage) / Decimal('100')
+    doer_receives = task_price - commission_amount
     
     # Create task record
     task = Task.objects.create(
@@ -499,46 +508,48 @@ def handle_task_creation_with_payment(poster, title, description, category, tags
         location=location,
         requirements=requirements,
         status='open',
-        chat_unlocked=False  # Always start locked initially
+        chat_unlocked=False,  # Always start locked
+        commission_amount=commission_amount,  # Store 10% commission
+        doer_payment_amount=doer_receives,  # Amount doer will receive
+        commission_deducted=False  # Not deducted yet
     )
     
-    # 🔹 STEP 1 LOGIC: Payment method determines initial state
+    # 🔹 NEW LOGIC: Commission status based on payment method
+    # Commission is calculated but NOT deducted until after 5 messages
     if payment_method.lower() == 'online':
-        # Online Payment (GCash): ₱2 fee considered pre-paid, unlock chat immediately
-        commission_status = 'paid'
-        chat_unlocked = True
-        paid_at = timezone.now()
-        
-        logger.info(f"Online payment task created - chat unlocked immediately for task {task.id}")
-        
-    else:  # COD
-        # COD: ₱2 fee must be paid manually, keep chat locked
-        commission_status = 'unpaid'
-        chat_unlocked = False
+        # Online Payment: Commission will be auto-deducted after 5 messages
+        commission_status = 'pending'  # Not deducted yet
         paid_at = None
         
-        logger.info(f"COD task created - chat locked until ₱2 payment for task {task.id}")
+        logger.info(f"Online payment task created - ₱{commission_amount} (10%) commission pending for task {task.id}")
+        
+    else:  # COD
+        # COD: Commission will be deducted after 5 messages, poster pays doer_receives amount
+        commission_status = 'pending'
+        paid_at = None
+        
+        logger.info(f"COD task created - ₱{commission_amount} (10%) commission pending for task {task.id}")
     
-    # Create system commission record
+    # Create system commission record with 10% breakdown
     SystemCommission.objects.create(
         task=task,
         payer=poster,
-        amount=2.00,  # ₱2 system fee
+        amount=commission_amount,  # 10% of task price
+        commission_percentage=commission_percentage,
+        task_amount=task_price,
+        doer_receives=doer_receives,
         method=payment_method,
         status=commission_status,
-        paid_at=paid_at
+        paid_at=paid_at,
+        description=f'10% commission on ₱{task_price} task'
     )
     
-    # Update task chat status
-    task.chat_unlocked = chat_unlocked
-    task.save()
-    
-    # Create notification for poster
+    # Create notification for poster with commission breakdown
     Notification.objects.create(
         user=poster,
         type='task_created',
         title='Task Created Successfully',
-        message=f'Task "{title}" created. Chat {"unlocked" if chat_unlocked else "locked until ₱2 payment"}.',
+        message=f'Task "{title}" created! Pay ₱{commission_amount} commission to unlock chat. Doer will receive ₱{doer_receives} upon completion.',
         related_task=task
     )
     
@@ -547,13 +558,14 @@ def handle_task_creation_with_payment(poster, title, description, category, tags
 
 def check_chat_access(task_id, user):
     """
-    💬 CHAT LOCK / UNLOCK ALGORITHM WITH 5-MESSAGE LIMIT
-    Checks if user can access chat for a specific task
+    🔒 SECURE CHAT ACCESS - COMMISSION REQUIRED BEFORE MESSAGING
+    Checks if user can access chat for a specific task.
     
-    RULES:
-    1. First 5 messages are FREE (combined from both users)
-    2. After 5 messages, ₱2 system fee must be paid to continue
-    3. Only poster and assigned doer can chat
+    NEW SECURE RULES:
+    1. Commission MUST be paid before sending ANY messages
+    2. No free messages - prevents bypass via contact info exchange
+    3. After commission paid, unlimited chat
+    4. Only poster and assigned doer can chat
     """
     try:
         task = Task.objects.select_related('poster', 'doer').get(id=task_id)
@@ -562,35 +574,22 @@ def check_chat_access(task_id, user):
         if user not in [task.poster, task.doer]:
             return {'allowed': False, 'reason': 'Not authorized for this task'}
         
-        # Count total messages in this task using aggregation (faster than count())
-        from django.db.models import Count
-        from .models import Message
-        message_count = Message.objects.filter(task=task).aggregate(Count('id'))['id__count']
-        
-        # First 5 messages are FREE
-        if message_count < 5:
+        # SECURITY: Require commission payment before ANY messages
+        if not task.commission_deducted:
+            from django.urls import reverse
             return {
-                'allowed': True, 
-                'reason': 'Free messages remaining',
-                'messages_remaining': 5 - message_count,
-                'free_tier': True
+                'allowed': False,
+                'reason': f'Pay ₱{task.commission_amount} commission to unlock chat',
+                'requires_payment': True,
+                'commission_amount': task.commission_amount,
+                'payment_url': reverse('payment_commission', args=[task.id])
             }
         
-        # After 5 messages, check if ₱2 system fee is paid
-        if not task.chat_unlocked:
-            return {
-                'allowed': False, 
-                'reason': 'You have reached the 5-message limit. Please pay ₱2 system fee to continue chatting.',
-                'payment_required': True,
-                'messages_used': message_count
-            }
-        
-        # Chat is unlocked after payment
+        # Commission paid - unlimited chat allowed
         return {
-            'allowed': True, 
-            'reason': 'Chat access granted (paid)',
-            'messages_used': message_count,
-            'paid': True
+            'allowed': True,
+            'commission_paid': True,
+            'reason': 'Chat access granted (commission paid)'
         }
         
     except Task.DoesNotExist:
@@ -1937,6 +1936,116 @@ def payment_system_fee(request, task_id):
 
 
 @login_required
+
+@login_required
+def payment_commission(request, task_id):
+    """
+    Handle commission payment before chat unlock.
+    User must pay 10% commission before sending first message.
+    """
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Only task poster can pay commission
+    if task.poster != request.user:
+        messages.error(request, "Only the task poster can pay the commission.")
+        return redirect('task_detail', task_id=task_id)
+    
+    # Check if already paid
+    if task.commission_deducted:
+        messages.info(request, "Commission already paid. Chat is unlocked.")
+        return redirect('messages_chat', task_id=task_id)
+    
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method', 'gcash')
+        
+        if payment_method == 'gcash':
+            # Collect GCash payment info
+            fullname = request.POST.get('fullname', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            email = request.POST.get('email', '').strip()
+            gcash_number = request.POST.get('gcash_number', '').strip()
+            
+            # Validate required fields
+            if not all([fullname, phone, email]):
+                messages.error(request, "Please fill in all required fields.")
+                return render(request, 'payments/commission_payment.html', {
+                    'task': task,
+                    'commission_amount': task.commission_amount,
+                    'doer_payment_amount': task.doer_payment_amount,
+                    'fullname': fullname,
+                    'phone': phone,
+                    'email': email,
+                    'gcash_number': gcash_number,
+                    'payment_methods': [
+                        {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
+                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
+                    ]
+                })
+            
+            # Store payment info in session
+            request.session['gcash_fullname'] = fullname
+            request.session['gcash_phone'] = phone
+            request.session['gcash_email'] = email
+            request.session['gcash_number'] = gcash_number
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'commission_payment'
+            
+            logger.info(f"Commission payment form submitted for task {task_id}")
+            
+            # Redirect to payment processing
+            return redirect('payment_commission_process', task_id=task_id)
+        
+        elif payment_method == 'card':
+            # Collect card payment info
+            fullname = request.POST.get('fullname', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            email = request.POST.get('email', '').strip()
+            
+            # Validate required fields
+            if not all([fullname, phone, email]):
+                messages.error(request, "Please fill in all required fields.")
+                return render(request, 'payments/commission_payment.html', {
+                    'task': task,
+                    'commission_amount': task.commission_amount,
+                    'doer_payment_amount': task.doer_payment_amount,
+                    'fullname': fullname,
+                    'phone': phone,
+                    'email': email,
+                    'payment_methods': [
+                        {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
+                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
+                    ]
+                })
+            
+            # Store payment info in session
+            request.session['card_fullname'] = fullname
+            request.session['card_phone'] = phone
+            request.session['card_email'] = email
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'commission_payment'
+            
+            logger.info(f"Commission card payment form submitted for task {task_id}")
+            
+            # Redirect to card payment processing
+            return redirect('payment_commission_card', task_id=task_id)
+    
+    # Render payment form
+    context = {
+        'task': task,
+        'commission_amount': task.commission_amount,
+        'doer_payment_amount': task.doer_payment_amount,
+        'doer': task.doer,
+        'fullname': request.user.fullname or '',
+        'email': request.user.email or '',
+        'phone': request.user.phone_number or '',
+        'payment_methods': [
+            {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
+            {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
+        ]
+    }
+    return render(request, 'payments/commission_payment.html', context)
+
+
 def payment_task_doer(request, task_id):
     """Handle task doer payment (for online payment method) - Pre-payment form"""
     task = get_object_or_404(Task, id=task_id)
@@ -2038,9 +2147,15 @@ def payment_task_doer(request, task_id):
             # Redirect to card payment processing
             return redirect('payment_task_doer_card', task_id=task_id)
     
+    # Calculate payment amount (doer receives amount after commission)
+    payment_amount = task.doer_payment_amount if task.doer_payment_amount else task.price
+    
     context = {
         'task': task,
-        'amount': task.price,
+        'amount': payment_amount,  # Amount to pay doer (after commission)
+        'original_price': task.price,  # Original task price
+        'commission_amount': task.commission_amount,  # 10% commission
+        'commission_deducted': task.commission_deducted,  # Whether commission was deducted
         'doer': task.doer,
         'fullname': request.user.fullname or '',
         'email': request.user.email or '',

@@ -153,11 +153,19 @@
                                         Rated
                                     </span>
                                     {% else %}
-                                    <a href="{% url 'rate_user' task.id task.doer.id %}"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
-                                        <i data-lucide="star" class="w-4 h-4"></i>
-                                        Pay & Rate
-                                    </a>
+                                        {% if role == 'poster' and task.doer %}
+                                        <a href="{% url 'rate_user' task.id task.doer.id %}"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                                            <i data-lucide="star" class="w-4 h-4"></i>
+                                            Pay & Rate
+                                        </a>
+                                        {% elif role == 'doer' and task.poster %}
+                                        <a href="{% url 'rate_user' task.id task.poster.id %}"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                                            <i data-lucide="star" class="w-4 h-4"></i>
+                                            Pay & Rate
+                                        </a>
+                                        {% endif %}
                                     {% endif %}
                                 {% endif %}
                             </div>
@@ -239,15 +247,17 @@
                     </a>
 
                     {% if task.status == 'completed' %}
-
-                    <a href="{% url 'rate_user' task.id task.doer.id %}"
-
-                        class="flex-1 text-center px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors">
-
-                        Pay & Rate
-
-                    </a>
-
+                        {% if role == 'poster' and task.doer %}
+                        <a href="{% url 'rate_user' task.id task.doer.id %}"
+                            class="flex-1 text-center px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors">
+                            Pay & Rate
+                        </a>
+                        {% elif role == 'doer' and task.poster %}
+                        <a href="{% url 'rate_user' task.id task.poster.id %}"
+                            class="flex-1 text-center px-3 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors">
+                            Pay & Rate
+                        </a>
+                        {% endif %}
                     {% endif %}
 
                 </div>

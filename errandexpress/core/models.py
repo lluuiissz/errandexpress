@@ -75,6 +75,51 @@ class StudentSkill(models.Model):
     
     def __str__(self):
         return f"{self.student.fullname} - {self.skill_name} ({self.status})"
+    
+    def save(self, *args, **kwargs):
+        """
+        Auto-update user's doer_type when skill is verified
+        
+        Logic:
+        - If skill is being verified (status changed to 'verified')
+        - And user's doer_type is 'microtasker' or None
+        - Update doer_type to 'both' (can do microtasks + skilled work)
+        """
+        # Check if this is a status change to 'verified'
+        is_newly_verified = False
+        if self.pk:
+            # Existing skill - check if status changed to verified
+            try:
+                old_skill = StudentSkill.objects.get(pk=self.pk)
+                if old_skill.status != 'verified' and self.status == 'verified':
+                    is_newly_verified = True
+                    self.verified_at = timezone.now()
+            except StudentSkill.DoesNotExist:
+                pass
+        else:
+            # New skill being created as verified
+            if self.status == 'verified':
+                is_newly_verified = True
+                self.verified_at = timezone.now()
+        
+        # Save the skill first
+        super().save(*args, **kwargs)
+        
+        # Update user's doer_type if skill was verified
+        if is_newly_verified:
+            user = self.student
+            
+            # Only update if user is currently 'microtasker' or has no doer_type set
+            if user.doer_type in ['microtasker', None]:
+                user.doer_type = 'both'  # Can do both microtasks and skilled work
+                user.save(update_fields=['doer_type'])
+                
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(
+                    f"✅ Auto-updated {user.username}'s doer_type to 'both' "
+                    f"after verifying {self.skill_name} skill"
+                )
 
 
 class Task(models.Model):
@@ -112,6 +157,12 @@ class Task(models.Model):
     location = models.CharField(max_length=255, blank=True)
     requirements = models.TextField(blank=True)
     chat_unlocked = models.BooleanField(default=False)  # Chat unlocked after ₱2 payment
+    
+    # 10% Commission System Fields
+    commission_deducted = models.BooleanField(default=False, help_text='Whether commission has been deducted')
+    commission_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Commission amount (10% of task price)')
+    doer_payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Amount to pay doer (price - commission)')
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
@@ -123,6 +174,13 @@ class Task(models.Model):
     def get_tags_list(self):
         """Return tags as a list"""
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+
+    @property
+    def is_new(self):
+        """Check if task was posted within the last 24 hours"""
+        from django.utils import timezone
+        from datetime import timedelta
+        return timezone.now() - self.created_at < timedelta(hours=24)
     
     class Meta:
         indexes = [
@@ -171,15 +229,29 @@ class SystemCommission(models.Model):
         ('failed', 'Failed'),
     ]
     
+    COMMISSION_TYPE_CHOICES = [
+        ('system_fee', 'System Fee'),
+        ('chat_unlock', 'Chat Unlock Fee'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='commission')
     payer = models.ForeignKey(User, on_delete=models.CASCADE)  # Task poster
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=2.00)
+    
+    # 10% Commission System Fields
+    commission_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=10.00, help_text='Commission percentage (default 10%)')
+    task_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Original task amount')
+    doer_receives = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Amount doer will receive after commission')
+    
     method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    commission_type = models.CharField(max_length=20, choices=COMMISSION_TYPE_CHOICES, default='system_fee')
+    description = models.TextField(blank=True, default='')
     paymongo_payment_id = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    deducted_at = models.DateTimeField(null=True, blank=True, help_text='When commission was deducted from task amount')
     
     def __str__(self):
         return f"₱{self.amount} - {self.task.title} ({self.status})"

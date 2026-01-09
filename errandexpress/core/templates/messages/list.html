@@ -7,86 +7,114 @@
 <style>
     /* Animations */
     @keyframes slideIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
+
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
-    
-    .message-bubble { animation: slideIn 0.3s ease-out; }
-    .conversation-item { animation: fadeIn 0.2s ease-out; }
-    
+
+    .message-bubble {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .conversation-item {
+        animation: fadeIn 0.2s ease-out;
+    }
+
     /* Sidebar */
     #conversations-sidebar {
         box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
     }
-    
+
     /* Conversation items */
     .conversation-item {
         transition: all 0.2s ease;
         border-left: 3px solid transparent;
     }
+
     .conversation-item:hover {
         background-color: #f9fafb;
     }
+
     .conversation-item.active {
         background-color: #eff6ff;
         border-left-color: #3b82f6;
     }
-    
+
     /* Messages */
     #messages-container {
         scroll-behavior: smooth;
     }
-    
+
     .message-sent {
         animation: slideIn 0.3s ease-out;
     }
+
     .message-received {
         animation: slideIn 0.3s ease-out;
     }
-    
+
     /* Chat header */
     .chat-header {
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    
+
     /* Input area */
     #message-input-wrapper {
         box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
     }
-    
+
     #message-input {
         transition: all 0.2s ease;
         border-color: #e5e7eb;
     }
+
     #message-input:focus {
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
-    
+
     /* Tablet optimizations */
     @media (max-width: 1024px) {
-        .flex-1 { min-height: 0; }
+        .flex-1 {
+            min-height: 0;
+        }
+
         #messages-container {
             overflow-y: auto;
             flex: 1;
             min-height: 0;
         }
-        .flex.flex-col>div:last-child { flex-shrink: 0; }
-        
+
+        .flex.flex-col>div:last-child {
+            flex-shrink: 0;
+        }
+
         /* Better spacing on tablet */
         .conversation-item {
             padding: 0.75rem;
         }
-        
+
         .message-bubble {
             max-width: 85%;
         }
     }
-    
+
     @media (max-width: 768px) {
         .flex.flex-col.h-screen {
             height: 100vh;
@@ -94,6 +122,7 @@
             flex-direction: column;
             overflow: hidden;
         }
+
         .flex-1.flex.overflow-hidden.relative {
             flex: 1;
             display: flex;
@@ -101,6 +130,7 @@
             position: relative;
             width: 100%;
         }
+
         .flex-1.flex.flex-col {
             display: flex;
             flex-direction: column;
@@ -110,6 +140,7 @@
             position: relative;
             padding-bottom: 0;
         }
+
         #messages-container {
             flex: 1;
             overflow-y: auto;
@@ -120,6 +151,7 @@
             flex-direction: column;
             gap: 1rem;
         }
+
         #message-input-wrapper {
             position: fixed;
             bottom: 0;
@@ -133,16 +165,19 @@
             box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
             max-width: 100vw;
         }
+
         form.flex.items-end.gap-3 {
             display: flex !important;
             gap: 0.75rem;
             align-items: flex-end;
             width: 100%;
         }
+
         form.flex.items-end.gap-3>div {
             flex: 1;
             min-width: 0;
         }
+
         form.flex.items-end.gap-3>button {
             flex-shrink: 0;
             padding: 0.75rem 1rem;
@@ -152,6 +187,7 @@
             align-items: center;
             justify-content: center;
         }
+
         #message-input {
             width: 100%;
             min-height: 48px;
@@ -161,29 +197,30 @@
             resize: none;
             font-family: inherit;
         }
+
         .mb-3.p-3.bg-blue-50 {
             margin-bottom: 0.75rem;
             font-size: 0.875rem;
         }
-        
+
         /* Mobile message styling */
         .message-bubble {
             max-width: 90%;
         }
-        
+
         .conversation-item {
             padding: 0.75rem 0.5rem;
         }
-        
+
         .chat-header {
             padding: 0.75rem;
         }
-        
+
         #messages-container {
             padding: 0.75rem;
             gap: 0.75rem;
         }
-        
+
         /* Better touch targets */
         button {
             min-height: 44px;
@@ -213,7 +250,8 @@
             <div class="hidden lg:flex p-3 border-b border-gray-200 items-center justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">Messages</h1>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ conversations|length }} conversation{{ conversations|length|pluralize }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ conversations|length }} conversation{{
+                        conversations|length|pluralize }}</p>
                 </div>
             </div>
 
@@ -262,6 +300,7 @@
                             {% if conv.last_message %}
                             <p class="text-xs text-gray-600 truncate">
                                 {% if conv.last_message.sender == user %}<span class="text-blue-600">You:</span> {% endif %}{{ conv.last_message.message|truncatewords:6 }}
+
                             </p>
                             <p class="text-xs text-gray-400 mt-0.5">
                                 {{ conv.last_message.created_at|timesince }} ago
@@ -284,7 +323,8 @@
             <div class="chat-header p-4 bg-white border-b border-gray-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <!-- Mobile Menu Button -->
-                    <button id="open-sidebar" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 z-50">
+                    <button id="open-sidebar"
+                        class="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 z-50">
                         <i data-lucide="menu" class="w-6 h-6 text-gray-700"></i>
                     </button>
 
@@ -325,12 +365,14 @@
                     <div class="max-w-md">
                         {% if message.sender == user %}
                         <!-- Sent Message -->
-                        <div class="message-bubble message-sent bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2 shadow-sm">
+                        <div
+                            class="message-bubble message-sent bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2 shadow-sm">
                             <p class="text-sm">{{ message.message }}</p>
                         </div>
                         {% else %}
                         <!-- Received Message -->
-                        <div class="message-bubble message-received bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm px-4 py-2">
+                        <div
+                            class="message-bubble message-received bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm px-4 py-2">
                             <p class="text-sm">{{ message.message }}</p>
                         </div>
                         {% endif %}
@@ -354,8 +396,11 @@
                 {% if chat_access.free_tier %}
                 <div class="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
                     <p class="text-sm text-blue-900">
-                        <i data-lucide="info" class="w-4 h-4 inline"></i>
-                        <strong>{{ chat_access.messages_remaining }}</strong> free message{{ chat_access.messages_remaining|pluralize }} remaining. Pay ₱2 to unlock unlimited chat.
+                        <strong>{{ chat_access.messages_remaining }}</strong> free message{% if
+                        chat_access.messages_remaining != 1 %}s{% endif %} remaining. After 5 messages, 10% commission
+                        will be auto-deducted from task amount.
+
+                        will be auto-deducted from task amount.
                     </p>
                 </div>
                 {% endif %}
@@ -374,22 +419,22 @@
                     </button>
                 </form>
                 {% else %}
-                <!-- Payment Required -->
+                <!-- Commission Payment Required -->
                 <div class="text-center py-6">
-                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="lock" class="w-8 h-8 text-amber-600"></i>
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="lock" class="w-8 h-8 text-blue-600"></i>
                     </div>
-                    <h3 class="font-semibold text-gray-900 mb-2">Message Limit Reached</h3>
+                    <h3 class="font-semibold text-gray-900 mb-2">Chat Locked</h3>
                     <p class="text-sm text-gray-600 mb-4">{{ chat_access.reason }}</p>
-                    <button onclick="window.location.href='{% url 'payment_system_fee' active_task.id %}'"
+                    <button onclick="window.location.href='{{ chat_access.payment_url }}'"
                         class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         <i data-lucide="unlock" class="w-5 h-5 inline mr-2"></i>
-                        Unlock Chat - ₱2
+                        Pay ₱{{ chat_access.commission_amount }} - Unlock Chat
                     </button>
                 </div>
                 {% endif %}
             </div>
-            {% else %}
+            {# else - removed orphaned tag #}
             <!-- No Chat Selected - Mobile shows nothing, Desktop shows message -->
             <div class="hidden lg:flex flex-1 items-center justify-center bg-gray-50">
                 <div class="text-center">
@@ -400,7 +445,7 @@
                     <p class="text-sm text-gray-500">Choose from the left to start chatting</p>
                 </div>
             </div>
-            {% endif %}
+            {# endif - removed orphaned tag #}
         </div>
     </div>
 </div>
@@ -632,13 +677,13 @@
                 const lastMessageEl = messageParagraphs[1];
                 const preview = message.message.substring(0, 50) + (message.message.length > 50 ? '...' : '');
                 lastMessageEl.textContent = preview;
-                
+
                 // Update timestamp (third paragraph)
                 if (messageParagraphs.length >= 3) {
                     messageParagraphs[2].textContent = 'just now';
                 }
             }
-            
+
             // Move conversation to top
             const messagesList = convLink.closest('.overflow-y-auto');
             if (messagesList) {

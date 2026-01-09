@@ -13,9 +13,30 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-jg*nd55wqq-e!h!&@!$h4oz&)u9d^^9$xyneq#cdmug^lc+x^4")
-DEBUG = os.getenv("DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# SECRET_KEY must be set in environment variables for security
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
+        "DJANGO_SECRET_KEY environment variable must be set. "
+        "Generate a secure key using: python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'"
+    )
+
+# DEBUG should be False by default for security (explicitly set to True in development)
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
+# ALLOWED_HOSTS configuration
+ALLOWED_HOSTS_STR = os.getenv("ALLOWED_HOSTS", "")
+if ALLOWED_HOSTS_STR:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(",") if host.strip()]
+else:
+    # Default to localhost only in DEBUG mode
+    if DEBUG:
+        ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+    else:
+        raise ValueError(
+            "ALLOWED_HOSTS environment variable must be set in production. "
+            "Example: ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com"
+        )
 
 # Application definition
 INSTALLED_APPS = [
