@@ -6,18 +6,19 @@
 <div class="p-6 pb-20 lg:pb-6">
     <!-- Back Button -->
     <div class="mb-6">
-        <a href="{% url 'task_detail' task.id %}" class="inline-flex items-center text-muted hover:text-primary transition-colors">
+        <a href="{% url 'task_detail' task.id %}"
+            class="inline-flex items-center text-muted hover:text-primary transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
             Back to Task
         </a>
     </div>
-    
+
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="mb-8" data-aos="fade-up">
             <h1 class="font-poppins font-bold text-3xl text-text-primary mb-2">Task Applications</h1>
             <p class="text-muted">Review and compare applicants for: <strong>{{ task.title }}</strong></p>
-            
+
             <!-- Stats -->
             <div class="flex items-center space-x-6 mt-4">
                 <div class="flex items-center space-x-2">
@@ -38,7 +39,7 @@
                 </div>
             </div>
         </div>
-        
+
         {% if pending_count == 0 and accepted_applications|length == 0 and rejected_applications|length == 0 %}
         <!-- No Applications -->
         <div class="card text-center py-12" data-aos="fade-up">
@@ -49,7 +50,7 @@
             <p class="text-muted">Your task hasn't received any applications yet. Check back later!</p>
         </div>
         {% else %}
-        
+
         <!-- Pending Applications (Ranked) -->
         {% if pending_applications %}
         <div class="mb-8" data-aos="fade-up">
@@ -60,7 +61,7 @@
                     <span>Sorted by ranking score (best first)</span>
                 </div>
             </div>
-            
+
             <!-- Ranking Explanation -->
             <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                 <div class="flex items-start space-x-3">
@@ -68,24 +69,26 @@
                     <div>
                         <h4 class="font-semibold text-blue-900 mb-1">Smart Ranking System</h4>
                         <p class="text-sm text-blue-800">
-                            Applications are ranked by: <strong>(Rating × 10) + (Completed Tasks × 2) + (Newbie Bonus 15)</strong>. 
-                            Newbies with < 3 tasks get a +15 bonus to give them a fair chance!
-                        </p>
+                            Applications are ranked by: <strong>(Rating × 10) + (Completed Tasks × 2) + (Newbie Bonus
+                                15)</strong>.
+                            Newbies with < 3 tasks get a +15 bonus to give them a fair chance! </p>
                     </div>
                 </div>
             </div>
-            
+
             <div class="space-y-4">
                 {% for app in pending_applications %}
-                <div class="card hover:shadow-lg transition-shadow duration-300 {% if app.current_is_newbie %}border-2 border-purple-200{% endif %}" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
+                <div class="card hover:shadow-lg transition-shadow duration-300 {% if app.current_is_newbie %}border-2 border-purple-200{% endif %}"
+                    data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:100 }}">
                     <!-- Header -->
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center space-x-4">
                             <!-- Avatar -->
-                            <div class="w-16 h-16 bg-gradient-to-r from-primary to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <div
+                                class="w-16 h-16 bg-gradient-to-r from-primary to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
                                 <span class="text-white font-bold text-xl">{{ app.doer.fullname.0|upper }}</span>
                             </div>
-                            
+
                             <!-- Doer Info -->
                             <div>
                                 <div class="flex items-center space-x-2 mb-1">
@@ -100,16 +103,17 @@
                                 <p class="text-sm text-muted">Applied {{ app.created_at|timesince }} ago</p>
                             </div>
                         </div>
-                        
+
                         <!-- Ranking Score -->
                         <div class="text-right">
-                            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg px-4 py-2 border border-yellow-300">
+                            <div
+                                class="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg px-4 py-2 border border-yellow-300">
                                 <p class="text-xs text-yellow-800 font-medium">Ranking Score</p>
                                 <p class="font-bold text-2xl text-yellow-900">{{ app.calculated_ranking_score|floatformat:1 }}</p>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Stats Grid -->
                     <div class="grid grid-cols-3 gap-4 mb-4">
                         <!-- Rating -->
@@ -120,13 +124,13 @@
                             </div>
                             <p class="font-semibold text-lg">
                                 {% if app.current_rating > 0 %}
-                                    {{ app.current_rating }}/10
+                                {{ app.current_rating }}/10
                                 {% else %}
-                                    <span class="text-muted text-sm">No ratings yet</span>
+                                <span class="text-muted text-sm">No ratings yet</span>
                                 {% endif %}
                             </p>
                         </div>
-                        
+
                         <!-- Completed Tasks -->
                         <div class="bg-gray-50 rounded-lg p-3">
                             <div class="flex items-center space-x-2 mb-1">
@@ -135,7 +139,7 @@
                             </div>
                             <p class="font-semibold text-lg">{{ app.current_completed }} tasks</p>
                         </div>
-                        
+
                         <!-- Newbie Bonus -->
                         <div class="bg-gray-50 rounded-lg p-3">
                             <div class="flex items-center space-x-2 mb-1">
@@ -144,14 +148,14 @@
                             </div>
                             <p class="font-semibold text-lg">
                                 {% if app.current_is_newbie %}
-                                    <span class="text-purple-600">+15 pts</span>
+                                <span class="text-purple-600">+15 pts</span>
                                 {% else %}
-                                    <span class="text-muted">—</span>
+                                <span class="text-muted">—</span>
                                 {% endif %}
                             </p>
                         </div>
                     </div>
-                    
+
                     <!-- Cover Letter -->
                     <div class="mb-4">
                         <h4 class="font-semibold text-sm text-muted mb-2 flex items-center">
@@ -162,7 +166,7 @@
                             <p class="text-text-primary leading-relaxed">{{ app.cover_letter }}</p>
                         </div>
                     </div>
-                    
+
                     <!-- Timeline -->
                     {% if app.proposed_timeline %}
                     <div class="mb-4">
@@ -173,7 +177,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    
+
                     <!-- Validated Skills -->
                     {% if app.validated_skills_display %}
                     <div class="mb-4">
@@ -195,7 +199,34 @@
                         <p class="text-sm text-muted italic">No validated skills yet</p>
                     </div>
                     {% endif %}
-                    
+
+                    <!-- Reputation Highlights (Best & Worst) -->
+                    {% if app.highest_rating and app.lowest_rating %}
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Best Review -->
+                        <div class="bg-green-50 rounded-lg p-3 border border-green-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-green-800 uppercase tracking-wide">👍 Best
+                                    Review</span>
+                                <span class="font-bold text-green-700">{{ app.highest_rating.score }}/10</span>
+                            </div>
+                            <p class="text-xs text-gray-600 italic">"{{ app.highest_rating.feedback|truncatewords:15 }}"
+                            </p>
+                        </div>
+
+                        <!-- Critical Review -->
+                        <div class="bg-red-50 rounded-lg p-3 border border-red-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-red-800 uppercase tracking-wide">👎 Lowest
+                                    Review</span>
+                                <span class="font-bold text-red-700">{{ app.lowest_rating.score }}/10</span>
+                            </div>
+                            <p class="text-xs text-gray-600 italic">"{{ app.lowest_rating.feedback|truncatewords:15 }}"
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Recent Ratings -->
                     {% if app.recent_ratings %}
                     <div class="mb-4">
@@ -216,18 +247,16 @@
                         </div>
                     </div>
                     {% endif %}
-                    
+
                     <!-- Actions -->
                     <div class="flex items-center space-x-3 pt-4 border-t">
-                        <a href="{% url 'accept_application' app.id %}" 
-                           class="btn btn-success flex-1"
-                           onclick="return confirm('Choose {{ app.doer.fullname }} for this task? This will reject all other applications.')">
+                        <a href="{% url 'accept_application' app.id %}" class="btn btn-success flex-1"
+                            onclick="return confirm('Choose {{ app.doer.fullname }} for this task? This will reject all other applications.')">
                             <i data-lucide="check" class="w-4 h-4 mr-2"></i>
                             Choose This Doer
                         </a>
-                        <a href="{% url 'reject_application' app.id %}" 
-                           class="btn btn-danger"
-                           onclick="return confirm('Reject this application?')">
+                        <a href="{% url 'reject_application' app.id %}" class="btn btn-danger"
+                            onclick="return confirm('Reject this application?')">
                             <i data-lucide="x" class="w-4 h-4 mr-2"></i>
                             Reject
                         </a>
@@ -241,7 +270,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Accepted Applications -->
         {% if accepted_applications %}
         <div class="mb-8" data-aos="fade-up">
@@ -251,7 +280,8 @@
                 <div class="card bg-green-50 border-2 border-green-300">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
                                 <span class="text-white font-bold">{{ app.doer.fullname.0|upper }}</span>
                             </div>
                             <div>
@@ -271,7 +301,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Rejected Applications -->
         {% if rejected_applications %}
         <div data-aos="fade-up">
@@ -300,8 +330,147 @@
             </details>
         </div>
         {% endif %}
-        
+
         {% endif %}
     </div>
 </div>
+{
+
+<!-- Professional Redesign Styling -->
+<style>
+    /* Professional color scheme */
+    :root {
+        --primary-blue: #2563eb;
+        --primary-blue-dark: #1e40af;
+        --success-green: #16a34a;
+        --success-green-dark: #15803d;
+        --danger-red: #dc2626;
+        --danger-red-dark: #b91c1c;
+        --neutral-gray: #64748b;
+        --neutral-gray-dark: #475569;
+        --bg-light: #f8fafc;
+        --border-light: #e2e8f0;
+    }
+
+    /* Clean card styling */
+    .card {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: #cbd5e1;
+    }
+
+    /* Professional buttons */
+    .btn {
+        padding: 0.625rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background-color: var(--success-green);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background-color: var(--success-green-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(22, 163, 74, 0.2);
+    }
+
+    .btn-danger {
+        background-color: var(--danger-red);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: var(--danger-red-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-secondary {
+        background-color: white;
+        color: var(--neutral-gray);
+        border: 1px solid var(--border-light);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--bg-light);
+        border-color: #cbd5e1;
+    }
+
+    /* Professional badges */
+    .badge {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .badge-success {
+        background-color: #dcfce7;
+        color: var(--success-green-dark);
+    }
+
+    .badge-purple {
+        background-color: #f3e8ff;
+        color: #7c3aed;
+    }
+
+    /* Stats grid styling */
+    .bg-gray-50 {
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-light);
+    }
+
+    /* Ranking score box */
+    .bg-gradient-to-r {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #fbbf24;
+    }
+
+    /* Info boxes */
+    .bg-blue-50 {
+        background-color: #eff6ff;
+        border-color: #bfdbfe;
+    }
+
+    /* Typography improvements */
+    h1,
+    h2,
+    h3,
+    h4 {
+        color: #0f172a;
+        letter-spacing: -0.025em;
+    }
+
+    .text-muted {
+        color: var(--neutral-gray);
+    }
+
+    /* Newbie border highlight */
+    .border-purple-200 {
+        border-color: #e9d5ff !important;
+        background-color: #faf5ff;
+    }
+</style>
+
 {% endblock %}

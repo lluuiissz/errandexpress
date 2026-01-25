@@ -220,13 +220,16 @@ class ErrandExpressPayments:
         return task_price + self.system_fee
     
     def create_system_fee_payment(self, task, payer):
-        """Create payment intent for ₱2 system fee"""
+        """Create payment intent for 10% system fee (Add-on Model)"""
         from .models import SystemCommission
         
         try:
+            # Calculate 10% fee dynamically
+            system_fee = Decimal(str(task.price)) * Decimal('0.10')
+            
             # Create payment intent
             payment_intent = self.paymongo.create_payment_intent(
-                amount=self.system_fee,
+                amount=system_fee,
                 description=f"ErrandExpress System Fee - Task: {task.title}"
             )
             
@@ -235,7 +238,7 @@ class ErrandExpressPayments:
                 commission = SystemCommission.objects.create(
                     task=task,
                     payer=payer,
-                    amount=self.system_fee,
+                    amount=system_fee,
                     method='online',
                     paymongo_payment_id=payment_intent['data']['id']
                 )
@@ -257,18 +260,26 @@ class ErrandExpressPayments:
         from .models import Payment
         
         try:
+            # Calculate Total Amount (Add-On Model)
+            # Poster pays Task Price + 10% Service Fee
+            task_price = float(task.price)
+            service_fee = task_price * 0.10
+            total_amount = task_price + service_fee
+            
             payment_intent = self.paymongo.create_payment_intent(
-                amount=float(task.price),
-                description=f"ErrandExpress Task Payment - {task.title}"
+                amount=total_amount,
+                description=f"Task Payment: {task.title} (incl. Service Fee)"
             )
             
             if payment_intent:
                 # Create payment record
+                # We store the TOTAL amount paid (e.g. 110)
+                # The model's save() method will split it back into 100 (net) and 10 (commission)
                 payment = Payment.objects.create(
                     task=task,
                     payer=payer,
                     receiver=receiver,
-                    amount=task.price,
+                    amount=total_amount,
                     method='paymongo',
                     paymongo_payment_id=payment_intent['data']['id']
                 )

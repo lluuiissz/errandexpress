@@ -319,7 +319,7 @@
     <div class="admin-header">
         <div class="admin-header-content">
             <div class="admin-branding">
-                <a href="{% url 'admin:index' %}">
+                <a href="{% url 'admin_dashboard' %}">
                     <span class="admin-branding-icon">🚀</span>
                     <div class="admin-branding-text">
                         <h1>ErrandExpress Administrator</h1>
@@ -346,7 +346,8 @@
             <nav class="admin-nav">
                 <h3>📊 Dashboard</h3>
                 <ul>
-                    <li><a href="{% url 'admin:index' %}"><span class="admin-nav-icon">🏠</span> Home</a></li>
+                    <li><a href="{% url 'admin_dashboard' %}"><span class="admin-nav-icon">📊</span> Overview</a></li>
+                    <li><a href="{% url 'admin:index' %}"><span class="admin-nav-icon">🗄️</span> Database</a></li>
                 </ul>
 
                 <h3>👥 Users & Auth</h3>

@@ -12,7 +12,7 @@
                 <p class="text-blue-100">Answer all questions to validate your typing skills</p>
                 <div class="mt-4 inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
                     <i data-lucide="info" class="w-5 h-5"></i>
-                    <span class="font-semibold">Passing Score: 75% (8/10 correct)</span>
+                    <span class="font-semibold">Passing Score: 75% (38/50 correct)</span>
                 </div>
             </div>
         </div>
@@ -27,11 +27,10 @@
                 <div>
                     <h3 class="font-bold text-gray-900 mb-2">Test Instructions</h3>
                     <ul class="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                        <li>This test contains 10 multiple choice questions about typing skills</li>
-                        <li>You need to score 75% or higher (8+ correct answers) to pass</li>
-                        <li>Select one answer for each question</li>
-                        <li>You can only take this test once per submission</li>
-                        <li>Click "Submit Test" when you're done</li>
+                        <li>This test contains <strong>50 multiple choice questions</strong>.</li>
+                        <li>You need to score 75% or higher (38+ correct) to pass.</li>
+                        <li>Select one answer for each question.</li>
+                        <li>Click "Submit Test" at the bottom when finished.</li>
                     </ul>
                 </div>
             </div>
@@ -42,25 +41,25 @@
             {% csrf_token %}
             
             <div class="space-y-6">
-                
+
                 <!-- Question 1 -->
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">1</span>
-                        What is considered an average typing speed for a professional?
+                        What is considered a good average typing speed for office work?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_1" value="a" required class="w-5 h-5 text-primary">
-                            <span>20-30 WPM (Words Per Minute)</span>
+                            <span>10-20 WPM</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_1" value="b" required class="w-5 h-5 text-primary">
-                            <span>40-60 WPM (Words Per Minute)</span>
+                            <span>40-60 WPM</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_1" value="c" required class="w-5 h-5 text-primary">
-                            <span>80-100 WPM (Words Per Minute)</span>
+                            <span>90-100 WPM</span>
                         </label>
                     </div>
                 </div>
@@ -69,20 +68,20 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">2</span>
-                        Which keys are on the home row of a QWERTY keyboard?
+                        Which keys are the 'Home Row' keys?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_2" value="a" required class="w-5 h-5 text-primary">
-                            <span>QWERTY</span>
+                            <span>QWERTY UIOP</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_2" value="b" required class="w-5 h-5 text-primary">
-                            <span>ZXCVBN</span>
+                            <span>ZXCVB NM<>?</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_2" value="c" required class="w-5 h-5 text-primary">
-                            <span>ASDFGH JKL;</span>
+                            <span>ASDFG HJKL</span>
                         </label>
                     </div>
                 </div>
@@ -91,12 +90,12 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">3</span>
-                        What is the proper typing technique called?
+                        What is the technique of typing without looking at keys called?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_3" value="a" required class="w-5 h-5 text-primary">
-                            <span>Hunt and peck</span>
+                            <span>Blind typing</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_3" value="b" required class="w-5 h-5 text-primary">
@@ -104,7 +103,7 @@
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_3" value="c" required class="w-5 h-5 text-primary">
-                            <span>Speed typing</span>
+                            <span>Shadow typing</span>
                         </label>
                     </div>
                 </div>
@@ -113,7 +112,7 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">4</span>
-                        What is more important than speed in typing?
+                        In professional typing, what is most important?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
@@ -122,11 +121,11 @@
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_4" value="b" required class="w-5 h-5 text-primary">
-                            <span>Keyboard brand</span>
+                            <span>Loudness</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_4" value="c" required class="w-5 h-5 text-primary">
-                            <span>Keyboard color</span>
+                            <span>Speed only</span>
                         </label>
                     </div>
                 </div>
@@ -135,7 +134,7 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">5</span>
-                        Which fingers should rest on the home row keys with bumps?
+                        Which fingers rest on the 'F' and 'J' keys?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
@@ -144,11 +143,11 @@
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_5" value="b" required class="w-5 h-5 text-primary">
-                            <span>Pinkies</span>
+                            <span>Pinky fingers</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_5" value="c" required class="w-5 h-5 text-primary">
-                            <span>Index fingers (F and J keys)</span>
+                            <span>Index fingers</span>
                         </label>
                     </div>
                 </div>
@@ -157,20 +156,20 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">6</span>
-                        How many fingers should you use for touch typing?
+                        How many fingers should you utilize for maximum efficiency?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_6" value="a" required class="w-5 h-5 text-primary">
-                            <span>2 fingers</span>
+                            <span>Two (Hunt and Peck)</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_6" value="b" required class="w-5 h-5 text-primary">
-                            <span>All 10 fingers</span>
+                            <span>All ten</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_6" value="c" required class="w-5 h-5 text-primary">
-                            <span>4 fingers</span>
+                            <span>Four</span>
                         </label>
                     </div>
                 </div>
@@ -179,20 +178,20 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">7</span>
-                        What is the best posture for typing?
+                        What is the correct posture for typing?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_7" value="a" required class="w-5 h-5 text-primary">
-                            <span>Sit upright with feet flat on the floor</span>
+                            <span>Back straight, feet flat</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_7" value="b" required class="w-5 h-5 text-primary">
-                            <span>Slouch in your chair</span>
+                            <span>Slouching forward</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_7" value="c" required class="w-5 h-5 text-primary">
-                            <span>Stand while typing</span>
+                            <span>Lying down</span>
                         </label>
                     </div>
                 </div>
@@ -201,20 +200,20 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">8</span>
-                        What is the best way to improve typing speed?
+                        What is the best way to increase typing speed?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_8" value="a" required class="w-5 h-5 text-primary">
-                            <span>Type as fast as possible</span>
+                            <span>Typing harder</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_8" value="b" required class="w-5 h-5 text-primary">
-                            <span>Look at the keyboard constantly</span>
+                            <span>Looking at keys</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_8" value="c" required class="w-5 h-5 text-primary">
-                            <span>Practice regularly with proper technique</span>
+                            <span>Consistent practice</span>
                         </label>
                     </div>
                 </div>
@@ -223,12 +222,12 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">9</span>
-                        What does WPM stand for?
+                        What does 'WPM' stand for?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_9" value="a" required class="w-5 h-5 text-primary">
-                            <span>Words Per Month</span>
+                            <span>Words Per Millisecond</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_9" value="b" required class="w-5 h-5 text-primary">
@@ -236,7 +235,7 @@
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_9" value="c" required class="w-5 h-5 text-primary">
-                            <span>Words Per Mile</span>
+                            <span>Words Per Month</span>
                         </label>
                     </div>
                 </div>
@@ -245,24 +244,903 @@
                 <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">10</span>
-                        What should you do to minimize typing errors?
+                        If you make many errors, what should you do?
                     </h3>
                     <div class="space-y-3 ml-10">
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_10" value="a" required class="w-5 h-5 text-primary">
-                            <span>Focus on accuracy over speed</span>
+                            <span>Slow down and focus on accuracy</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_10" value="b" required class="w-5 h-5 text-primary">
-                            <span>Type as fast as you can</span>
+                            <span>Type faster to compensate</span>
                         </label>
                         <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
                             <input type="radio" name="question_10" value="c" required class="w-5 h-5 text-primary">
-                            <span>Use only one hand</span>
+                            <span>Switch keyboards</span>
                         </label>
                     </div>
                 </div>
 
+                <!-- Question 11 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">11</span>
+                        Where is the 'Esc' key usually located?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_11" value="a" required class="w-5 h-5 text-primary">
+                            <span>Top-left corner</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_11" value="b" required class="w-5 h-5 text-primary">
+                            <span>Top-right corner</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_11" value="c" required class="w-5 h-5 text-primary">
+                            <span>Bottom-left corner</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 12 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">12</span>
+                        Which key creates an uppercase letter?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_12" value="a" required class="w-5 h-5 text-primary">
+                            <span>Ctrl</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_12" value="b" required class="w-5 h-5 text-primary">
+                            <span>Shift</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_12" value="c" required class="w-5 h-5 text-primary">
+                            <span>Alt</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 13 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">13</span>
+                        To indent a paragraph, which key is commonly used?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_13" value="a" required class="w-5 h-5 text-primary">
+                            <span>Spacebar</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_13" value="b" required class="w-5 h-5 text-primary">
+                            <span>Enter</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_13" value="c" required class="w-5 h-5 text-primary">
+                            <span>Tab</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 14 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">14</span>
+                        The longest key on the keyboard is the:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_14" value="a" required class="w-5 h-5 text-primary">
+                            <span>Spacebar</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_14" value="b" required class="w-5 h-5 text-primary">
+                            <span>Enter</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_14" value="c" required class="w-5 h-5 text-primary">
+                            <span>Shift</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 15 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">15</span>
+                        Which key moves the cursor to the next line?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_15" value="a" required class="w-5 h-5 text-primary">
+                            <span>Backspace</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_15" value="b" required class="w-5 h-5 text-primary">
+                            <span>Enter</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_15" value="c" required class="w-5 h-5 text-primary">
+                            <span>Caps Lock</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 16 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">16</span>
+                        What key deletes the character to the LEFT of the cursor?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_16" value="a" required class="w-5 h-5 text-primary">
+                            <span>Delete</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_16" value="b" required class="w-5 h-5 text-primary">
+                            <span>Space</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_16" value="c" required class="w-5 h-5 text-primary">
+                            <span>Backspace</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 17 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">17</span>
+                        Which key deletes the character to the RIGHT of the cursor?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_17" value="a" required class="w-5 h-5 text-primary">
+                            <span>Delete</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_17" value="b" required class="w-5 h-5 text-primary">
+                            <span>Backspace</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_17" value="c" required class="w-5 h-5 text-primary">
+                            <span>Insert</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 18 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">18</span>
+                        The 'QWERTY' layout is named after:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_18" value="a" required class="w-5 h-5 text-primary">
+                            <span>Its inventor Mr. Qwerty</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_18" value="b" required class="w-5 h-5 text-primary">
+                            <span>The first 6 letters on top row</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_18" value="c" required class="w-5 h-5 text-primary">
+                            <span>A manufacturing code</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 19 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">19</span>
+                        The number pad is usually located on the:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_19" value="a" required class="w-5 h-5 text-primary">
+                            <span>Left side</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_19" value="b" required class="w-5 h-5 text-primary">
+                            <span>Top center</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_19" value="c" required class="w-5 h-5 text-primary">
+                            <span>Right side</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 20 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">20</span>
+                        Which key activates 'Overwrite' mode in many editors?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_20" value="a" required class="w-5 h-5 text-primary">
+                            <span>Insert</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_20" value="b" required class="w-5 h-5 text-primary">
+                            <span>Home</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_20" value="c" required class="w-5 h-5 text-primary">
+                            <span>End</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 21 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">21</span>
+                        Your wrists should be:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_21" value="a" required class="w-5 h-5 text-primary">
+                            <span>Resting firmly on the desk</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_21" value="b" required class="w-5 h-5 text-primary">
+                            <span>Hovering or lightly resting on a pad</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_21" value="c" required class="w-5 h-5 text-primary">
+                            <span>Bent upwards</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 22 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">22</span>
+                        The monitor should be positioned:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_22" value="a" required class="w-5 h-5 text-primary">
+                            <span>Above eye level</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_22" value="b" required class="w-5 h-5 text-primary">
+                            <span>To your side</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_22" value="c" required class="w-5 h-5 text-primary">
+                            <span>At eye level</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 23 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">23</span>
+                        Which finger types the 'A' key?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_23" value="a" required class="w-5 h-5 text-primary">
+                            <span>Left Pinky</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_23" value="b" required class="w-5 h-5 text-primary">
+                            <span>Left Ring Finger</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_23" value="c" required class="w-5 h-5 text-primary">
+                            <span>Left Index</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 24 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">24</span>
+                        Which finger types the 'L' key?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_24" value="a" required class="w-5 h-5 text-primary">
+                            <span>Right Index</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_24" value="b" required class="w-5 h-5 text-primary">
+                            <span>Right Ring Finger</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_24" value="c" required class="w-5 h-5 text-primary">
+                            <span>Right Pinky</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 25 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">25</span>
+                        Which thumb should press the Spacebar?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_25" value="a" required class="w-5 h-5 text-primary">
+                            <span>Only the left</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_25" value="b" required class="w-5 h-5 text-primary">
+                            <span>Only the right</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_25" value="c" required class="w-5 h-5 text-primary">
+                            <span>Whichever is more comfortable (or alternate)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 26 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">26</span>
+                        The 'Bump' on F and J helps you:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_26" value="a" required class="w-5 h-5 text-primary">
+                            <span>Find home row without looking</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_26" value="b" required class="w-5 h-5 text-primary">
+                            <span>Clean your fingers</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_26" value="c" required class="w-5 h-5 text-primary">
+                            <span>Press harder</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 27 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">27</span>
+                        When typing numbers on the top row, you should:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_27" value="a" required class="w-5 h-5 text-primary">
+                            <span>Use the numpad only</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_27" value="b" required class="w-5 h-5 text-primary">
+                            <span>Reach up from home row</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_27" value="c" required class="w-5 h-5 text-primary">
+                            <span>Look at your hands</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 28 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">28</span>
+                        Constant looking at the keyboard causes:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_28" value="a" required class="w-5 h-5 text-primary">
+                            <span>Higher speed</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_28" value="b" required class="w-5 h-5 text-primary">
+                            <span>Better accuracy</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_28" value="c" required class="w-5 h-5 text-primary">
+                            <span>Slower speed and neck strain</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 29 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">29</span>
+                        Ergonomics helps prevent:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_29" value="a" required class="w-5 h-5 text-primary">
+                            <span>Repetitive Strain Injury (RSI)</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_29" value="b" required class="w-5 h-5 text-primary">
+                            <span>Computer viruses</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_29" value="c" required class="w-5 h-5 text-primary">
+                            <span>Spelling errors</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 30 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">30</span>
+                        How often should you take breaks?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_30" value="a" required class="w-5 h-5 text-primary">
+                            <span>Never</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_30" value="b" required class="w-5 h-5 text-primary">
+                            <span>Every 20-30 minutes</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_30" value="c" required class="w-5 h-5 text-primary">
+                            <span>Only when in pain</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 31 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">31</span>
+                        To type faster, you should first:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_31" value="a" required class="w-5 h-5 text-primary">
+                            <span>Buy a mechanical keyboard</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_31" value="b" required class="w-5 h-5 text-primary">
+                            <span>Type forcefully</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_31" value="c" required class="w-5 h-5 text-primary">
+                            <span>Master accuracy</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 32 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">32</span>
+                        A 'typo' is:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_32" value="a" required class="w-5 h-5 text-primary">
+                            <span>A typographical error</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_32" value="b" required class="w-5 h-5 text-primary">
+                            <span>A type of font</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_32" value="c" required class="w-5 h-5 text-primary">
+                            <span>A fast typist</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 33 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">33</span>
+                        Standard typing tests measure speed in?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_33" value="a" required class="w-5 h-5 text-primary">
+                            <span>KPH (Keys Per Hour)</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_33" value="b" required class="w-5 h-5 text-primary">
+                            <span>WPM (Words Per Minute)</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_33" value="c" required class="w-5 h-5 text-primary">
+                            <span>LPS (Lines Per Second)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 34 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">34</span>
+                        One 'Word' in WPM calculation is typically:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_34" value="a" required class="w-5 h-5 text-primary">
+                            <span>3 characters</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_34" value="b" required class="w-5 h-5 text-primary">
+                            <span>10 characters</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_34" value="c" required class="w-5 h-5 text-primary">
+                            <span>5 characters (including space)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 35 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">35</span>
+                        Gross WPM minus errors determines:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_35" value="a" required class="w-5 h-5 text-primary">
+                            <span>Net WPM</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_35" value="b" required class="w-5 h-5 text-primary">
+                            <span>Raw Speed</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_35" value="c" required class="w-5 h-5 text-primary">
+                            <span>Total Keystrokes</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 36 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">36</span>
+                        If you type 300 characters in 1 minute, your WPM is approx:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_36" value="a" required class="w-5 h-5 text-primary">
+                            <span>30</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_36" value="b" required class="w-5 h-5 text-primary">
+                            <span>60</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_36" value="c" required class="w-5 h-5 text-primary">
+                            <span>100</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 37 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">37</span>
+                        Rushing usually leads to:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_37" value="a" required class="w-5 h-5 text-primary">
+                            <span>Promotion</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_37" value="b" required class="w-5 h-5 text-primary">
+                            <span>Higher Net WPM</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_37" value="c" required class="w-5 h-5 text-primary">
+                            <span>More mistakes and lower Net WPM</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 38 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">38</span>
+                        Using proper finger placement reduces:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_38" value="a" required class="w-5 h-5 text-primary">
+                            <span>Hand fatigue</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_38" value="b" required class="w-5 h-5 text-primary">
+                            <span>Computer speed</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_38" value="c" required class="w-5 h-5 text-primary">
+                            <span>Screen brightness</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 39 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">39</span>
+                        The 'Ctrl + C' shortcut is for:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_39" value="a" required class="w-5 h-5 text-primary">
+                            <span>Cut</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_39" value="b" required class="w-5 h-5 text-primary">
+                            <span>Copy</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_39" value="c" required class="w-5 h-5 text-primary">
+                            <span>Close</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 40 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">40</span>
+                        The 'Ctrl + V' shortcut is for:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_40" value="a" required class="w-5 h-5 text-primary">
+                            <span>Verify</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_40" value="b" required class="w-5 h-5 text-primary">
+                            <span>View</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_40" value="c" required class="w-5 h-5 text-primary">
+                            <span>Paste</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 41 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">41</span>
+                        In a formal document, how many spaces after a period?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_41" value="a" required class="w-5 h-5 text-primary">
+                            <span>One</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_41" value="b" required class="w-5 h-5 text-primary">
+                            <span>Two</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_41" value="c" required class="w-5 h-5 text-primary">
+                            <span>Three</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 42 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">42</span>
+                        What should you do before submitting typed work?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_42" value="a" required class="w-5 h-5 text-primary">
+                            <span>Save it only</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_42" value="b" required class="w-5 h-5 text-primary">
+                            <span>Proofread it</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_42" value="c" required class="w-5 h-5 text-primary">
+                            <span>Close the laptop</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 43 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">43</span>
+                        Which font is commonly used for professional documents?
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_43" value="a" required class="w-5 h-5 text-primary">
+                            <span>Comic Sans</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_43" value="b" required class="w-5 h-5 text-primary">
+                            <span>Papyrus</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_43" value="c" required class="w-5 h-5 text-primary">
+                            <span>Times New Roman or Arial</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 44 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">44</span>
+                        Blind Carbon Copy (BCC) is used in:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_44" value="a" required class="w-5 h-5 text-primary">
+                            <span>Emailing</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_44" value="b" required class="w-5 h-5 text-primary">
+                            <span>Printing</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_44" value="c" required class="w-5 h-5 text-primary">
+                            <span>Saving files</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 45 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">45</span>
+                        Touch typing allows you to focus on:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_45" value="a" required class="w-5 h-5 text-primary">
+                            <span>The keyboard</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_45" value="b" required class="w-5 h-5 text-primary">
+                            <span>The content on screen</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_45" value="c" required class="w-5 h-5 text-primary">
+                            <span>Your fingers</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 46 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">46</span>
+                        Data Entry jobs require high:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_46" value="a" required class="w-5 h-5 text-primary">
+                            <span>Creativity</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_46" value="b" required class="w-5 h-5 text-primary">
+                            <span>Volume</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_46" value="c" required class="w-5 h-5 text-primary">
+                            <span>Accuracy and Speed</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 47 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">47</span>
+                        Shortcuts like Ctrl+Z (Undo) help to:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_47" value="a" required class="w-5 h-5 text-primary">
+                            <span>Correct mistakes quickly</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_47" value="b" required class="w-5 h-5 text-primary">
+                            <span>Delete files</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_47" value="c" required class="w-5 h-5 text-primary">
+                            <span>Zoom in</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 48 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">48</span>
+                        Maintaining a consistent rhythm helps with:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_48" value="a" required class="w-5 h-5 text-primary">
+                            <span>Typing louder</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_48" value="b" required class="w-5 h-5 text-primary">
+                            <span>Fluidity and speed</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_48" value="c" required class="w-5 h-5 text-primary">
+                            <span>Breaking keys</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 49 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">49</span>
+                        Capitalizing every word is:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_49" value="a" required class="w-5 h-5 text-primary">
+                            <span>Professional</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_49" value="b" required class="w-5 h-5 text-primary">
+                            <span>Easy to read</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_49" value="c" required class="w-5 h-5 text-primary">
+                            <span>Incorrect grammar (Title Case excluded)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 50 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm">50</span>
+                        A professional typist aims for accuracy of:
+                    </h3>
+                    <div class="space-y-3 ml-10">
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_50" value="a" required class="w-5 h-5 text-primary">
+                            <span>95-100%</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_50" value="b" required class="w-5 h-5 text-primary">
+                            <span>50-60%</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 rounded-lg border-2 border-gray-200 hover:border-primary hover:bg-blue-50 cursor-pointer transition-all">
+                            <input type="radio" name="question_50" value="c" required class="w-5 h-5 text-primary">
+                            <span>75%</span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <!-- Submit Button -->
@@ -285,9 +1163,10 @@ lucide.createIcons();
 
 // Form validation
 document.getElementById('typing-test-form').addEventListener('submit', function(e) {
-    const questions = 10;
+    const questions = 50;
     let answered = 0;
     
+    // Check all 50 questions
     for (let i = 1; i <= questions; i++) {
         const radios = document.getElementsByName(`question_${i}`);
         const isAnswered = Array.from(radios).some(radio => radio.checked);
@@ -297,6 +1176,16 @@ document.getElementById('typing-test-form').addEventListener('submit', function(
     if (answered < questions) {
         e.preventDefault();
         alert(`Please answer all questions. You've answered ${answered} out of ${questions}.`);
+        
+        // Scroll to first unanswered question
+        for (let i = 1; i <= questions; i++) {
+            const radios = document.getElementsByName(`question_${i}`);
+            const isAnswered = Array.from(radios).some(radio => radio.checked);
+            if (!isAnswered) {
+                radios[0].closest('.bg-white').scrollIntoView({behavior: 'smooth', block: 'center'});
+                break;
+            }
+        }
         return false;
     }
     

@@ -178,3 +178,25 @@ def compress_profile_picture(uploaded_file, max_size=(400, 400), quality=90):
     except Exception as e:
         print(f"Profile picture compression failed: {e}")
         return uploaded_file
+
+
+def check_pending_ratings(user):
+    """
+    Check if user has any completed tasks that they haven't rated yet.
+    Returns: QuerySet of unrated tasks
+    """
+    from .models import Task, Rating
+    from django.db.models import Q
+    
+    # 1. Get all completed tasks where user was poster OR doer
+    completed_tasks = Task.objects.filter(
+        Q(poster=user) | Q(doer=user),
+        status='completed'
+    )
+    
+    # 2. Exclude tasks where this user has already submitted a rating
+    # We use exclude() with the reverse relationship 'ratings'
+    # 'ratings__rater' checks for Rating objects linked to the task where rater is the user
+    pending_tasks = completed_tasks.exclude(ratings__rater=user)
+    
+    return pending_tasks

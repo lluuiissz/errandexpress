@@ -100,11 +100,17 @@
                         {% if user.role == 'task_poster' %}
                         <div class="flex flex-col gap-2 w-full sm:w-auto">
                             <!-- Redirect to Rating Page for Payment -->
+                            {% if payment.other_user and payment.other_user.id %}
                             <a href="{% url 'rate_user' payment.task.id payment.other_user.id %}"
                                 class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-lg hover:from-amber-700 hover:to-orange-700 transition-all font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                                 <i data-lucide="star" class="w-5 h-5"></i>
                                 <span>Pay & Rate Task Doer</span>
                             </a>
+                            {% else %}
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                                No doer assigned
+                            </span>
+                            {% endif %}
                             <p class="text-xs text-gray-600 text-center">
                                 Complete payment and rating in one place
                             </p>

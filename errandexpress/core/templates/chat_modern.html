@@ -246,6 +246,56 @@
                     <span id="message-count" class="text-xs font-bold text-amber-600">0/5</span>
                 </div>
             </div>
+
+            <!-- Commission Payment Overlay (shown when commission not paid) -->
+            <div id="commission-paywall-overlay"
+                class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-30 flex items-center justify-center">
+                <div class="text-center p-8 max-w-md">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="credit-card" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">💳 Commission Payment Required</h3>
+                    <p class="text-gray-600 mb-4">
+                        To continue chatting, please pay the <strong class="text-amber-600">₱10.00 commission fee</strong>.<br>
+                        This is a one-time payment for this task.
+                    </p>
+
+                    <!-- Benefits -->
+                    <div class="bg-amber-50 rounded-xl p-4 mb-6 text-left">
+                        <p class="text-sm font-semibold text-gray-900 mb-2">✨ What you get:</p>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                                Unlock unlimited messaging
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                                File sharing & attachments
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                                Real-time collaboration
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-600"></i>
+                                One-time payment per task
+                            </li>
+                        </ul>
+                    </div>
+
+                    <button onclick="payCommission()"
+                        class="w-full px-6 py-4 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold text-lg flex items-center justify-center gap-2">
+                        <i data-lucide="credit-card" class="w-5 h-5"></i>
+                        <span>Pay Commission - ₱10.00</span>
+                    </button>
+
+                    <p class="text-xs text-gray-500 mt-3">
+                        💳 Pay via GCash or Cash on Delivery
+                    </p>
+                </div>
+            </div>
+
             {% endif %}
         </div>
 
@@ -666,7 +716,28 @@
         window.location.href = `/payment/system-fee/${taskId}/`;
     }
 
-    // Character counter for textarea
+
+    // Commission payment function
+    function payCommission() {
+        // Redirect to commission payment page
+        window.location.href = `/payment/commission/${taskId}/`;
+    }
+
+    // Show commission paywall when needed
+    function showCommissionPaywall() {
+        const commissionOverlay = document.getElementById('commission-paywall-overlay');
+        if (commissionOverlay) {
+            commissionOverlay.classList.remove('hidden');
+            // Disable input
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            if (messageInput) messageInput.disabled = true;
+            if (sendButton) sendButton.disabled = true;
+        }
+    }
+
+
+        // Character counter for textarea
     const messageInput = document.getElementById('message-input');
     const charCount = document.getElementById('char-count');
     if (messageInput && charCount) {
@@ -689,6 +760,33 @@
             lucide.createIcons();
         }
     });
+
+    // Global handler for commission payment errors
+    window.addEventListener('DOMContentLoaded', function() {
+        // Check if there's a commission error in messages
+        const djangoMessages = document.querySelectorAll('.django-message');
+        djangoMessages.forEach(msg => {
+            const messageText = msg.getAttribute('data-message');
+            if (messageText && (messageText.includes('₱10') || messageText.includes('commission'))) {
+                // Show commission overlay
+                showCommissionPaywall();
+            }
+        });
+    });
+
+    // Override showToast to detect commission errors
+    const originalShowToast = window.showToast;
+    if (originalShowToast) {
+        window.showToast = function(message, type) {
+            if (message && (message.includes('₱10') || message.includes('commission'))) {
+                showCommissionPaywall();
+            } else {
+                originalShowToast(message, type);
+            }
+        };
+    }
+
+
 
     // Typing indicator functionality
     const typingIndicator = document.getElementById('typing-indicator');

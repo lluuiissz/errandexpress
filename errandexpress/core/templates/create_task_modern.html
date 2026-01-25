@@ -8,19 +8,23 @@
     .form-section {
         @apply bg-white rounded-2xl p-10 shadow-sm border border-gray-100 mb-8;
     }
+
     .form-group {
         @apply mb-6;
     }
+
     .form-label {
         @apply block text-base font-semibold text-gray-800 mb-3;
     }
+
     .form-input {
         @apply w-full p-6 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200 text-lg;
     }
+
     .form-textarea {
         @apply w-full p-6 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200 resize-none text-lg min-h-[200px];
     }
-    
+
     /* Make all form inputs larger and more responsive */
     input[type="text"],
     input[type="email"],
@@ -28,17 +32,26 @@
     input[type="date"],
     input[type="datetime-local"],
     input[type="file"],
-    select,
+    select {
+        width: 100% !important;
+        height: 40px !important;
+        padding: 0 15px !important;
+        font-size: 0.95rem !important;
+        line-height: 40px !important;
+        border-radius: 0.5rem !important;
+        border: 2px solid #e5e7eb !important;
+        transition: all 0.2s ease !important;
+    }
+
     textarea {
         width: 100% !important;
-        padding: 1.5rem 1.75rem !important;
-        font-size: 1.125rem !important;
-        line-height: 1.75rem !important;
+        padding: 1rem 1.25rem !important;
+        font-size: 1rem !important;
         border-radius: 0.75rem !important;
         border: 2px solid #e5e7eb !important;
         transition: all 0.2s ease !important;
     }
-    
+
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="number"]:focus,
@@ -51,12 +64,12 @@
         ring-color: rgba(59, 130, 246, 0.1) !important;
         outline: none !important;
     }
-    
+
     textarea {
         min-height: 180px !important;
         resize: vertical !important;
     }
-    
+
     select {
         appearance: none !important;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
@@ -65,9 +78,10 @@
         background-size: 1.5em 1.5em !important;
         padding-right: 3rem !important;
     }
-    
+
     /* Mobile responsive */
     @media (max-width: 640px) {
+
         input[type="text"],
         input[type="email"],
         input[type="number"],
@@ -78,23 +92,28 @@
             padding: 1rem 1.25rem !important;
             font-size: 1rem !important;
         }
-        
+
         textarea {
             min-height: 150px !important;
         }
     }
+
     .price-preview {
         @apply bg-gradient-to-r from-primary to-indigo-600 text-white rounded-2xl p-6 text-center;
     }
+
     .step-indicator {
         @apply flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium;
     }
+
     .step-active {
         @apply bg-primary text-white;
     }
+
     .step-completed {
         @apply bg-mint text-white;
     }
+
     .step-pending {
         @apply bg-gray-200 text-gray-600;
     }
@@ -124,11 +143,15 @@
         {% if messages %}
         <div class="mb-6 space-y-3">
             {% for message in messages %}
-            <div class="{% if message.tags %}{{ message.tags }}{% else %}bg-blue-50 border-2 border-blue-200{% endif %} rounded-xl p-4">
+            <div
+                class="{% if message.tags %}{{ message.tags }}{% else %}bg-blue-50 border-2 border-blue-200{% endif %} rounded-xl p-4">
                 <div class="flex items-start gap-3">
-                    <i data-lucide="{% if 'error' in message.tags %}alert-circle{% elif 'success' in message.tags %}check-circle{% else %}info{% endif %}" class="w-5 h-5 {% if 'error' in message.tags %}text-red-600{% elif 'success' in message.tags %}text-green-600{% else %}text-blue-600{% endif %} mt-0.5 flex-shrink-0"></i>
+                    <i data-lucide="{% if 'error' in message.tags %}alert-circle{% elif 'success' in message.tags %}check-circle{% else %}info{% endif %}"
+                        class="w-5 h-5 {% if 'error' in message.tags %}text-red-600{% elif 'success' in message.tags %}text-green-600{% else %}text-blue-600{% endif %} mt-0.5 flex-shrink-0"></i>
                     <div>
-                        <p class="{% if 'error' in message.tags %}text-red-700{% elif 'success' in message.tags %}text-green-700{% else %}text-blue-700{% endif %} font-medium">{{ message }}</p>
+                        <p
+                            class="{% if 'error' in message.tags %}text-red-700{% elif 'success' in message.tags %}text-green-700{% else %}text-blue-700{% endif %} font-medium">
+                            {{ message }}</p>
                     </div>
                 </div>
             </div>
@@ -155,17 +178,18 @@
 
         <form method="POST" enctype="multipart/form-data" id="task-form">
             {% csrf_token %}
-            
+
             <div class="grid grid-cols-1 xl:grid-cols-4 gap-12">
-                
+
                 <!-- Main Form -->
                 <div class="xl:col-span-3">
-                    
+
                     <!-- STEP 1: Basic Information -->
                     <div class="form-section">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-lg">
+                                <div
+                                    class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-lg">
                                     1
                                 </div>
                                 <div>
@@ -173,18 +197,21 @@
                                     <p class="text-sm text-gray-600 mt-1">📝 Tell us what you need done</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Required</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Required</span>
                         </div>
-                        
+
                         <!-- Task Title Section -->
                         <div class="mb-6">
                             <label class="block text-lg font-bold text-gray-900 mb-3">
                                 <span class="flex items-center gap-2">
-                                    <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                                    <span
+                                        class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
                                     What do you need help with? *
                                 </span>
                             </label>
-                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 {% if form.title.errors %}border-red-500{% else %}border-blue-200{% endif %}">
+                            <div
+                                class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 {% if form.title.errors %}border-red-500{% else %}border-blue-200{% endif %}">
                                 {{ form.title }}
                                 {% if form.title.errors %}
                                 <div class="mt-2 text-sm text-red-600">
@@ -195,8 +222,10 @@
                                 {% endif %}
                                 <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-yellow-400">
                                     <p class="text-sm text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Example:</strong> "Type 10-page research paper on climate change" or "Create PowerPoint presentation with 15 slides"</span>
+                                        <i data-lucide="lightbulb"
+                                            class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0"></i>
+                                        <span><strong>Example:</strong> "Type 10-page research paper on climate change"
+                                            or "Create PowerPoint presentation with 15 slides"</span>
                                     </p>
                                 </div>
                             </div>
@@ -206,11 +235,13 @@
                         <div class="mb-6">
                             <label class="block text-xl font-bold text-gray-900 mb-4">
                                 <span class="flex items-center gap-2">
-                                    <span class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                                    <span
+                                        class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
                                     Task Category *
                                 </span>
                             </label>
-                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-8">
+                            <div
+                                class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-8">
                                 {{ form.category }}
                                 <p class="text-base text-gray-600 mt-4 flex items-center gap-2">
                                     <i data-lucide="folder" class="w-5 h-5 text-green-600"></i>
@@ -223,7 +254,8 @@
                         <div class="mb-0">
                             <label class="block text-xl font-bold text-gray-900 mb-4">
                                 <span class="flex items-center gap-2">
-                                    <span class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                                    <span
+                                        class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
                                     Tags *
                                 </span>
                             </label>
@@ -232,7 +264,8 @@
                                 <div class="mt-4 bg-white rounded-lg p-5 border-l-4 border-blue-400">
                                     <p class="text-base text-gray-700 flex items-start gap-2">
                                         <i data-lucide="tag" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Tip:</strong> Add keywords like "urgent", "research", "academic" to help doers find your task faster</span>
+                                        <span><strong>Tip:</strong> Add keywords like "urgent", "research", "academic"
+                                            to help doers find your task faster</span>
                                     </p>
                                 </div>
                             </div>
@@ -243,7 +276,8 @@
                     <div class="form-section">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-lg">
+                                <div
+                                    class="w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-lg">
                                     2
                                 </div>
                                 <div>
@@ -251,23 +285,28 @@
                                     <p class="text-sm text-gray-600 mt-1">📋 Provide clear instructions</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Required</span>
+                            <span
+                                class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Required</span>
                         </div>
-                        
+
                         <!-- Description Section -->
                         <div class="mb-6">
                             <label class="block text-xl font-bold text-gray-900 mb-4">
                                 <span class="flex items-center gap-2">
-                                    <span class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                                    <span
+                                        class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
                                     Detailed Description *
                                 </span>
                             </label>
-                            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
+                            <div
+                                class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
                                 {{ form.description }}
                                 <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-blue-400">
                                     <p class="text-sm text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="file-text" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Be specific:</strong> Explain exactly what needs to be done, include format requirements, style preferences, and any examples</span>
+                                        <i data-lucide="file-text"
+                                            class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i>
+                                        <span><strong>Be specific:</strong> Explain exactly what needs to be done,
+                                            include format requirements, style preferences, and any examples</span>
                                     </p>
                                 </div>
                             </div>
@@ -277,17 +316,21 @@
                         <div class="mb-6">
                             <label class="block text-xl font-bold text-gray-900 mb-4">
                                 <span class="flex items-center gap-2">
-                                    <span class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
+                                    <span
+                                        class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
                                     Special Requirements
                                     <span class="text-base font-normal text-gray-500">(Optional)</span>
                                 </span>
                             </label>
-                            <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200">
+                            <div
+                                class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200">
                                 {{ form.requirements }}
                                 <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-orange-400">
                                     <p class="text-sm text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="check-circle" class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Example:</strong> "Must have PowerPoint 2019 or newer", "Experience with APA format required", "Fast typing speed (50+ WPM)"</span>
+                                        <i data-lucide="check-circle"
+                                            class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0"></i>
+                                        <span><strong>Example:</strong> "Must have PowerPoint 2019 or newer",
+                                            "Experience with APA format required", "Fast typing speed (50+ WPM)"</span>
                                     </p>
                                 </div>
                             </div>
@@ -299,7 +342,8 @@
                     <div class="form-section">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl flex items-center justify-center font-bold text-lg">
+                                <div
+                                    class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl flex items-center justify-center font-bold text-lg">
                                     3
                                 </div>
                                 <div>
@@ -307,42 +351,50 @@
                                     <p class="text-sm text-gray-600 mt-1">💰 Set price and timeline</p>
                                 </div>
                             </div>
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Required</span>
+                            <span
+                                class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Required</span>
                         </div>
-                        
+
                         <!-- Pricing Section -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <label class="block text-xl font-bold text-gray-900 mb-4">
                                     <span class="flex items-center gap-2">
-                                        <span class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">7</span>
+                                        <span
+                                            class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">7</span>
                                         How much will you pay? (₱) *
                                     </span>
                                 </label>
-                                <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
+                                <div
+                                    class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
                                     {{ form.price }}
                                     <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-green-400">
                                         <p class="text-sm text-gray-700 flex items-start gap-2">
-                                            <i data-lucide="trending-up" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"></i>
-                                            <span><strong>Tip:</strong> Fair pricing (₱50-500) attracts quality doers. Check market rates in the sidebar →</span>
+                                            <i data-lucide="trending-up"
+                                                class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"></i>
+                                            <span><strong>Tip:</strong> Fair pricing (₱50-500) attracts quality doers.
+                                                Check market rates in the sidebar →</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div>
                                 <label class="block text-xl font-bold text-gray-900 mb-4">
                                     <span class="flex items-center gap-2">
-                                        <span class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">8</span>
+                                        <span
+                                            class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">8</span>
                                         Payment Method *
                                     </span>
                                 </label>
-                                <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6">
+                                <div
+                                    class="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6">
                                     {{ form.payment_method }}
                                     <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-blue-400">
                                         <p class="text-sm text-gray-700 flex items-center gap-2">
                                             <i data-lucide="credit-card" class="w-5 h-5 text-blue-500"></i>
-                                            <span><strong>GCash:</strong> Instant • <strong>COD:</strong> Pay on completion</span>
+                                            <span><strong>GCash:</strong> Instant • <strong>COD:</strong> Pay on
+                                                completion</span>
                                         </p>
                                     </div>
                                 </div>
@@ -354,26 +406,50 @@
                             <div>
                                 <label class="block text-xl font-bold text-gray-900 mb-4">
                                     <span class="flex items-center gap-2">
-                                        <span class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">9</span>
+                                        <span
+                                            class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">9</span>
                                         When do you need this done? *
                                     </span>
                                 </label>
-                                <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-6">
+                                <div
+                                    class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-6">
                                     {{ form.deadline }}
                                     <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-orange-400">
                                         <p class="text-sm text-gray-700 flex items-start gap-2">
-                                            <i data-lucide="calendar" class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0"></i>
-                                            <span><strong>Tip:</strong> Set realistic deadlines (2-7 days) for quality results</span>
+                                            <i data-lucide="calendar"
+                                                class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0"></i>
+                                            <span><strong>Tip:</strong> Set realistic deadlines (2-7 days) for quality
+                                                results</span>
                                         </p>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div>
                                 <label class="block text-xl font-bold text-gray-900 mb-4">
                                     <span class="flex items-center gap-2">
-                                        <span class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">10</span>
-                                        Location
+                                        <span
+                                            class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">10</span>
+                                        Campus Location
+                                        <span class="text-base font-normal text-gray-500">(Optional)</span>
+                                    </span>
+                                </label>
+                                <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-6 mb-6">
+                                    {{ form.campus_location }}
+                                    <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-indigo-400">
+                                        <p class="text-sm text-gray-700 flex items-center gap-2">
+                                            <i data-lucide="map" class="w-5 h-5 text-indigo-500"></i>
+                                            <span>Select the college/area heavily prioritizes tasks for students
+                                                there</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <label class="block text-xl font-bold text-gray-900 mb-4">
+                                    <span class="flex items-center gap-2">
+                                        <span
+                                            class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">11</span>
+                                        Specific Location
                                         <span class="text-base font-normal text-gray-500">(Optional)</span>
                                     </span>
                                 </label>
@@ -382,7 +458,7 @@
                                     <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-gray-400">
                                         <p class="text-sm text-gray-700 flex items-center gap-2">
                                             <i data-lucide="map-pin" class="w-5 h-5 text-gray-500"></i>
-                                            <span>Where the work will be done (if applicable)</span>
+                                            <span>Room number, building name, or specific meet-up spot</span>
                                         </p>
                                     </div>
                                 </div>
@@ -391,13 +467,16 @@
                     </div>
 
                     <!-- Form Actions -->
-                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 mt-8 border-2 border-blue-200">
+                    <div
+                        class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 mt-8 border-2 border-blue-200">
                         <div class="text-center mb-6">
                             <h3 class="text-xl font-bold text-gray-900 mb-2">🎉 Ready to Post Your Task?</h3>
-                            <p class="text-gray-600">Review your information and click "Post Task" to find the perfect helper!</p>
+                            <p class="text-gray-600">Review your information and click "Post Task" to find the perfect
+                                helper!</p>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <button type="button" class="btn-ghost w-full sm:w-auto px-8 py-4 text-lg" onclick="history.back()">
+                            <button type="button" class="btn-ghost w-full sm:w-auto px-8 py-4 text-lg"
+                                onclick="history.back()">
                                 <i data-lucide="arrow-left" class="w-5 h-5"></i>
                                 Cancel
                             </button>
@@ -415,36 +494,8 @@
 
                 <!-- Sidebar -->
                 <div class="xl:col-span-1">
-                    
-                    <!-- Price Preview -->
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6 sticky top-24">
-                        <div class="text-center">
-                            <div class="w-16 h-16 bg-gradient-to-r from-primary to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i data-lucide="calculator" class="w-8 h-8 text-white"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">Cost Breakdown</h3>
-                            <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-gray-600">Task Payment:</span>
-                                    <span class="font-semibold" id="task-price">₱0</span>
-                                </div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-gray-600">System Fee:</span>
-                                    <span class="font-semibold" id="system-fee">₱2</span>
-                                </div>
-                                <div class="border-t border-gray-200 pt-2">
-                                    <div class="flex justify-between items-center">
-                                        <span class="font-bold text-gray-800">Total Cost:</span>
-                                        <span class="text-2xl font-bold text-primary" id="total-price">₱2</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-500">
-                                <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
-                                System fee helps maintain the platform
-                            </p>
-                        </div>
-                    </div>
+
+                    <!-- Price Preview Removed -->
 
                     <!-- Tips Card -->
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
@@ -454,7 +505,7 @@
                             </div>
                             <h3 class="font-bold text-primary">Tips for Success</h3>
                         </div>
-                        
+
                         <div class="space-y-4 text-sm">
                             <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
                                 <i data-lucide="check-circle" class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"></i>
@@ -495,54 +546,66 @@
                             </div>
                             <h3 class="font-bold text-primary">Quick Presets</h3>
                         </div>
-                        
+
                         <div class="space-y-3">
                             <!-- Urgent Task -->
-                            <button type="button" onclick="applyQuickFilter('urgent')" class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group">
-                                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                            <button type="button" onclick="applyQuickFilter('urgent')"
+                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group">
+                                <div
+                                    class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
                                     <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
                                 </div>
                                 <div class="flex-1 text-left">
                                     <div class="font-semibold text-gray-900">Urgent Task</div>
                                     <div class="text-xs text-gray-600">24-48 hours deadline</div>
                                 </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 group-hover:text-red-500"></i>
+                                <i data-lucide="chevron-right"
+                                    class="w-5 h-5 text-gray-400 group-hover:text-red-500"></i>
                             </button>
 
                             <!-- Standard Task -->
-                            <button type="button" onclick="applyQuickFilter('standard')" class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group">
-                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                            <button type="button" onclick="applyQuickFilter('standard')"
+                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                                <div
+                                    class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                                     <i data-lucide="clock" class="w-5 h-5 text-blue-600"></i>
                                 </div>
                                 <div class="flex-1 text-left">
                                     <div class="font-semibold text-gray-900">Standard Task</div>
                                     <div class="text-xs text-gray-600">3-7 days deadline</div>
                                 </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 group-hover:text-blue-500"></i>
+                                <i data-lucide="chevron-right"
+                                    class="w-5 h-5 text-gray-400 group-hover:text-blue-500"></i>
                             </button>
 
                             <!-- Budget Friendly -->
-                            <button type="button" onclick="applyQuickFilter('budget')" class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group">
-                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                            <button type="button" onclick="applyQuickFilter('budget')"
+                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group">
+                                <div
+                                    class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
                                     <i data-lucide="dollar-sign" class="w-5 h-5 text-green-600"></i>
                                 </div>
                                 <div class="flex-1 text-left">
                                     <div class="font-semibold text-gray-900">Budget Friendly</div>
                                     <div class="text-xs text-gray-600">₱50-150 range</div>
                                 </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 group-hover:text-green-500"></i>
+                                <i data-lucide="chevron-right"
+                                    class="w-5 h-5 text-gray-400 group-hover:text-green-500"></i>
                             </button>
 
                             <!-- Premium Task -->
-                            <button type="button" onclick="applyQuickFilter('premium')" class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all group">
-                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                            <button type="button" onclick="applyQuickFilter('premium')"
+                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all group">
+                                <div
+                                    class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                                     <i data-lucide="star" class="w-5 h-5 text-purple-600"></i>
                                 </div>
                                 <div class="flex-1 text-left">
                                     <div class="font-semibold text-gray-900">Premium Task</div>
                                     <div class="text-xs text-gray-600">₱300+ high quality</div>
                                 </div>
-                                <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 group-hover:text-purple-500"></i>
+                                <i data-lucide="chevron-right"
+                                    class="w-5 h-5 text-gray-400 group-hover:text-purple-500"></i>
                             </button>
                         </div>
 
@@ -564,7 +627,7 @@
                             </div>
                             <h3 class="font-bold text-primary">Market Rates</h3>
                         </div>
-                        
+
                         <div class="space-y-4">
                             <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
                                 <div class="flex justify-between items-center mb-2">
@@ -573,7 +636,7 @@
                                 </div>
                                 <div class="text-xs text-blue-700">Per page or per hour</div>
                             </div>
-                            
+
                             <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="font-medium text-green-800">PowerPoint</span>
@@ -581,7 +644,7 @@
                                 </div>
                                 <div class="text-xs text-green-700">Per presentation</div>
                             </div>
-                            
+
                             <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="font-medium text-purple-800">Graphics Design</span>
@@ -589,7 +652,7 @@
                                 </div>
                                 <div class="text-xs text-purple-700">Per design/logo</div>
                             </div>
-                            
+
                             <div class="bg-gray-50 rounded-lg p-4 mt-4">
                                 <div class="flex items-center gap-2 mb-2">
                                     <i data-lucide="clock" class="w-4 h-4 text-gray-600"></i>
@@ -615,11 +678,11 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            
+
             <div id="preview-content">
                 <!-- Preview content will be populated here -->
             </div>
-            
+
             <div class="flex gap-3 mt-6">
                 <button onclick="closePreview()" class="btn-ghost flex-1">Edit Task</button>
                 <button onclick="submitTask()" class="btn-primary flex-1">Post Task</button>
@@ -631,36 +694,20 @@
 
 {% block extra_scripts %}
 <script>
-// Initialize Lucide icons
-lucide.createIcons();
+    // Initialize Lucide icons
+    lucide.createIcons();
 
-// Price calculation
-function updatePricePreview() {
-    const priceInput = document.querySelector('input[name="price"]');
-    const taskPrice = parseFloat(priceInput.value) || 0;
-    const systemFee = 2;
-    const totalPrice = taskPrice + systemFee;
-    
-    document.getElementById('task-price').textContent = `₱${taskPrice}`;
-    document.getElementById('total-price').textContent = `₱${totalPrice}`;
-}
+    // Price calculation logic removed (UI Hidden)
 
-// Listen for price changes
-document.addEventListener('input', function(e) {
-    if (e.target.name === 'price') {
-        updatePricePreview();
-    }
-});
+    // File upload handling
+    document.getElementById('file-upload').addEventListener('change', function (e) {
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = '';
 
-// File upload handling
-document.getElementById('file-upload').addEventListener('change', function(e) {
-    const fileList = document.getElementById('file-list');
-    fileList.innerHTML = '';
-    
-    Array.from(e.target.files).forEach((file, index) => {
-        const fileItem = document.createElement('div');
-        fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
-        fileItem.innerHTML = `
+        Array.from(e.target.files).forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
+            fileItem.innerHTML = `
             <div class="flex items-center gap-2">
                 <i data-lucide="file" class="w-4 h-4 text-gray-500"></i>
                 <span class="text-sm text-gray-700">${file.name}</span>
@@ -670,140 +717,139 @@ document.getElementById('file-upload').addEventListener('change', function(e) {
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
         `;
-        fileList.appendChild(fileItem);
+            fileList.appendChild(fileItem);
+        });
+
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
     });
-    
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
+
+    function removeFile(index) {
+        // Remove file from input (simplified for demo)
+        const fileInput = document.getElementById('file-upload');
+        const dt = new DataTransfer();
+        const files = Array.from(fileInput.files);
+
+        files.forEach((file, i) => {
+            if (i !== index) dt.items.add(file);
+        });
+
+        fileInput.files = dt.files;
+        fileInput.dispatchEvent(new Event('change'));
     }
-});
 
-function removeFile(index) {
-    // Remove file from input (simplified for demo)
-    const fileInput = document.getElementById('file-upload');
-    const dt = new DataTransfer();
-    const files = Array.from(fileInput.files);
-    
-    files.forEach((file, i) => {
-        if (i !== index) dt.items.add(file);
-    });
-    
-    fileInput.files = dt.files;
-    fileInput.dispatchEvent(new Event('change'));
-}
+    // Quick Filter Presets
+    function applyQuickFilter(type) {
+        const priceInput = document.querySelector('input[name="price"]');
+        const deadlineInput = document.querySelector('input[name="deadline"]');
+        const tagsInput = document.querySelector('input[name="tags"]');
 
-// Quick Filter Presets
-function applyQuickFilter(type) {
-    const priceInput = document.querySelector('input[name="price"]');
-    const deadlineInput = document.querySelector('input[name="deadline"]');
-    const tagsInput = document.querySelector('input[name="tags"]');
-    
-    // Get current date/time
-    const now = new Date();
-    
-    switch(type) {
-        case 'urgent':
-            // 24-48 hours from now
-            const urgentDate = new Date(now.getTime() + (36 * 60 * 60 * 1000));
-            deadlineInput.value = urgentDate.toISOString().slice(0, 16);
-            if (!tagsInput.value.includes('urgent')) {
-                tagsInput.value = tagsInput.value ? tagsInput.value + ', urgent' : 'urgent';
-            }
-            priceInput.value = '150'; // Suggested urgent pricing
-            showToast('✅ Urgent task preset applied!', 'success');
-            break;
-            
-        case 'standard':
-            // 5 days from now
-            const standardDate = new Date(now.getTime() + (5 * 24 * 60 * 60 * 1000));
-            deadlineInput.value = standardDate.toISOString().slice(0, 16);
-            priceInput.value = '100'; // Standard pricing
-            showToast('✅ Standard task preset applied!', 'success');
-            break;
-            
-        case 'budget':
-            // 7 days from now
-            const budgetDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-            deadlineInput.value = budgetDate.toISOString().slice(0, 16);
-            priceInput.value = '80'; // Budget pricing
-            showToast('✅ Budget-friendly preset applied!', 'success');
-            break;
-            
-        case 'premium':
-            // 3 days from now
-            const premiumDate = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-            deadlineInput.value = premiumDate.toISOString().slice(0, 16);
-            if (!tagsInput.value.includes('premium')) {
-                tagsInput.value = tagsInput.value ? tagsInput.value + ', premium' : 'premium';
-            }
-            priceInput.value = '350'; // Premium pricing
-            showToast('✅ Premium task preset applied!', 'success');
-            break;
+        // Get current date/time
+        const now = new Date();
+
+        switch (type) {
+            case 'urgent':
+                // 24-48 hours from now
+                const urgentDate = new Date(now.getTime() + (36 * 60 * 60 * 1000));
+                deadlineInput.value = urgentDate.toISOString().slice(0, 16);
+                if (!tagsInput.value.includes('urgent')) {
+                    tagsInput.value = tagsInput.value ? tagsInput.value + ', urgent' : 'urgent';
+                }
+                priceInput.value = '150'; // Suggested urgent pricing
+                showToast('✅ Urgent task preset applied!', 'success');
+                break;
+
+            case 'standard':
+                // 5 days from now
+                const standardDate = new Date(now.getTime() + (5 * 24 * 60 * 60 * 1000));
+                deadlineInput.value = standardDate.toISOString().slice(0, 16);
+                priceInput.value = '100'; // Standard pricing
+                showToast('✅ Standard task preset applied!', 'success');
+                break;
+
+            case 'budget':
+                // 7 days from now
+                const budgetDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+                deadlineInput.value = budgetDate.toISOString().slice(0, 16);
+                priceInput.value = '80'; // Budget pricing
+                showToast('✅ Budget-friendly preset applied!', 'success');
+                break;
+
+            case 'premium':
+                // 3 days from now
+                const premiumDate = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+                deadlineInput.value = premiumDate.toISOString().slice(0, 16);
+                if (!tagsInput.value.includes('premium')) {
+                    tagsInput.value = tagsInput.value ? tagsInput.value + ', premium' : 'premium';
+                }
+                priceInput.value = '350'; // Premium pricing
+                showToast('✅ Premium task preset applied!', 'success');
+                break;
+        }
+
+        // Update price preview
+        updatePricePreview();
+
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    
-    // Update price preview
-    updatePricePreview();
-    
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-function showToast(message, type = 'info') {
-    // Create toast notification
-    const toast = document.createElement('div');
-    toast.className = `fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 ${
-        type === 'success' ? 'bg-green-500 text-white' : 
-        type === 'error' ? 'bg-red-500 text-white' : 
-        'bg-blue-500 text-white'
-    }`;
-    toast.innerHTML = `
+    function showToast(message, type = 'info') {
+        // Create toast notification
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' :
+            type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+        toast.innerHTML = `
         <div class="flex items-center gap-3">
             <i data-lucide="${type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5"></i>
             <span class="font-medium">${message}</span>
         </div>
     `;
-    
-    document.body.appendChild(toast);
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
-    
-    // Animate in
-    setTimeout(() => toast.classList.add('translate-y-0'), 10);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-2');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
 
-function saveDraft() {
-    const formData = new FormData(document.getElementById('task-form'));
-    
-    // Show saving state
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...';
-    btn.disabled = true;
-    
-    // Simulate save
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        showToast('Draft saved successfully', 'success');
+        document.body.appendChild(toast);
         if (typeof lucide !== 'undefined' && lucide.createIcons) {
             lucide.createIcons();
         }
-    }, 1000);
-}
 
-function previewTask() {
-    const form = document.getElementById('task-form');
-    const formData = new FormData(form);
-    
-    // Generate preview content
-    const previewContent = `
+        // Animate in
+        setTimeout(() => toast.classList.add('translate-y-0'), 10);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function saveDraft() {
+        const formData = new FormData(document.getElementById('task-form'));
+
+        // Show saving state
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...';
+        btn.disabled = true;
+
+        // Simulate save
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            showToast('Draft saved successfully', 'success');
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }, 1000);
+    }
+
+    function previewTask() {
+        const form = document.getElementById('task-form');
+        const formData = new FormData(form);
+
+        // Generate preview content
+        const previewContent = `
         <div class="space-y-4">
             <div>
                 <h4 class="font-semibold text-lg">${formData.get('title') || 'Task Title'}</h4>
@@ -835,100 +881,100 @@ function previewTask() {
             </div>
         </div>
     `;
-    
-    document.getElementById('preview-content').innerHTML = previewContent;
-    document.getElementById('preview-modal').classList.remove('hidden');
-}
 
-function closePreview() {
-    document.getElementById('preview-modal').classList.add('hidden');
-}
-
-function submitTask() {
-    closePreview();
-    document.getElementById('task-form').submit();
-}
-
-// Form validation
-document.getElementById('task-form').addEventListener('submit', function(e) {
-    const requiredFields = ['title', 'category', 'doer_type', 'description', 'price', 'deadline'];
-    let isValid = true;
-    
-    requiredFields.forEach(field => {
-        const input = this.querySelector(`[name="${field}"]`);
-        if (!input.value.trim()) {
-            isValid = false;
-            input.classList.add('border-red-500');
-            input.focus();
-        } else {
-            input.classList.remove('border-red-500');
-        }
-    });
-    
-    if (!isValid) {
-        e.preventDefault();
-        showToast('Please fill in all required fields', 'error');
-        return;
+        document.getElementById('preview-content').innerHTML = previewContent;
+        document.getElementById('preview-modal').classList.remove('hidden');
     }
-    
-    // Show loading state
-    const submitBtn = this.querySelector('button[type="submit"]');
-    submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Posting Task...';
-    submitBtn.disabled = true;
-    
-    // Reinitialize Lucide icons for the new icon
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
-});
 
-// Real-time price calculation
-function updatePriceDisplay() {
-    // Try multiple selectors to find the price input
-    let priceInput = document.querySelector('input[name="price"]') || 
-                     document.getElementById('id_price') ||
-                     document.querySelector('input[type="number"][name="price"]');
-    
-    if (priceInput) {
-        priceInput.addEventListener('input', function() {
-            const price = parseFloat(this.value) || 0;
-            const systemFee = 2;
-            const total = price + systemFee;
-            
-            // Update display
-            const taskPriceEl = document.getElementById('task-price');
-            const systemFeeEl = document.getElementById('system-fee');
-            const totalPriceEl = document.getElementById('total-price');
-            
-            if (taskPriceEl) taskPriceEl.textContent = '₱' + price.toFixed(2);
-            if (systemFeeEl) systemFeeEl.textContent = '₱' + systemFee.toFixed(2);
-            if (totalPriceEl) {
-                totalPriceEl.textContent = '₱' + total.toFixed(2);
-                
-                // Add animation effect
-                totalPriceEl.style.transition = 'all 0.3s ease';
-                totalPriceEl.style.transform = 'scale(1.05)';
-                setTimeout(() => {
-                    totalPriceEl.style.transform = 'scale(1)';
-                }, 300);
+    function closePreview() {
+        document.getElementById('preview-modal').classList.add('hidden');
+    }
+
+    function submitTask() {
+        closePreview();
+        document.getElementById('task-form').submit();
+    }
+
+    // Form validation
+    document.getElementById('task-form').addEventListener('submit', function (e) {
+        const requiredFields = ['title', 'category', 'doer_type', 'description', 'price', 'deadline'];
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            const input = this.querySelector(`[name="${field}"]`);
+            if (!input.value.trim()) {
+                isValid = false;
+                input.classList.add('border-red-500');
+                input.focus();
+            } else {
+                input.classList.remove('border-red-500');
             }
         });
+
+        if (!isValid) {
+            e.preventDefault();
+            showToast('Please fill in all required fields', 'error');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Posting Task...';
+        submitBtn.disabled = true;
+
+        // Reinitialize Lucide icons for the new icon
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+    });
+
+    // Real-time price calculation
+    function updatePriceDisplay() {
+        // Try multiple selectors to find the price input
+        let priceInput = document.querySelector('input[name="price"]') ||
+            document.getElementById('id_price') ||
+            document.querySelector('input[type="number"][name="price"]');
+
+        if (priceInput) {
+            priceInput.addEventListener('input', function () {
+                const price = parseFloat(this.value) || 0;
+                const systemFee = 2;
+                const total = price + systemFee;
+
+                // Update display
+                const taskPriceEl = document.getElementById('task-price');
+                const systemFeeEl = document.getElementById('system-fee');
+                const totalPriceEl = document.getElementById('total-price');
+
+                if (taskPriceEl) taskPriceEl.textContent = '₱' + price.toFixed(2);
+                if (systemFeeEl) systemFeeEl.textContent = '₱' + systemFee.toFixed(2);
+                if (totalPriceEl) {
+                    totalPriceEl.textContent = '₱' + total.toFixed(2);
+
+                    // Add animation effect
+                    totalPriceEl.style.transition = 'all 0.3s ease';
+                    totalPriceEl.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        totalPriceEl.style.transform = 'scale(1)';
+                    }, 300);
+                }
+            });
+        }
     }
-}
 
-// Call on page load and after a short delay to ensure DOM is ready
-updatePriceDisplay();
-setTimeout(updatePriceDisplay, 500);
+    // Call on page load and after a short delay to ensure DOM is ready
+    updatePriceDisplay();
+    setTimeout(updatePriceDisplay, 500);
 
-// Initialize price preview
-updatePricePreview();
+    // Initialize price preview
+    updatePricePreview();
 
-// Auto-save draft every 30 seconds
-setInterval(() => {
-    const form = document.getElementById('task-form');
-    if (form.querySelector('input[name="title"]').value.trim()) {
-        saveDraft();
-    }
-}, 30000);
+    // Auto-save draft every 30 seconds
+    setInterval(() => {
+        const form = document.getElementById('task-form');
+        if (form.querySelector('input[name="title"]').value.trim()) {
+            saveDraft();
+        }
+    }, 30000);
 </script>
 {% endblock %}

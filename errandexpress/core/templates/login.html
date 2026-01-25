@@ -6,25 +6,30 @@
 <div class="card">
     <h2>Welcome Back</h2>
     <p style="color: #666; margin-bottom: 2rem;">Login to your ErrandExpress account</p>
-    
+
     <form method="post" id="login-form">
         {% csrf_token %}
-        
+
         <div class="form-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email" class="form-control" required>
         </div>
-        
+
         <div class="form-group">
             <label for="password">Password</label>
             <input type="password" id="password" name="password" class="form-control" required>
         </div>
-        
+
         <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
-    
+
     <div class="text-center mt-3">
         <p>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a></p>
+        <div style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
+            <a href="{% url 'admin:index' %}" style="color: #666; font-size: 0.9em; text-decoration: none;">
+                🔒 System Admin Login
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

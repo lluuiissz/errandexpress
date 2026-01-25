@@ -1,4 +1,7 @@
-{% extends 'base_complete.html' %}
+
+import os
+
+content = r"""{% extends 'base_complete.html' %}
 
 {% block title %}Pay Commission - ErrandExpress{% endblock %}
 
@@ -36,13 +39,13 @@
                 <h2 class="text-xl font-bold text-gray-900 mb-4">Payment Breakdown</h2>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Task Price (Base):</span>
+                        <span class="text-gray-600">Total Task Amount:</span>
                         <span class="font-bold text-gray-900">₱{{ task.price }}</span>
                     </div>
                     <div class="flex justify-between items-center text-blue-600">
                         <span class="flex items-center gap-1">
                             <i data-lucide="shield-check" class="w-4 h-4"></i>
-                            Service Fee (10%) - Pay Now:
+                            Commission (10%) - Pay Now:
                         </span>
                         <span class="text-2xl font-bold">₱{{ commission_amount }}</span>
                     </div>
@@ -52,11 +55,6 @@
                             Pay to Doer Later:
                         </span>
                         <span class="font-bold">₱{{ doer_payment_amount }}</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t mt-2">
-                        <span class="font-bold text-gray-800">Total Cost:</span>
-                        <span class="font-bold text-xl text-gray-900">₱{{ task.price|add:commission_amount }}</span>
-                        <!-- Simplified visual total -->
                     </div>
                 </div>
             </div>
@@ -111,8 +109,7 @@
                     {% for method in payment_methods %}
                     <label
                         class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition mb-3">
-                        <input type="radio" name="payment_method" value="{{ method.value }}"
-                            class="w-4 h-4 text-blue-600" {% if forloop.first %}checked{% endif %}>
+                        <input type="radio" name="payment_method" value="{{ method.value }}" {% if forloop.first %}checked{% endif %} class="w-4 h-4 text-blue-600">
                         <div class="ml-4 flex-grow">
                             <div class="font-bold text-gray-900">{{ method.name }}</div>
                             <div class="text-sm text-gray-600">
@@ -155,3 +152,9 @@
     }
 </script>
 {% endblock %}
+"""
+
+path = r'core/templates/payments/commission_payment.html'
+with open(path, 'w', encoding='utf-8') as f:
+    f.write(content)
+print(f"Successfully wrote to {path}")

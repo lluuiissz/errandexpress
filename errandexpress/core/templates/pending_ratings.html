@@ -1,0 +1,116 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}Pending Ratings - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full mb-6 relative group">
+            <i data-lucide="star" class="w-10 h-10 text-amber-500 fill-current animate-pulse"></i>
+            <div
+                class="absolute inset-0 bg-amber-200 rounded-full opacity-20 group-hover:opacity-40 transition-opacity animate-ping">
+            </div>
+        </div>
+        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Feedback Required</h2>
+        <p class="mt-2 text-lg text-gray-600">
+            To ensure quality, please rate your recent transactions.
+        </p>
+    </div>
+
+    <div class="sm:mx-auto sm:w-full sm:max-w-2xl px-4">
+        <div class="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-gray-100 relative overflow-hidden">
+            <!-- Decorative top accent -->
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 to-orange-500"></div>
+
+            <div class="mb-6">
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i data-lucide="info" class="h-5 w-5 text-amber-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                You have <strong>{{ pending_tasks.count }}</strong> pending rating
+                                {{ pending_tasks.count|pluralize }}.
+                                Complete them to unlock posting and browsing tasks.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                {% for task in pending_tasks %}
+                <div
+                    class="group relative bg-white border-2 border-gray-100 rounded-xl p-5 hover:border-blue-500 transition-all duration-300 hover:shadow-md transform hover:-translate-y-0.5">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg font-bold text-gray-900 truncate flex items-center gap-2">
+                                {{ task.title }}
+                                <span
+                                    class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full border border-green-200">Completed</span>
+                            </h3>
+                            <div
+                                class="mt-1 flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 gap-y-1 sm:gap-x-4">
+                                <span class="flex items-center">
+                                    <i data-lucide="calendar" class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                    {{ task.completed_at|date:"M d, Y" }}
+                                </span>
+                                <span class="flex items-center">
+                                    <i data-lucide="user" class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                    {% if request.user == task.poster %}
+                                    <span class="font-medium text-gray-700">Doer:</span>&nbsp;
+                                    {{ task.doer.fullname }}
+                                    {% else %}
+                                    <span class="font-medium text-gray-700">Poster:</span>&nbsp;
+                                    {{ task.poster.fullname }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 w-full sm:w-auto">
+                            {% if request.user == task.poster %}
+                            <a href="{% url 'rate_user' task.id task.doer.id %}"
+                                class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200">
+                                <i data-lucide="star" class="w-4 h-4 mr-2"></i>
+                                Rate Now
+                            </a>
+                            {% else %}
+                            <a href="{% url 'rate_user' task.id task.poster.id %}"
+                                class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200">
+                                <i data-lucide="star" class="w-4 h-4 mr-2"></i>
+                                Rate Now
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12">
+                    <i data-lucide="check-circle" class="mx-auto h-12 w-12 text-green-400"></i>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">All caught up!</h3>
+                    <p class="mt-1 text-sm text-gray-500">You have no pending ratings.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'dashboard' %}"
+                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <p class="text-center text-sm text-gray-500 mt-8">
+            Ratings help build trust in the ErrandExpress community.
+        </p>
+    </div>
+</div>
+
+<script>
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

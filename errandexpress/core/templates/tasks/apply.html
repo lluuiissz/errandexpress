@@ -192,6 +192,45 @@
     </div>
 </div>
 
+
+<!-- Form Input Styling -->
+<style>
+    /* Style form inputs for better visual appeal */
+    textarea, input[type="text"] {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background-color: #ffffff;
+    }
+    
+    textarea:focus, input[type="text"]:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+    
+    /* Enhanced submit button */
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+</style>
+
 <!-- Character Counter Script -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {

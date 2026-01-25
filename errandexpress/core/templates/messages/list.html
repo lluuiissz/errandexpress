@@ -250,8 +250,7 @@
             <div class="hidden lg:flex p-3 border-b border-gray-200 items-center justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900">Messages</h1>
-                    <p class="text-xs text-gray-500 mt-0.5">{{ conversations|length }} conversation{{
-                        conversations|length|pluralize }}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">{{ conversations|length }} conversation{{ conversations|length|pluralize }}</p>
                 </div>
             </div>
 
@@ -299,8 +298,7 @@
                             <!-- Last Message -->
                             {% if conv.last_message %}
                             <p class="text-xs text-gray-600 truncate">
-                                {% if conv.last_message.sender == user %}<span class="text-blue-600">You:</span> {% endif %}{{ conv.last_message.message|truncatewords:6 }}
-
+                                {{ conv.last_message.message|truncatewords:6 }}
                             </p>
                             <p class="text-xs text-gray-400 mt-0.5">
                                 {{ conv.last_message.created_at|timesince }} ago
@@ -391,20 +389,8 @@
 
             <!-- Message Input -->
             <div class="p-4 bg-white border-t border-gray-200" id="message-input-wrapper">
+
                 {% if chat_access.allowed %}
-                <!-- Free Tier Warning -->
-                {% if chat_access.free_tier %}
-                <div class="mb-3 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                    <p class="text-sm text-blue-900">
-                        <strong>{{ chat_access.messages_remaining }}</strong> free message{% if
-                        chat_access.messages_remaining != 1 %}s{% endif %} remaining. After 5 messages, 10% commission
-                        will be auto-deducted from task amount.
-
-                        will be auto-deducted from task amount.
-                    </p>
-                </div>
-                {% endif %}
-
                 <!-- Message Form -->
                 <form method="POST" action="{% url 'messages_chat' active_task.id %}" class="flex items-end gap-3">
                     {% csrf_token %}
@@ -434,7 +420,7 @@
                 </div>
                 {% endif %}
             </div>
-            {# else - removed orphaned tag #}
+            {% else %}
             <!-- No Chat Selected - Mobile shows nothing, Desktop shows message -->
             <div class="hidden lg:flex flex-1 items-center justify-center bg-gray-50">
                 <div class="text-center">
@@ -445,7 +431,7 @@
                     <p class="text-sm text-gray-500">Choose from the left to start chatting</p>
                 </div>
             </div>
-            {# endif - removed orphaned tag #}
+            {% endif %}
         </div>
     </div>
 </div>
@@ -468,6 +454,10 @@
             <div class="flex justify-between items-center mb-2">
                 <span class="text-gray-600">Task Amount</span>
                 <span id="modal-amount" class="font-bold text-gray-900">₱0.00</span>
+            </div>
+            <div class="flex justify-between items-center mb-2 text-sm">
+                <span class="text-blue-600 font-medium">Service Fee (10%)</span>
+                <span id="modal-service-fee" class="font-bold text-blue-600">₱0.00</span>
             </div>
             <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                 <span class="font-bold text-gray-900">Total to Pay</span>

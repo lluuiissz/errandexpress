@@ -256,8 +256,14 @@ function openPaymentModal(taskId, amount) {
     messagesPayment.currentAmount = parseFloat(amount);
     messagesPayment.selectedMethod = null;
 
-    document.getElementById('modal-amount').textContent = `₱${amount}`;
-    document.getElementById('modal-total').textContent = `₱${amount}`;
+    // Calculate Service Fee (Add-On: 10%)
+    const taskPrice = messagesPayment.currentAmount;
+    const serviceFee = taskPrice * 0.10;
+    const totalToPay = taskPrice + serviceFee;
+
+    document.getElementById('modal-amount').textContent = `₱${taskPrice.toFixed(2)}`;
+    document.getElementById('modal-service-fee').textContent = `₱${serviceFee.toFixed(2)}`;
+    document.getElementById('modal-total').textContent = `₱${totalToPay.toFixed(2)}`;
     document.getElementById('payment-modal').classList.remove('hidden');
     document.getElementById('confirm-payment-btn').disabled = true;
 

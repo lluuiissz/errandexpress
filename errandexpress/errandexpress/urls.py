@@ -1,17 +1,19 @@
-# errandexpress/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', RedirectView.as_view(pattern_name='admin_dashboard', permanent=False)),
+    path('admin/database/', admin.site.urls),
     path('health/', views.health_check, name='health_check'),
     path('', views.home, name='home'),
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('pending-ratings/', views.pending_ratings, name='pending_ratings'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),
     
@@ -43,6 +45,7 @@ urlpatterns = [
     # Payment System
     path('payment/system-fee/<uuid:task_id>/', views.payment_system_fee, name='payment_system_fee'),
     path('payment/commission/<uuid:task_id>/', views.payment_commission, name='payment_commission'),
+    path('payment/commission-process/<uuid:task_id>/', views.payment_commission_process, name='payment_commission_process'),
     path('payment/task-doer/<uuid:task_id>/', views.payment_task_doer, name='payment_task_doer'),
     path('payment/task-doer-process/<uuid:task_id>/', views.payment_task_doer_process, name='payment_task_doer_process'),
     path('payment/task-doer-card/<uuid:task_id>/', views.payment_task_doer_card, name='payment_task_doer_card'),
@@ -116,6 +119,8 @@ urlpatterns = [
     # Task Completion Payment APIs
     path('api/complete-task-payment/<uuid:task_id>/', views.api_complete_task_payment, name='api_complete_task_payment'),
     path('api/confirm-cod-payment/<uuid:payment_id>/', views.api_confirm_cod_payment, name='api_confirm_cod_payment'),
+    path('api/confirm-cod-receipt/<uuid:payment_id>/', views.api_confirm_cod_receipt, name='api_confirm_cod_receipt'),
+    path('api/check-payment-status/', views.api_check_payment_status, name='api_check_payment_status'),
     path('api/create-task-payment-intent/', views.create_task_payment_intent, name='create_task_payment_intent'),
     path('api/create-task-gcash-payment/', views.create_task_gcash_payment, name='create_task_gcash_payment'),
     

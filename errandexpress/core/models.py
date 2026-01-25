@@ -18,6 +18,16 @@ class User(AbstractUser):
         ('skilled', 'Skilled Worker'),
         ('both', 'Both'),
     ]
+
+    CAMPUS_CHOICES = [
+        ('agriculture', 'College of Agriculture'),
+        ('arts_sciences', 'College of Arts and Sciences'),
+        ('education', 'College of Teachers Education'),
+        ('engineering', 'College of Engineering'),
+        ('business', 'College of Business Administration'),
+        ('computing', 'College of Computing and Information Sciences'),
+        ('other', 'Other / Off-Campus'),
+    ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     fullname = models.CharField(max_length=255)
@@ -28,6 +38,7 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=15, blank=True)
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
+    campus_location = models.CharField(max_length=50, choices=CAMPUS_CHOICES, blank=True, help_text="Student's home base")
     bio = models.TextField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -155,6 +166,7 @@ class Task(models.Model):
     deadline = models.DateTimeField()
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='open')
     location = models.CharField(max_length=255, blank=True)
+    campus_location = models.CharField(max_length=50, choices=User.CAMPUS_CHOICES, blank=True)
     requirements = models.TextField(blank=True)
     chat_unlocked = models.BooleanField(default=False)  # Chat unlocked after ₱2 payment
     
@@ -423,12 +435,28 @@ class Payment(models.Model):
     
     def save(self, *args, **kwargs):
         """Calculate commission and net amount before saving"""
-        if not self.commission_amount:
+        if self.commission_amount is None or self.net_amount == 0:
             # Convert to Decimal to handle type properly
             from decimal import Decimal
-            commission_rate = Decimal('0.10')
-            self.commission_amount = self.amount * commission_rate  # 10% commission
-            self.net_amount = self.amount - self.commission_amount
+            
+            # Logic: Amount is the TOTAL paid (Price + 10% Fee)
+            # We need to reverse-calculate to get the base Task Price (Net Amount)
+            # Formula: Total = Net * 1.10  =>  Net = Total / 1.10
+            
+            # Ensure amount is Decimal
+            total_amount = Decimal(str(self.amount))
+            
+            # Key Change: Calculate Net Amount first (The Doer's Share)
+            # This ensures Doer gets the exact Task Price they agreed to
+            self.net_amount = total_amount / Decimal('1.10')
+            
+            # Commission is the remainder
+            self.commission_amount = total_amount - self.net_amount
+            
+            # Rounding to 2 decimal places to match currency
+            self.net_amount = self.net_amount.quantize(Decimal('0.01'))
+            self.commission_amount = self.commission_amount.quantize(Decimal('0.01'))
+            
         super().save(*args, **kwargs)
     
     def __str__(self):

@@ -30,7 +30,12 @@ from django.views.decorators.http import require_http_methods
 from .supabase_client import supabase
 from .models import User, Task, TaskApplication, StudentSkill, Message, Rating, Report, Notification, Payment
 from .forms import TaskForm, TaskApplicationForm, TaskFilterForm, SkillValidationForm, MessageForm, RatingForm, ReportForm
-from .utils import compress_image, compress_chat_image, compress_profile_picture
+from .utils import (
+    compress_profile_picture, 
+    compress_image, 
+    log_admin_action,
+    check_pending_ratings
+)
 import logging
 import json
 import base64
@@ -147,37 +152,37 @@ def calculate_assignment_score(task, agent):
     from .models import StudentSkill, TaskAssignment
     
     skill_match = 0
-    availability = 100  # Default: available
-    rating = agent.avg_rating * 10 if agent.avg_rating else 0  # Convert to 0-100
-    
-    # Calculate skill match
-    if task.category in ['typing', 'powerpoint', 'graphics']:
-        user_skills = StudentSkill.objects.filter(
-            student=agent,
-            status='verified',
-            skill_name=task.category
-        ).exists()
-        skill_match = 100 if user_skills else 0
-    else:  # microtask
-        skill_match = 100 if agent.doer_type in ['microtasker', 'both'] else 0
-    
-    # Calculate workload balance (fewer active tasks = higher score)
-    active_assignments = TaskAssignment.objects.filter(
+    # Calculate Availability (Are they free right now?)
+    # User Requirement: Check if "currently in progress doing the task"
+    active_assignments_count = TaskAssignment.objects.filter(
         agent=agent,
         status__in=['assigned', 'in_progress']
     ).count()
-    workload_score = max(0, 100 - (active_assignments * 10))
+    
+    # If they have 0 active tasks, they are 100% Available.
+    # If they have ANY active tasks, they are 0% Available (Busy).
+    availability = 100 if active_assignments_count == 0 else 0
+    
+    # Calculate workload balance (Tie-breaker for busy agents, or historical load)
+    # We keep this to differentiate between someone with 1 task vs 5 tasks if we ever allow stacking.
+    workload_score = max(0, 100 - (active_assignments_count * 10))
+    
+    # Calculate Location Match (+20%)
+    # If agent is in the same campus as the task, higher priority.
+    location_match = 100 if task.campus_location and task.campus_location == agent.campus_location else 0
     
     # Calculate total score (weighted average)
     total_score = (
-        (skill_match * 0.4) +
-        (availability * 0.2) +
-        (rating * 0.25) +
-        (workload_score * 0.15)
+        (skill_match * 0.35) +      # Skills are paramount
+        (location_match * 0.20) +   # Location is crucial for physical errands
+        (availability * 0.20) +     # Must be free
+        (rating * 0.15) +           # Quality matters
+        (workload_score * 0.10)     # Load balancing
     )
     
     return {
         'skill_match': skill_match,
+        'location_match': location_match,
         'availability': availability,
         'rating': rating,
         'workload': workload_score,
@@ -346,7 +351,7 @@ def get_matched_tasks_for_user(user):
     # Find tasks to exclude using database queries (no N+1!)
     from django.db.models import Min, Count
     
-    # Tasks with applications that have passed 3-minute window
+    # Tasks with applications that have passed 3-minute window AND doer is already selected
     tasks_with_old_apps = base_tasks.filter(
         applications__status='pending',
         applications__first_application_time__lte=three_minutes_ago
@@ -354,73 +359,37 @@ def get_matched_tasks_for_user(user):
         Q(doer__isnull=False)  # Doer already chosen
     ).distinct().values_list('id', flat=True)
     
-    # Tasks with only 1 application that passed 3-minute window
-    tasks_with_single_app = base_tasks.filter(
-        applications__status='pending',
-        applications__first_application_time__lte=three_minutes_ago
-    ).annotate(
-        app_count=Count('applications', filter=Q(applications__status='pending'))
-    ).filter(
-        app_count=1
-    ).distinct().values_list('id', flat=True)
-    
-    # Combine both exclusion lists
-    tasks_to_exclude = list(tasks_with_old_apps) + list(tasks_with_single_app)
+    # Only exclude tasks where a Doer is explicitly chosen
+    tasks_to_exclude = list(tasks_with_old_apps)
     
     # Exclude hidden tasks
-    logger.info(f"   Excluding {len(tasks_to_exclude)} tasks (3-min window)")
-    base_tasks = base_tasks.exclude(id__in=tasks_to_exclude)
-    logger.info(f"   After 3-min filter: {base_tasks.count()} tasks")
+    if tasks_to_exclude:
+        logger.info(f"   Excluding {len(tasks_to_exclude)} tasks (Doer assigned)")
+        base_tasks = base_tasks.exclude(id__in=tasks_to_exclude)
     
-    if user.doer_type == 'microtasker':
-        # Show all microtasks (simple tasks that don't require special skills)
-        logger.info(f"   Filtering for MICROTASKER")
-        tasks = base_tasks.filter(
-            Q(category='microtask') | 
-            Q(tags__icontains='microtask')
-        )
-    elif user.doer_type == 'skilled':
-        # Show only tasks that match validated skills
-        logger.info(f"   Filtering for SKILLED doer")
-        if not user_skills:
-            # No validated skills = no skilled tasks
-            logger.info(f"   ❌ No validated skills - returning empty queryset")
-            tasks = Task.objects.none()
-        else:
-            skill_queries = Q()
-            for skill in user_skills:
-                if skill == 'typing':
-                    skill_queries |= Q(category='typing') | Q(tags__icontains='typing')
-                elif skill == 'powerpoint':
-                    skill_queries |= Q(category='powerpoint') | Q(tags__icontains='powerpoint')
-                elif skill == 'graphics':
-                    skill_queries |= Q(category='graphics') | Q(tags__icontains='graphics')
-            
-            logger.info(f"   Applying skill filters for: {user_skills}")
-            tasks = base_tasks.filter(skill_queries)
-            logger.info(f"   After skill filter: {tasks.count()} tasks")
-    else:  # both
-        # Show microtasks + skilled tasks that match user's skills
-        logger.info(f"   Filtering for BOTH type doer")
-        microtask_query = Q(category='microtask') | Q(tags__icontains='microtask')
-        
-        skill_queries = Q()
+    # 🎯 UNIVERSAL FILTERING LOGIC
+    # Rule 1: EVERYONE sees Microtasks (Universal Access)
+    universal_query = Q(category='microtask') | Q(tags__icontains='microtask')
+    
+    # Rule 2: Verified Skills UNLOCK specific categories
+    skill_query = Q()
+    if user_skills:
+        logger.info(f"   Unlocking tasks for skills: {user_skills}")
         for skill in user_skills:
             if skill == 'typing':
-                skill_queries |= Q(category='typing') | Q(tags__icontains='typing')
+                skill_query |= Q(category='typing') | Q(tags__icontains='typing')
             elif skill == 'powerpoint':
-                skill_queries |= Q(category='powerpoint') | Q(tags__icontains='powerpoint')
+                skill_query |= Q(category='powerpoint') | Q(tags__icontains='powerpoint')
             elif skill == 'graphics':
-                skill_queries |= Q(category='graphics') | Q(tags__icontains='graphics')
-        
-        # If user has skills, show microtasks + skill-matched tasks
-        # If no skills, show only microtasks
-        if user_skills:
-            logger.info(f"   Showing microtasks + tasks for skills: {user_skills}")
-            tasks = base_tasks.filter(microtask_query | skill_queries)
-        else:
-            logger.info(f"   No skills - showing only microtasks")
-            tasks = base_tasks.filter(microtask_query)
+                skill_query |= Q(category='graphics') | Q(tags__icontains='graphics')
+    
+    # Combine: (Microtasks) OR (Skill Matches)
+    final_query = universal_query | skill_query
+    
+    tasks = base_tasks.filter(final_query).distinct()
+    
+    logger.info(f"   Final matching tasks found: {tasks.count()}")
+
 
     
     # 🧠 SMART RANKING ALGORITHM (FIXED - Real-time Poster Ratings)
@@ -441,7 +410,7 @@ def get_matched_tasks_for_user(user):
             [When(Q(category='powerpoint') | Q(tags__icontains='powerpoint'), then=3) 
              for skill in user_skills if skill == 'powerpoint'] +
             [When(Q(category='graphics') | Q(tags__icontains='graphics'), then=3) 
-             for skill in user_skills if skill == 'graphics_design'],
+             for skill in user_skills if skill == 'graphics'],
             default=0,
             output_field=IntegerField()
         ),
@@ -457,13 +426,20 @@ def get_matched_tasks_for_user(user):
             output_field=DecimalField(max_digits=4, decimal_places=2)
         ),
         # Calculate total priority score with consistent Decimal arithmetic
+        # Priority = (Skill Match × 1) + (Poster Rating × 2) + (Urgency × 1) + (Location Match × 2)
         priority_score=ExpressionWrapper(
             (F('skill_match_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
             (F('poster_rating') * Value(Decimal('2.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
-            (F('urgency_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))),
+            (F('urgency_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
+            # Location Match Bonus (+2.00)
+            (Case(
+                When(campus_location=user.campus_location, then=Value(Decimal('2.00'))),
+                default=Value(Decimal('0.00')),
+                output_field=DecimalField(max_digits=5, decimal_places=2)
+            )),
             output_field=DecimalField(max_digits=7, decimal_places=2)
         )
-    ).order_by('-priority_score', '-created_at')
+    ).order_by('-priority_score', '-price', '-created_at')
     
     # Debug logging - show what was matched
     matched_count = tasks.count()
@@ -489,11 +465,13 @@ def handle_task_creation_with_payment(poster, title, description, category, tags
     from .models import SystemCommission
     from decimal import Decimal
     
-    # Calculate 10% commission
+    # Calculate 10% commission (Add-on Model)
     task_price = Decimal(str(price))
     commission_percentage = Decimal('10.00')
     commission_amount = (task_price * commission_percentage) / Decimal('100')
-    doer_receives = task_price - commission_amount
+    
+    # Add-on Logic: Doer receives full amount, Poster pays fee on top
+    doer_receives = task_price 
     
     # Create task record
     task = Task.objects.create(
@@ -510,7 +488,7 @@ def handle_task_creation_with_payment(poster, title, description, category, tags
         status='open',
         chat_unlocked=False,  # Always start locked
         commission_amount=commission_amount,  # Store 10% commission
-        doer_payment_amount=doer_receives,  # Amount doer will receive
+        doer_payment_amount=doer_receives,  # Doer gets FULL price
         commission_deducted=False  # Not deducted yet
     )
     
@@ -599,11 +577,12 @@ def check_chat_access(task_id, user):
 def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
     """
     💸 COMPREHENSIVE PAYMENT ALGORITHM - STEP 5: Task Completion Payment
-    Handles main task fee payment (₱10-₱100+ etc.)
+    Handles main task fee payment (Doer's Share: 90%)
     
-    FLOWS:
-    A. COD: Manual confirmation by poster
-    B. GCash/PayMongo: Automatic via PayMongo webhook
+    SEQUENTIAL FLOW:
+    1. Check if 10% Commission is paid (task.commission_deducted)
+    2. If NOT paid -> Redirect to Commission Payment
+    3. If PAID -> Process 90% Doer Payment
     """
     from .models import Task, Payment
     
@@ -614,11 +593,11 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
         task = Task.objects.get(id=task_id, poster=poster)
         
         # Detailed validation with specific error messages
-        if task.status != 'in_progress':
-            logger.error(f"❌ Invalid task status: {task.status} (expected: in_progress)")
+        if task.status not in ['in_progress', 'completed']:
+            logger.error(f"❌ Invalid task status: {task.status} (expected: in_progress or completed)")
             return {
                 'success': False, 
-                'message': f'Task status is "{task.status}", not "in_progress". Cannot process payment.'
+                'message': f'Task status is "{task.status}". Payment can only be processed for in-progress or completed tasks.'
             }
         
         if not task.doer:
@@ -627,6 +606,46 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
                 'success': False, 
                 'message': 'No doer assigned to this task. Cannot process payment.'
             }
+
+        # 🛑 STEP 1: CHECK COMMISSION STATUS
+        # If commission not deducted yet, FORCE commission payment first
+        if not task.commission_deducted:
+            logger.warning(f"⚠️ Commission not paid for task {task_id}. Redirecting to system fee payment.")
+            from django.urls import reverse
+            
+            # Add next parameter for redirect back to payment
+            base_url = reverse('payment_commission', args=[task.id])
+            doer_payment_url = reverse('payment_task_doer', args=[task.id])
+            redirect_url = f"{base_url}?next={doer_payment_url}"
+            
+            return {
+                'success': False,
+                'requires_commission': True,
+                'commission_amount': float(task.commission_amount),
+                'redirect_url': redirect_url,
+                'message': f'Please pay the 10% system commission (₱{task.commission_amount}) first.'
+            }
+            
+
+        if not task_id:
+            return {'success': False, 'message': 'Task ID is required'}
+            
+        task = Task.objects.get(id=task_id)
+        
+        # Check permissions
+        if poster != task.poster:
+            return {'success': False, 'message': 'Only the task poster can initiate payment'}
+            
+        # 💵 ADD-ON COMMISSION MODEL
+        # Poster pays: Task Price + 10% Service Fee
+        # Doer receives: Task Price (100%)
+        # System receives: 10% Service Fee
+        
+        task_price = float(task.price)
+        service_fee = task_price * 0.10
+        total_amount = task_price + service_fee
+            
+        logger.info(f"💰 Processing Payment: Price=₱{task_price}, Fee=₱{service_fee}, Total=₱{total_amount}")
         
         # Check if payment already exists
         existing_payment = Payment.objects.filter(task=task).first()
@@ -639,25 +658,35 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
                 }
             else:
                 # Reuse existing pending payment
+                # Update amount if needed (e.g. if price changed, but usually fixed)
+                if abs(float(existing_payment.amount) - total_amount) > 0.01:
+                    existing_payment.amount = total_amount
+                    existing_payment.save()
+                    
                 logger.info(f"♻️ Reusing existing payment: {existing_payment.id}, status={existing_payment.status}")
                 return {
                     'success': True,
                     'payment_id': str(existing_payment.id),
                     'status': existing_payment.status,
-                    'amount': float(task.price),
+                    'amount': float(total_amount),
                     'message': 'Payment record already exists'
                 }
         
         # 🔹 STEP 5A: COD Flow (Manual Confirmation)
         if payment_method.lower() == 'cod':
+            import uuid
             # Create payment record as pending manual confirmation
+            # Store TOTAL AMOUNT (110%) so model derives Net = 100%
             payment = Payment.objects.create(
                 task=task,
-                payer=poster,  # Fixed: use 'payer' not 'poster'
-                receiver=task.doer,  # Fixed: use 'receiver' not 'doer'
-                amount=task.price,
+                payer=poster,
+                receiver=task.doer,
+                amount=total_amount,
+                commission_amount=0,    # Will be calc by save()
+                net_amount=0,           # Will be calc by save()
                 method='cod',
-                status='pending_confirmation',  # Waiting for poster to confirm
+                status='pending_confirmation',
+                paymongo_payment_id=f"cod_{uuid.uuid4()}", # Fix unique constraint
             )
             
             # Task remains in_progress until manual confirmation
@@ -668,7 +697,7 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
                 user=task.doer,
                 type='task_completed',
                 title='Task Completed - Awaiting Payment',
-                message=f'Task "{task.title}" completed. Awaiting COD payment confirmation from poster.',
+                message=f'Task "{task.title}" completed. Please collect COD payment of ₱{total_amount:.2f} (Service Fee included). You keep ₱{task_price:.2f}.',
                 related_task=task
             )
             
@@ -676,29 +705,34 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
                 'success': True, 
                 'payment_id': str(payment.id),
                 'status': 'pending_confirmation',
-                'amount': float(task.price),
-                'message': 'Task completed. Please confirm COD payment when received.'
+                'amount': float(total_amount),
+                'message': f'Please confirm COD payment of ₱{total_amount:.2f} to {task.doer.fullname}.'
             }
         
         # 🔹 STEP 5B: GCash/PayMongo Flow (Automatic via PayMongo)
         elif payment_method.lower() in ['gcash', 'paymongo']:
+            import uuid
             # Create payment record as pending online payment
+            # Store TOTAL AMOUNT (110%)
             payment = Payment.objects.create(
                 task=task,
-                payer=poster,  # Fixed: use 'payer' not 'poster'
-                receiver=task.doer,  # Fixed: use 'receiver' not 'doer'
-                amount=task.price,
-                method='paymongo',  # Use 'paymongo' as method
-                status='pending_payment',  # Waiting for PayMongo confirmation
+                payer=poster,
+                receiver=task.doer,
+                amount=total_amount,
+                commission_amount=0,
+                net_amount=0,
+                method='paymongo',
+                status='pending_payment',
+                paymongo_payment_id=f"temp_{uuid.uuid4()}", # Fix unique constraint (will be updated by webhook)
             )
             
-            logger.info(f"✅ PayMongo payment initiated: payment_id={payment.id}, task_id={task_id}, amount=₱{task.price}")
+            logger.info(f"✅ PayMongo payment initiated: payment_id={payment.id}, amount=₱{payable_amount}")
             
             return {
                 'success': True,
                 'payment_id': str(payment.id),
                 'status': 'pending_payment',
-                'amount': float(task.price),
+                'amount': float(payable_amount),
                 'message': 'Proceed to GCash payment'
             }
         
@@ -726,12 +760,15 @@ def handle_task_completion_payment(task_id, poster, payment_method='gcash'):
 def confirm_cod_payment(payment_id, poster):
     """
     💵 COD Manual Confirmation - STEP 5A Completion
-    Poster manually confirms COD payment received
+    Poster manually confirms COD payment received (or sent?)
+    Actually, usually receiver confirms receipt. 
+    But keeping this if Poster wants to self-mark as paid.
     """
     from .models import Payment
     
     try:
-        payment = Payment.objects.get(id=payment_id, poster=poster, method='cod')
+        # Fix: use payer instead of poster
+        payment = Payment.objects.get(id=payment_id, payer=poster, method='cod')
         
         if payment.status == 'paid':
             return {'success': False, 'error': 'Payment already confirmed'}
@@ -749,7 +786,7 @@ def confirm_cod_payment(payment_id, poster):
         
         # Notify doer of payment confirmation
         Notification.objects.create(
-            user=payment.doer,
+            user=payment.receiver,
             type='payment_confirmed',
             title='Payment Confirmed! 💰',
             message=f'COD payment confirmed for task "{task.title}". Task completed!',
@@ -761,12 +798,12 @@ def confirm_cod_payment(payment_id, poster):
             user=poster,
             type='rate_reminder',
             title='Please Rate Your Doer',
-            message=f'Task "{task.title}" completed. Please rate {payment.doer.fullname}.',
+            message=f'Task "{task.title}" completed. Please rate {payment.receiver.fullname}.',
             related_task=task
         )
         
         Notification.objects.create(
-            user=payment.doer,
+            user=payment.receiver,
             type='rate_reminder',
             title='Please Rate Your Poster',
             message=f'Task "{task.title}" completed. Please rate {poster.fullname}.',
@@ -786,6 +823,73 @@ def confirm_cod_payment(payment_id, poster):
     except Exception as e:
         logger.error(f"COD confirmation error: {str(e)}")
         return {'success': False, 'error': str(e)}
+
+
+def confirm_cod_receipt(payment_id, doer):
+    """
+    💵 COD Doer Confirmation
+    Doer confirms they received the cash
+    """
+    from .models import Payment
+    
+    try:
+        payment = Payment.objects.get(id=payment_id, receiver=doer, method='cod')
+        
+        if payment.status == 'paid':
+            return {'success': False, 'error': 'Payment already confirmed'}
+            
+        # Mark as paid
+        payment.status = 'paid'
+        payment.paid_at = timezone.now()
+        payment.save()
+        
+        # Complete task
+        task = payment.task
+        task.status = 'completed'
+        task.completed_at = timezone.now()
+        task.save()
+        
+        # Notify poster that doer confirmed receipt
+        Notification.objects.create(
+            user=payment.payer,
+            type='payment_confirmed',
+            title='Payment Receipt Confirmed! ✅',
+            message=f'{doer.fullname} confirmed receipt of payment for "{task.title}". You can now rate them.',
+            related_task=task
+        )
+        
+        # Logic to trigger ratings
+        # (Same as above)
+        
+        return {
+            'success': True,
+            'message': 'Payment receipt confirmed. Task completed!',
+            'task_status': 'completed'
+        }
+
+    except Payment.DoesNotExist:
+        return {'success': False, 'error': 'Payment not found'}
+    except Exception as e:
+        logger.error(f"COD Doer confirmation error: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+
+@csrf_exempt
+@login_required
+def api_confirm_cod_receipt(request, payment_id):
+    """API for Doer to confirm receipt"""
+    from django.http import JsonResponse
+    from django.contrib.auth.decorators import login_required
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    
+    # Check if user is doer? handled by query
+    result = confirm_cod_receipt(payment_id, request.user)
+    
+    if result['success']:
+        return JsonResponse(result)
+    else:
+        return JsonResponse(result, status=400)
 
 @csrf_exempt
 def health_check(request):
@@ -836,7 +940,9 @@ def signup_view(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         role = request.POST.get("role", "task_doer")
+
         doer_type = request.POST.get("doer_type", "")
+        campus_location = request.POST.get("campus_location", "")
         
         # Check if user already exists
         if User.objects.filter(email=email).exists():
@@ -856,6 +962,8 @@ def signup_view(request):
                 fullname=fullname,
                 role=role,
                 doer_type=doer_type if role == "task_doer" else "",
+
+                campus_location=campus_location,
                 is_active=True
             )
             
@@ -1240,6 +1348,11 @@ def logout_view(request):
 @login_required
 def create_task(request):
     """Create a new task (Task Posters only)"""
+    # Enforce Mandatory Ratings
+    if check_pending_ratings(request.user).exists():
+        messages.warning(request, "You have completed tasks pending rating. Please rate them before posting new tasks.")
+        return redirect('pending_ratings')
+
     if request.user.role != 'task_poster':
         messages.error(request, "Only Task Posters can create tasks.")
         return redirect('dashboard')
@@ -1330,6 +1443,11 @@ def edit_task(request, task_id):
 @login_required
 def browse_tasks(request):
     """Browse available tasks (Task Doers) with intelligent matching"""
+    # Enforce Mandatory Ratings
+    if check_pending_ratings(request.user).exists():
+        messages.warning(request, "You have completed tasks pending rating. Please rate them before browsing tasks.")
+        return redirect('pending_ratings')
+
     if request.user.role not in ['task_doer', 'admin']:
         messages.error(request, "Only Task Doers can browse tasks.")
         return redirect('dashboard')
@@ -1465,11 +1583,34 @@ def task_detail(request, task_id):
         ).first()
         if doer_application:
             doer_application_status = doer_application.status
+            
+    # ✅ NEW: Fetch Poster's Reputation Logic (Parity with Doer View)
+    # Allows Doer to see who they are working for (Best/Worst/Recent Reviews)
+    
+    # 1. Recent Ratings (Prefetch optimization would be ideal, but for single view filtered query is okay)
+    poster_recent_ratings = Rating.objects.filter(rated=task.poster).order_by('-created_at')[:3]
+    
+    # 2. Calculate Best/Worst manually to avoid multiple DB hits if we already fetch all (or just use aggregation)
+    # Since we want the TEXT, aggregation (Max) only gives the score. We need the object.
+    # Approach: Fetch all ratings (lightweight usually) or distinct queries if user has 1000s.
+    # Assuming average user < 100 ratings, fetching all is safer for consistency with view_applications.
+    poster_all_ratings = list(Rating.objects.filter(rated=task.poster))
+    
+    if poster_all_ratings:
+        poster_highest_rating = max(poster_all_ratings, key=lambda r: r.score)
+        poster_lowest_rating = min(poster_all_ratings, key=lambda r: r.score)
+    else:
+        poster_highest_rating = None
+        poster_lowest_rating = None
+            
+    # Check for existing payment
+    existing_payment = Payment.objects.filter(task=task).first()
     
     context = {
         'task': task,
         'messages': messages_list,
         'message_form': message_form,
+        'existing_payment': existing_payment,  # Pass payment to template
         'can_accept': (
             request.user.role == 'task_doer' and 
             task.status == 'open' and 
@@ -1486,6 +1627,10 @@ def task_detail(request, task_id):
         'already_rated_doer': already_rated_doer,
         'already_rated_poster': already_rated_poster,
         'doer_application_status': doer_application_status,  # ✅ NEW
+        # Reputation Context
+        'poster_recent_ratings': poster_recent_ratings,
+        'poster_highest_rating': poster_highest_rating,
+        'poster_lowest_rating': poster_lowest_rating,
     }
     
     return render(request, 'task_detail_modern.html', context)
@@ -1898,6 +2043,11 @@ def payment_system_fee(request, task_id):
     if hasattr(task, 'commission') and task.commission.status == 'paid':
         messages.info(request, "System fee has already been paid for this task.")
         return redirect('task_detail', task_id=task_id)
+        
+    # Capture 'next' parameter for redirect after payment
+    next_url = request.GET.get('next')
+    if next_url:
+        request.session['payment_next_url'] = next_url
     
     from .paymongo import ErrandExpressPayments
     payments = ErrandExpressPayments()
@@ -1923,9 +2073,13 @@ def payment_system_fee(request, task_id):
             else:
                 messages.error(request, f"Payment setup failed: {result['error']}")
     
+    
+    # Calculate 10% fee dynamically
+    system_fee = Decimal(str(task.price)) * Decimal('0.10')
+    
     context = {
         'task': task,
-        'system_fee': payments.system_fee,
+        'system_fee': system_fee,
         'payment_methods': [
             {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
             {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
@@ -1934,8 +2088,6 @@ def payment_system_fee(request, task_id):
     
     return render(request, 'payments/system_fee.html', context)
 
-
-@login_required
 
 @login_required
 def payment_commission(request, task_id):
@@ -2087,7 +2239,7 @@ def payment_task_doer(request, task_id):
                 messages.error(request, "Please fill in all required fields.")
                 return render(request, 'payments/task_doer_payment.html', {
                     'task': task,
-                    'amount': task.price,
+                    'amount': task.doer_payment_amount if task.doer_payment_amount else task.price,
                     'doer': task.doer,
                     'fullname': fullname,
                     'phone': phone,
@@ -2124,7 +2276,7 @@ def payment_task_doer(request, task_id):
                 messages.error(request, "Please fill in all required fields.")
                 return render(request, 'payments/task_doer_payment.html', {
                     'task': task,
-                    'amount': task.price,
+                    'amount': task.doer_payment_amount if task.doer_payment_amount else task.price,
                     'doer': task.doer,
                     'fullname': fullname,
                     'phone': phone,
@@ -2193,8 +2345,11 @@ def payment_task_doer_process(request, task_id):
     # Create payment with GCash info in description
     description = f"ErrandExpress Task Payment - {task.title} | {gcash_info['fullname']} | {gcash_info['phone']}"
     
+    # Calculate payment amount (90% - Doer's Share)
+    amount_to_pay = float(task.doer_payment_amount) if task.doer_payment_amount else float(task.price) * 0.90
+    
     result = payments.process_gcash_payment(
-        amount=float(task.price),
+        amount=amount_to_pay,
         description=description,
         success_url=request.build_absolute_uri(reverse('payment_success')),
         failed_url=request.build_absolute_uri(reverse('payment_failed'))
@@ -2274,11 +2429,11 @@ def payment_success(request):
     
     task = get_object_or_404(Task, id=task_id)
     
-    if payment_type == 'system_fee':
+    if payment_type in ['system_fee', 'commission_payment']:
         # Update system commission status
         try:
             from .models import SystemCommission, SystemWallet
-            logger.info(f"Processing system fee payment for task {task_id}")
+            logger.info(f"Processing commission payment for task {task_id}")
             
             # Check if commission exists
             if not hasattr(task, 'commission'):
@@ -2288,7 +2443,7 @@ def payment_success(request):
                 commission = SystemCommission.objects.create(
                     task=task,
                     payer=task.poster,
-                    amount=2.00,
+                    amount=task.commission_amount,  # Use Task's commission amount
                     method='online',
                     status='paid',
                     paid_at=timezone.now()
@@ -2304,38 +2459,49 @@ def payment_success(request):
                 logger.info(f"✅ Commission status updated to 'paid'")
             
             # 💰 ADD REVENUE TO SYSTEM WALLET
+            # Ensure we use the correct commission amount
+            revenue_amount = task.commission_amount if task.commission_amount > 0 else 2.00
+            
             wallet = SystemWallet.get_or_create_wallet()
             wallet.add_revenue(
-                amount=commission.amount,
-                description=f"System fee from task: {task.title}"
+                amount=revenue_amount,
+                description=f"Commission from task: {task.title}"
             )
-            logger.info(f"💰 Revenue added to wallet: ₱{commission.amount}")
+            logger.info(f"💰 Revenue added to wallet: ₱{revenue_amount}")
             
-            # 🔔 UNLOCK CHAT IMMEDIATELY
+            # 🔔 UNLOCK CHAT IMMEDIATELY & MARK DEDUCTED
             task.chat_unlocked = True
+            task.commission_deducted = True  # Critical for 10% flow
             task.save()
-            logger.info(f"✅ Chat unlocked for task {task_id}")
+            logger.info(f"✅ Chat unlocked & Commission Deducted for task {task_id}")
             
             # Notify poster
             Notification.objects.create(
                 user=task.poster,
                 type='payment_confirmed',
-                title='₱2 System Fee Paid! 💳',
-                message=f'System fee paid successfully. Chat unlocked for "{task.title}"',
+                title='Commission Paid! 💳',
+                message=f'Commission paid successfully. Chat unlocked for "{task.title}"',
                 related_task=task
             )
             logger.info(f"✅ Notification created for user {task.poster.id}")
             
-            logger.info(f"✅ System fee payment confirmed - chat unlocked for task {task_id}")
+            logger.info(f"✅ Commission payment confirmed - chat unlocked for task {task_id}")
             messages.success(request, "✅ Payment successful! Chat unlocked. Opening chat now...")
             
-            # 💬 REDIRECT TO CHAT INSTEAD OF TASK DETAIL
-            # Clear session first
+            # 💬 REDIRECT LOGIC
+            # Check for stored 'next' URL (e.g. redirect back to Doer Payment Flow)
+            next_url = request.session.pop('payment_next_url', None)
+            
+            # Clear session
             for key in ['payment_source_id', 'payment_task_id', 'payment_type', 'gcash_fullname', 'gcash_phone', 'gcash_email', 'gcash_number']:
                 request.session.pop(key, None)
             
-            # Redirect to chat page
-            return redirect('chat', task_id=task_id)
+            if next_url:
+                logger.info(f"🔄 Redirecting to stored next URL: {next_url}")
+                return redirect(next_url)
+            
+            # Default: Redirect to chat page
+            return redirect('messages_chat', task_id=task_id)
             
         except Exception as e:
             logger.error(f"❌ Payment verification error: {str(e)}")
@@ -2354,34 +2520,51 @@ def payment_success(request):
             from .models import Payment, SystemWallet
             logger.info(f"Processing task doer payment for task {task_id}")
             
-            # Create Payment record for task doer
-            payment = Payment.objects.create(
-                task=task,
-                payer=task.poster,
-                receiver=task.doer,
-                amount=task.price,
-                method='online',
-                status='confirmed',
-                paymongo_payment_id=source_id,
-                confirmed_at=timezone.now()
-            )
-            logger.info(f"✅ Payment record created: {payment.id}")
+            # Create Payment record with DOER AMOUNT (100% of Price)
+            # Add-on Fee is tracked separately in SystemCommission
+            payment_amount = float(task.doer_payment_amount) if task.doer_payment_amount else float(task.price)
             
-            # 💰 ADD REVENUE TO SYSTEM WALLET (10% commission)
-            wallet = SystemWallet.get_or_create_wallet()
-            commission_amount = float(task.price) * 0.10
-            wallet.add_revenue(
-                amount=commission_amount,
-                description=f"Commission from task payment: {task.title}"
-            )
-            logger.info(f"💰 Commission added to wallet: ₱{commission_amount}")
+            # Check if payment already exists
+            payment = Payment.objects.filter(task=task).first()
+            
+            if payment:
+                if payment.status == 'confirmed':
+                    logger.info(f"⚠️ Payment already confirmed for task {task_id}. Redirecting to rating.")
+                    # Clear session
+                    for key in ['payment_source_id', 'payment_task_id', 'payment_type', 'gcash_fullname', 'gcash_phone', 'gcash_email', 'gcash_number']:
+                        request.session.pop(key, None)
+                    return redirect('rate_user', task_id=task_id, user_id=task.doer.id)
+                
+                # Update existing pending payment
+                payment.status = 'confirmed'
+                payment.paymongo_payment_id = source_id
+                payment.confirmed_at = timezone.now()
+                payment.save()
+                logger.info(f"✅ Payment record updated: {payment.id} to CONFIRMED")
+            else:
+                # Create new payment record
+                payment = Payment.objects.create(
+                    task=task,
+                    payer=task.poster,
+                    receiver=task.doer,
+                    amount=payment_amount,
+                    method='online',
+                    status='confirmed',
+                    paymongo_payment_id=source_id,
+                    confirmed_at=timezone.now()
+                )
+                logger.info(f"✅ Payment record created: {payment.id} for amount ₱{payment_amount}")
+            logger.info(f"✅ Payment record created: {payment.id} for amount ₱{payment_amount}")
+            
+            # NOTE: Revenue (10%) was already added during Chatlock commission payment.
+            # We do NOT add revenue here to avoid double-counting.
             
             # Notify task doer about payment
             Notification.objects.create(
                 user=task.doer,
                 type='payment_received',
                 title='Payment Received! 💰',
-                message=f'You received ₱{task.price} for completing "{task.title}"',
+                message=f'You received ₱{payment_amount:,.2f} for completing "{task.title}"',
                 related_task=task
             )
             logger.info(f"✅ Notification created for task doer {task.doer.id}")
@@ -2391,13 +2574,13 @@ def payment_success(request):
                 user=task.poster,
                 type='payment_confirmed',
                 title='Task Doer Payment Confirmed! 💳',
-                message=f'Payment of ₱{task.price} sent to task doer for "{task.title}". You can now rate them.',
+                message=f'Payment of ₱{payment_amount:,.2f} sent to task doer for "{task.title}". You can now rate them.',
                 related_task=task
             )
             logger.info(f"✅ Notification created for task poster {task.poster.id}")
             
             logger.info(f"✅ Task doer payment confirmed for task {task_id}")
-            messages.success(request, f"✅ Payment successful! ₱{task.price} sent to {task.doer.fullname}. You can now rate them.")
+            messages.success(request, f"✅ Payment successful! ₱{payment_amount:,.2f} sent to {task.doer.fullname}. You can now rate them.")
             
             # Clear session
             for key in ['payment_source_id', 'payment_task_id', 'payment_type', 'gcash_fullname', 'gcash_phone', 'gcash_email', 'gcash_number']:
@@ -2627,7 +2810,7 @@ def rate_user(request, task_id, user_id):
             task=task,
             payer=request.user,
             receiver=task.doer,
-            status='confirmed'
+            status__in=['confirmed', 'paid', 'pending_confirmation'] 
         ).first()
         payment_completed = bool(payment)
     
@@ -2684,9 +2867,12 @@ def rate_user(request, task_id, user_id):
 
 @login_required
 def apply_for_task(request, task_id):
-    """
-    Doer applies for a task - solves the multiple applicants problem
-    """
+    """Apply for a specific task"""
+    # Enforce Mandatory Ratings
+    if check_pending_ratings(request.user).exists():
+        messages.warning(request, "You have completed tasks pending rating. Please rate them before applying.")
+        return redirect('pending_ratings')
+
     task = get_object_or_404(Task, id=task_id)
     
     # Verification checks
@@ -2827,7 +3013,18 @@ def view_applications(request, task_id):
         )
         
         # ✅ OPTIMIZED: Use prefetched ratings
-        app.recent_ratings = app.doer.received_ratings.all()[:3]
+        # User Requirement: Show Highest and Lowest rating with feedback
+        all_ratings = list(app.doer.received_ratings.all())  # Already prefetched ordered by -created_at
+        
+        app.recent_ratings = all_ratings[:3]
+        
+        # Calculate Best and Worst manually from the prefetched list to avoid N+1
+        if all_ratings:
+            app.highest_rating = max(all_ratings, key=lambda r: r.score)
+            app.lowest_rating = min(all_ratings, key=lambda r: r.score)
+        else:
+            app.highest_rating = None
+            app.lowest_rating = None
         
         # ✅ OPTIMIZED: Use prefetched skills
         app.validated_skills = [skill.skill_name for skill in app.doer.skills.all()]
@@ -3117,6 +3314,8 @@ def admin_dashboard(request):
     
     from django.db.models import Count, Sum, Avg
     from datetime import datetime, timedelta
+    from .models import SystemCommission, Payment, Report, StudentSkill
+    
     
     # Get date ranges
     today = timezone.now().date()
@@ -3136,13 +3335,39 @@ def admin_dashboard(request):
     completed_tasks = Task.objects.filter(status='completed').count()
     tasks_this_week = Task.objects.filter(created_at__gte=week_ago).count()
     
+    # Calculate Completion Rate
+    completion_rate = round((completed_tasks / total_tasks * 100), 1) if total_tasks > 0 else 0
+    
+    # Identify Stalled Tasks (In Progress > 7 days)
+    stalled_tasks_count = Task.objects.filter(
+        status='in_progress',
+        updated_at__lte=week_ago
+    ).count()
+    
     # Financial statistics
-    total_revenue = SystemCommission.objects.filter(status='paid').aggregate(
+    # ... (existing revenue logic) ...
+    # 1. Legacy SystemCommission Revenue
+    legacy_revenue = SystemCommission.objects.filter(status='paid').aggregate(
         total=Sum('amount'))['total'] or 0
-    revenue_this_month = SystemCommission.objects.filter(
+    
+    # 2. New Task Payment Commission Revenue
+    payment_revenue = Payment.objects.filter(status='confirmed').aggregate(
+        total=Sum('commission_amount'))['total'] or 0
+        
+    total_revenue = legacy_revenue + payment_revenue
+
+    # Monthly Revenue
+    legacy_month = SystemCommission.objects.filter(
         status='paid', 
         paid_at__gte=month_ago
     ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    payment_month = Payment.objects.filter(
+        status='confirmed',
+        created_at__gte=month_ago  # Approximation using created_at for payments
+    ).aggregate(total=Sum('commission_amount'))['total'] or 0
+    
+    revenue_this_month = legacy_month + payment_month
     
     # Skill validation statistics
     pending_skills = StudentSkill.objects.filter(status='pending').count()
@@ -3153,14 +3378,38 @@ def admin_dashboard(request):
     recent_users = User.objects.order_by('-date_joined')[:10]
     pending_reports = Report.objects.filter(status='pending').count()
     
-    # Category breakdown
+    # Category breakdown (Project Count)
     category_stats = Task.objects.values('category').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # 💰 Revenue by Category (Commission Source)
+    revenue_by_category = Payment.objects.filter(status='confirmed').values('task__category').annotate(
+        total_revenue=Sum('commission_amount')
+    ).order_by('-total_revenue')
+    
+    # 📍 Campus Breakdown (Heatmap)
+    campus_stats = Task.objects.values('campus_location').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # 💵 Payment Method Split
+    payment_method_stats = Task.objects.values('payment_method').annotate(
         count=Count('id')
     ).order_by('-count')
     
     context = {
         'total_users': total_users,
         'new_users_week': new_users_week,
+        # ... existing ...
+        'completion_rate': completion_rate,
+        'stalled_tasks_count': stalled_tasks_count,
+        # ... existing ...
+        'category_stats': category_stats,
+        'revenue_by_category': revenue_by_category,
+        'campus_stats': campus_stats,
+        'payment_method_stats': payment_method_stats,
+        # Pass full context to avoid missing keys from strict replacement
         'task_posters': task_posters,
         'task_doers': task_doers,
         'total_tasks': total_tasks,
@@ -3175,8 +3424,8 @@ def admin_dashboard(request):
         'recent_tasks': recent_tasks,
         'recent_users': recent_users,
         'pending_reports': pending_reports,
-        'category_stats': category_stats,
     }
+
     
     return render(request, 'admin/dashboard.html', context)
 
@@ -3938,7 +4187,18 @@ def create_payment_intent(request):
         data = json.loads(request.body)
         task_id = data.get('task_id')
         payment_method = data.get('payment_method', 'gcash')
-        amount = 200  # ₱2 = 200 centavos
+        
+        from .models import Task
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            return JsonResponse({'error': 'Task not found'}, status=404)
+            
+        # 10% Commission Calculation (centavos)
+        # Fallback to ₱2 (200 centavos) if commission not set, but prefer task.commission_amount
+        commission_float = float(task.commission_amount) if task.commission_amount > 0 else 2.00
+        
+        description = f"ErrandExpress {commission_float:,.2f} Commission for Task {task.title} ({task.id})"
 
         # For card payments, return card form flag
         if payment_method == 'card':
@@ -3949,31 +4209,33 @@ def create_payment_intent(request):
                 "is_card_form": True
             })
 
-        # For GCash, create payment intent
-        payload = {
-            "data": {
-                "attributes": {
-                    "amount": amount,
-                    "currency": "PHP",
-                    "description": f"ErrandExpress ₱2 Fee for Task {task_id}",
-                    "payment_method_allowed": ["gcash"],
-                    "statement_descriptor": "ERRANDEXPRESS"
-                }
-            }
-        }
-
-        response = make_paymongo_request("/payment_intents", payload)
+        # Process GCash Payment using Helper
+        from .paymongo import ErrandExpressPayments
+        payments = ErrandExpressPayments()
         
-        if response and response.status_code == 200:
-            logger.info(f"Payment intent created for task {task_id}: {response.status_code}")
-            return JsonResponse(response.json())
+        result = payments.process_gcash_payment(
+            amount=commission_float,
+            description=description,
+            success_url=request.build_absolute_uri(reverse('payment_success')),
+            failed_url=request.build_absolute_uri(reverse('payment_failed'))
+        )
+        
+        if result['success']:
+            # Store payment info in session (CRITICAL for payment_success)
+            request.session['payment_source_id'] = result['source_id']
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'commission_payment'
+            
+            logger.info(f"✅ Commission payment initiated via API for task {task_id}")
+            return JsonResponse(result)
         else:
-            error_msg = response.text if response else "Unknown error"
-            logger.error(f"Payment intent creation failed: {error_msg}")
-            return JsonResponse({'error': f'Payment creation failed: {error_msg}'}, status=500)
+            logger.error(f"Payment creation failed: {result.get('error')}")
+            return JsonResponse({'error': result.get('error', 'Payment creation failed')}, status=500)
         
     except Exception as e:
         logger.error(f"Payment intent creation failed: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return JsonResponse({'error': f'Payment error: {str(e)}'}, status=500)
 
 
@@ -4203,8 +4465,8 @@ def paymongo_webhook(request):
             
             from .models import Task, SystemCommission, Payment
             
-            # 🔹 STEP 3: ₱2 System Fee Payment
-            if "System Fee" in description or amount_pesos == 2.0:
+            # 🔹 STEP 3: ₱2 System Fee Payment OR 10% Commission Payment
+            if "System Fee" in description or "Commission" in description or amount_pesos == 2.0:
                 logger.info("📝 Processing as SYSTEM FEE payment")
                 
                 # Extract task ID from description
@@ -4329,7 +4591,6 @@ def paymongo_webhook(request):
                     
                     # 💰 ADD COMMISSION TO SYSTEM WALLET
                     from .models import SystemWallet
-                    wallet = SystemWallet.get_or_create_wallet()
                     from decimal import Decimal
                     commission_amount = Decimal(str(task.price)) * Decimal('0.10')
                     wallet.add_revenue(
@@ -4344,12 +4605,16 @@ def paymongo_webhook(request):
                     task.save()
                     logger.info(f"✅ Task marked as completed: {task_id}")
                     
-                    # Notify task doer about payment
+                    # Calculate Net Amount for Doer (100% of Task Price)
+                    # Amount Pesos is Total (110%)
+                    net_amount = amount_pesos / 1.10
+                    
+                    # Notify doer about payment
                     Notification.objects.create(
                         user=task.doer,
                         type='payment_received',
                         title='Payment Received! 💰',
-                        message=f'You received ₱{amount_pesos} for completing "{task.title}". Task poster can now rate you.',
+                        message=f'You received ₱{net_amount:,.2f} for completing "{task.title}". Task poster can now rate you.',
                         related_task=task
                     )
                     logger.info(f"✅ Notification sent to task doer {task.doer.id}")
@@ -4359,7 +4624,7 @@ def paymongo_webhook(request):
                         user=task.poster,
                         type='payment_confirmed',
                         title='Task Doer Payment Confirmed! 💳',
-                        message=f'Payment of ₱{amount_pesos} sent to {task.doer.fullname}. You can now rate them.',
+                        message=f'Payment of ₱{amount_pesos:,.2f} (incl. fees) sent to {task.doer.fullname}. You can now rate them.',
                         related_task=task
                     )
                     logger.info(f"✅ Notification sent to task poster {task.poster.id}")
@@ -4501,6 +4766,60 @@ def paymongo_webhook(request):
 
 
 @login_required
+def pending_ratings(request):
+    """View to list all tasks that require a rating from the user"""
+    pending_tasks = check_pending_ratings(request.user)
+    
+    # If no pending tasks, redirect back to dashboard
+    if not pending_tasks.exists():
+        messages.success(request, "You're all caught up on ratings!")
+        return redirect('dashboard')
+        
+    return render(request, 'pending_ratings.html', {'pending_tasks': pending_tasks})
+
+
+@csrf_exempt
+def api_check_payment_status(request):
+    """
+    API endpoint to check payment status
+    Used by JavaScript to poll payment status after GCash popup closes
+    """
+    from django.http import JsonResponse
+    from .models import Payment
+    
+    payment_id = request.GET.get('payment_id')
+    
+    if not payment_id:
+        return JsonResponse({
+            'success': False,
+            'error': 'payment_id parameter is required'
+        }, status=400)
+    
+    try:
+        payment = Payment.objects.get(id=payment_id)
+        
+        return JsonResponse({
+            'success': True,
+            'payment_id': str(payment.id),
+            'status': payment.status,
+            'amount': float(payment.amount),
+            'method': payment.method,
+            'task_id': str(payment.task.id) if payment.task else None,
+            'created_at': payment.created_at.isoformat()
+        })
+        
+    except Payment.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Payment not found'
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error checking payment status: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
 def test_paymongo_integration(request):
     """Test page for PayMongo live integration"""
     if request.user.role != 'admin':
@@ -4842,6 +5161,7 @@ def profile(request):
             fullname = request.POST.get('fullname')
             phone = request.POST.get('phone')
             bio = request.POST.get('bio')
+            campus_location = request.POST.get('campus_location')
             
             # Only update fields if they are provided
             if fullname:
@@ -4850,6 +5170,8 @@ def profile(request):
                 request.user.phone_number = phone
             if bio:
                 request.user.bio = bio
+            if campus_location:
+                request.user.campus_location = campus_location
             
             # Handle profile picture upload with compression
             if 'profile_picture' in request.FILES:
@@ -4897,6 +5219,7 @@ def profile(request):
         'total_earned': total_earned,
         'verified_skills': verified_skills,
         'recent_tasks': recent_tasks,
+        'CAMPUS_CHOICES': User.CAMPUS_CHOICES, # Pass choices to template
     })
 
 
@@ -4914,21 +5237,36 @@ def system_wallet(request):
     # Get all commissions
     all_commissions = SystemCommission.objects.all()
     
-    # Total revenue (paid commissions)
-    paid_commissions = all_commissions.filter(status='paid')
-    total_revenue = paid_commissions.aggregate(total=Sum('amount'))['total'] or 0
-    total_commissions_count = paid_commissions.count()
+    # Financial Statistics (Dual Source: SystemCommission + Payment)
     
-    # Monthly revenue
+    # 1. TOTAL REVENUE
+    legacy_total = all_commissions.filter(status='paid').aggregate(total=Sum('amount'))['total'] or 0
+    payment_total = Payment.objects.filter(status='confirmed').aggregate(total=Sum('commission_amount'))['total'] or 0
+    total_revenue = legacy_total + payment_total
+    
+    legacy_count = all_commissions.filter(status='paid').count()
+    payment_count = Payment.objects.filter(status='confirmed').count()
+    total_commissions_count = legacy_count + payment_count
+    
+    # 2. MONTHLY REVENUE
     current_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    monthly_commissions = paid_commissions.filter(paid_at__gte=current_month)
-    monthly_revenue = monthly_commissions.aggregate(total=Sum('amount'))['total'] or 0
-    monthly_commissions_count = monthly_commissions.count()
     
-    # Pending revenue
-    pending_commissions = all_commissions.filter(status='unpaid')
-    pending_revenue = pending_commissions.aggregate(total=Sum('amount'))['total'] or 0
-    pending_commissions_count = pending_commissions.count()
+    legacy_month = all_commissions.filter(status='paid', paid_at__gte=current_month).aggregate(total=Sum('amount'))['total'] or 0
+    payment_month = Payment.objects.filter(status='confirmed', confirmed_at__gte=current_month).aggregate(total=Sum('commission_amount'))['total'] or 0
+    monthly_revenue = legacy_month + payment_month
+    
+    legacy_month_count = all_commissions.filter(status='paid', paid_at__gte=current_month).count()
+    payment_month_count = Payment.objects.filter(status='confirmed', confirmed_at__gte=current_month).count()
+    monthly_commissions_count = legacy_month_count + payment_month_count
+    
+    # 3. PENDING REVENUE
+    legacy_pending = all_commissions.filter(status='unpaid').aggregate(total=Sum('amount'))['total'] or 0
+    payment_pending = Payment.objects.filter(status='pending_payment').aggregate(total=Sum('commission_amount'))['total'] or 0
+    pending_revenue = legacy_pending + payment_pending
+    
+    legacy_pending_count = all_commissions.filter(status='unpaid').count()
+    payment_pending_count = Payment.objects.filter(status='pending_payment').count()
+    pending_commissions_count = legacy_pending_count + payment_pending_count
     
     # Recent transactions
     recent_commissions = all_commissions.select_related('task', 'task__poster').order_by('-created_at')[:20]
@@ -5162,12 +5500,29 @@ def messages_list(request, task_id=None):
         other_user = conversations[0]['other_user']
         chat_access = check_chat_access(active_task.id, user)
     
+    # Check if Pay Button should be shown
+    # Check if Pay Button should be shown
+    show_pay_button = False
+    if active_task and user == active_task.poster and active_task.status in ['in_progress', 'completed']:
+        # Check if already paid
+        try:
+            payment = Payment.objects.get(task=active_task)
+            if payment.status in ['pending_payment', 'pending_confirmation', 'failed']:
+                show_pay_button = True
+        except Payment.DoesNotExist:
+            show_pay_button = True
+            
+        # Don't show if already rated
+        if Rating.objects.filter(task=active_task, rater=user, rated=active_task.doer).exists():
+            show_pay_button = False
+
     context = {
         'conversations': conversations,
         'active_task': active_task,
         'active_messages': active_messages,
         'other_user': other_user,
         'chat_access': chat_access,
+        'show_pay_button': show_pay_button,
         'message_form': MessageForm(),
     }
     
@@ -5369,3 +5724,42 @@ def payments_dashboard(request):
     }
     
     return render(request, 'payments.html', context)
+
+
+@login_required
+def payment_commission_process(request, task_id):
+    """Process commission payment (redirect from payment form)"""
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Verify session data
+    if 'gcash_fullname' not in request.session and 'card_fullname' not in request.session:
+        messages.error(request, "Please fill in payment information first.")
+        return redirect('payment_commission', task_id=task_id)
+        
+    from .paymongo import ErrandExpressPayments
+    payments = ErrandExpressPayments()
+    
+    # Determine amount
+    amount = float(task.commission_amount) if task.commission_amount > 0 else 2.00
+    description = f"ErrandExpress {amount:,.2f} Commission for Task {task.title} ({task.id})"
+    
+    # Handle GCash
+    if request.session.get('gcash_fullname'):
+        result = payments.process_gcash_payment(
+            amount=amount,
+            description=description,
+            success_url=request.build_absolute_uri(reverse('payment_success')),
+            failed_url=request.build_absolute_uri(reverse('payment_failed'))
+        )
+        
+        if result['success']:
+            request.session['payment_source_id'] = result['source_id']
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'commission_payment'
+            return redirect(result['checkout_url'])
+            
+    # Handle Card (Simplified for now, similar logic)
+    # ... (Assuming card logic is similar or handled elsewhere)
+    
+    messages.error(request, "Payment processing failed.")
+    return redirect('payment_commission', task_id=task_id)

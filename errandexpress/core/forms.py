@@ -11,36 +11,51 @@ class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
         fields = ['title', 'description', 'category', 'tags', 'price', 'payment_method', 
-                 'deadline', 'location', 'requirements']
+                 'deadline', 'location', 'campus_location', 'requirements']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter a clear, descriptive title'
+                'placeholder': 'Enter a clear, descriptive title',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
                 'placeholder': 'Provide detailed description of what needs to be done'
             }),
-            'category': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={
+                'class': 'form-select',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
             'tags': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'e.g., urgent, easy, typing, graphics (comma-separated)'
+                'placeholder': 'e.g., urgent, easy, typing, graphics (comma-separated)',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
             }),
             'price': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '10',
                 'step': '0.01',
-                'placeholder': '0.00'
+                'placeholder': '0.00',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
             }),
-            'payment_method': forms.Select(attrs={'class': 'form-select'}),
+            'payment_method': forms.Select(attrs={
+                'class': 'form-select',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
             'deadline': forms.DateTimeInput(attrs={
                 'class': 'form-control',
-                'type': 'datetime-local'
+                'type': 'datetime-local',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Location (if applicable)'
+                'placeholder': 'Specific location (e.g. Room 305)',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
+            'campus_location': forms.Select(attrs={
+                'class': 'form-select',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
             }),
             'requirements': forms.Textarea(attrs={
                 'class': 'form-control',
