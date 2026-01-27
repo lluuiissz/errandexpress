@@ -20,15 +20,21 @@
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <h1 class="text-4xl font-bold mb-3">{{ task.title }}</h1>
-                    <div class="flex items-center gap-4 text-blue-100">
+                    <div class="flex items-center gap-4 text-blue-100 flex-wrap">
                         <span class="flex items-center">
                             <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
                             Due {{ task.deadline|date:"M d, Y" }}
                         </span>
                         <span class="flex items-center">
                             <i data-lucide="clock" class="w-4 h-4 mr-2"></i>
-                            Posted {{ task.created_at|timesince }} ago
+                            {{ task.created_at|timesince }} ago
                         </span>
+                        {% if task.campus_location %}
+                        <span class="flex items-center">
+                            <i data-lucide="building" class="w-4 h-4 mr-2"></i>
+                            {{ task.get_campus_location_display }}
+                        </span>
+                        {% endif %}
                         {% if task.location %}
                         <span class="flex items-center">
                             <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
@@ -52,8 +58,25 @@
             <div class="lg:col-span-2 space-y-6">
                 <!-- Task Description Card -->
                 <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                    <h2 class="text-2xl font-bold mb-4">Task Description</h2>
-                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{{ task.description }}</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold">Task Description</h2>
+                        <span
+                            class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100">
+                            {{ task.get_category_display }}
+                        </span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap mb-6">{{ task.description }}</p>
+
+                    {% if task.tags %}
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in task.get_tags_list %}
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            #{{ tag }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Requirements Card -->
@@ -322,7 +345,8 @@
                                 <span class="text-xs font-bold text-green-700 uppercase">👍 Best</span>
                                 <span class="font-bold text-green-700">{{ poster_highest_rating.score }}/10</span>
                             </div>
-                            <p class="text-xs text-gray-600 italic">"{{ poster_highest_rating.feedback|truncatewords:10 }}"</p>
+                            <p class="text-xs text-gray-600 italic">"{{ poster_highest_rating.feedback|truncatewords:10
+                                }}"</p>
                         </div>
 
                         <!-- Worst Review (only if different) -->
@@ -332,7 +356,8 @@
                                 <span class="text-xs font-bold text-red-700 uppercase">👎 Critical</span>
                                 <span class="font-bold text-red-700">{{ poster_lowest_rating.score }}/10</span>
                             </div>
-                            <p class="text-xs text-gray-600 italic">"{{ poster_lowest_rating.feedback|truncatewords:10 }}"</p>
+                            <p class="text-xs text-gray-600 italic">"{{ poster_lowest_rating.feedback|truncatewords:10
+                                }}"</p>
                         </div>
                         {% endif %}
                         {% else %}
@@ -365,7 +390,8 @@
                 <i data-lucide="lock" class="w-8 h-8 text-accent"></i>
             </div>
             <h3 class="font-poppins font-semibold text-xl mb-2">Chat is Locked</h3>
-            <p class="text-muted mb-6">To ensure fair transactions, chat is locked until the ₱{{ task.commission_amount }} system fee is paid.
+            <p class="text-muted mb-6">To ensure fair transactions, chat is locked until the ₱{{ task.commission_amount
+                }} system fee is paid.
             </p>
 
             <div class="space-y-3">

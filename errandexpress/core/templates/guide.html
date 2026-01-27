@@ -1,0 +1,167 @@
+{% extends 'base_complete.html' %}
+
+{% block title %}How It Works - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <!-- Header -->
+    <div class="text-center mb-12 animate-fade-in">
+        <h1 class="text-4xl font-bold font-poppins text-gray-900 mb-4">How ErrandExpress Works 🚀</h1>
+        <p class="text-xl text-gray-600">Simple, secure, and student-focused task marketplace.</p>
+    </div>
+
+    <!-- Toggle Roles -->
+    <div class="flex justify-center mb-12">
+        <div class="bg-gray-100 p-1 rounded-xl inline-flex">
+            <button onclick="showSection('poster')" id="btn-poster"
+                class="px-6 py-3 rounded-lg text-sm font-bold transition-all bg-white text-primary shadow-sm">
+                For Task Posters
+            </button>
+            <button onclick="showSection('doer')" id="btn-doer"
+                class="px-6 py-3 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-700 transition-all">
+                For Task Doers
+            </button>
+        </div>
+    </div>
+
+    <!-- Poster Flow -->
+    <div id="section-poster" class="space-y-12 animate-slide-up">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="order-2 md:order-1">
+                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mb-4">
+                    <span class="text-2xl font-bold text-primary">1</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Post Your Task</h3>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Describe what you need done. Set your budget and deadline. It's free to post!
+                    Be specific about location and requirements.
+                </p>
+            </div>
+            <div class="order-1 md:order-2 bg-blue-50 rounded-3xl p-8 flex items-center justify-center">
+                <i data-lucide="edit-3" class="w-32 h-32 text-blue-200"></i>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="bg-indigo-50 rounded-3xl p-8 flex items-center justify-center">
+                <i data-lucide="message-circle" class="w-32 h-32 text-indigo-200"></i>
+            </div>
+            <div>
+                <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center mb-4">
+                    <span class="text-2xl font-bold text-indigo-600">2</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Unlock Chat & Hire</h3>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Review applicants' profiles and ratings. To start chatting, pay a small
+                    <span class="font-bold text-indigo-600">10% Service Fee</span> (e.g., ₱10 for a ₱100 task).
+                    This unlocks unlimited messaging.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="order-2 md:order-1">
+                <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4">
+                    <span class="text-2xl font-bold text-green-600">3</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Pay & Rate</h3>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Once the work is done, pay the full task amount to the Doer (Cash or GCash).
+                    Then, leave a rating to build trust in the community.
+                </p>
+            </div>
+            <div class="order-1 md:order-2 bg-green-50 rounded-3xl p-8 flex items-center justify-center">
+                <i data-lucide="star" class="w-32 h-32 text-green-200"></i>
+            </div>
+        </div>
+
+        <div class="text-center pt-8">
+            <a href="{% url 'create_task' %}" class="btn-primary text-lg px-8 py-4">Post a Task Now</a>
+        </div>
+    </div>
+
+    <!-- Doer Flow (Hidden by default) -->
+    <div id="section-doer" class="space-y-12 hidden animate-slide-up">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="order-2 md:order-1">
+                <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center mb-4">
+                    <span class="text-2xl font-bold text-purple-600">1</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Browse & Apply</h3>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Find tasks that match your skills. Filter by location, price, or category.
+                    Submit a strong application explaining why you're the best fit.
+                </p>
+            </div>
+            <div class="order-1 md:order-2 bg-purple-50 rounded-3xl p-8 flex items-center justify-center">
+                <i data-lucide="search" class="w-32 h-32 text-purple-200"></i>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="bg-amber-50 rounded-3xl p-8 flex items-center justify-center">
+                <i data-lucide="briefcase" class="w-32 h-32 text-amber-200"></i>
+            </div>
+            <div>
+                <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mb-4">
+                    <span class="text-2xl font-bold text-amber-600">2</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Do the Work</h3>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Once hired, communicate clearly with the Poster. Complete the task professionally and on time.
+                    <span class="font-bold text-amber-600">You keep 100% of the task price.</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div class="order-2 md:order-1">
+                <div class="w-12 h-12 bg-teal-100 rounded-2xl flex items-center justify-center mb-4">
+                    <span class="text-2xl font-bold text-teal-600">3</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Get Paid & Build Reputation</h3>
+                <p class="text-gray-600 text-lg leading-relaxed">
+                    Receive payment directly from the Poster. Good ratings unlock more opportunities and "Featured"
+                    status!
+                </p>
+            </div>
+            <div class="order-1 md:order-2 bg-teal-50 rounded-3xl p-8 flex items-center justify-center">
+                <i data-lucide="award" class="w-32 h-32 text-teal-200"></i>
+            </div>
+        </div>
+
+        <div class="text-center pt-8">
+            <a href="{% url 'browse_tasks' %}" class="btn-primary text-lg px-8 py-4">Find Tasks</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showSection(role) {
+        const poster = document.getElementById('section-poster');
+        const doer = document.getElementById('section-doer');
+        const btnPoster = document.getElementById('btn-poster');
+        const btnDoer = document.getElementById('btn-doer');
+
+        if (role === 'poster') {
+            poster.classList.remove('hidden');
+            doer.classList.add('hidden');
+
+            btnPoster.classList.add('bg-white', 'text-primary', 'shadow-sm');
+            btnPoster.classList.remove('text-gray-500');
+
+            btnDoer.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+            btnDoer.classList.add('text-gray-500');
+        } else {
+            doer.classList.remove('hidden');
+            poster.classList.add('hidden');
+
+            btnDoer.classList.add('bg-white', 'text-primary', 'shadow-sm');
+            btnDoer.classList.remove('text-gray-500');
+
+            btnPoster.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+            btnPoster.classList.add('text-gray-500');
+        }
+    }
+</script>
+{% endblock %}

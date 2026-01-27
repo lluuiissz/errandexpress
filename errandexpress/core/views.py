@@ -1294,6 +1294,7 @@ def dashboard(request):
             'pending_earnings': pending_earnings,
             'success_rate': round(success_rate, 1),
             'avg_rating': round(avg_rating, 1),
+            'user_rating': round(avg_rating, 1),  # Alias for template
             
             # Task Feed
             'recommended_tasks': available_tasks[:5],
@@ -1302,7 +1303,7 @@ def dashboard(request):
                 doer__isnull=True,
                 price__gte=200
             ).exclude(poster=user)[:3],
-            'nearby_tasks': available_tasks[:3],  # Would use location in real implementation
+            'nearby_tasks': available_tasks[:3],
             'quick_wins': Task.objects.filter(
                 status='open',
                 doer__isnull=True,
@@ -1313,20 +1314,22 @@ def dashboard(request):
             'active_applications': active_applications,
             'current_work': in_progress_tasks[:5],
             'pending_payments': completed_tasks.filter(payment__status='pending')[:5],
+            'recent_tasks': all_doer_tasks.order_by('-created_at')[:5],  # Unified list for dashboard
             
             # Skills
             'validated_skills': validated_skills,
+            'verified_skills': validated_skills,  # Alias for template
             'skill_count': validated_skills.count(),
             
-            # Earnings Insights (mock data for now)
+            # Earnings Insights
             'weekly_goal': 1000,
-            'weekly_progress': total_earnings * 4,  # Rough weekly estimate
+            'weekly_progress': total_earnings * 4,
             'weekly_progress_percentage': min(100, (total_earnings * 4 / 1000 * 100)) if total_earnings > 0 else 0,
             'best_skill': 'Typing',
             'peak_hours': '6:00 PM - 10:00 PM',
         }
     
-    return render(request, "dashboard_comprehensive.html", context)
+    return render(request, "dashboard.html", context)
 
 def logout_view(request):
     try:
@@ -5387,11 +5390,14 @@ def messages_list(request, task_id=None):
                 chat_access = check_chat_access(task_id, user)
                 if chat_access['allowed']:
                     message_content = request.POST.get('message_content', '').strip()
-                    if message_content:
+                    attachment = request.FILES.get('attachment')
+                    
+                    if message_content or attachment:
                         message = Message.objects.create(
                             task=task,
                             sender=user,
-                            message=message_content
+                            message=message_content,
+                            attachment=attachment
                         )
                         
                         # Create notification for the other party

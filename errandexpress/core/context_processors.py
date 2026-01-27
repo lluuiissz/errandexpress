@@ -72,6 +72,29 @@ def user_stats(request):
         else:
             stats['user_rating'] = 0
             
+        # Unread Notifications Count
+        stats['unread_notifications_count'] = 0
+        try:
+            from .models import Notification
+            stats['unread_notifications_count'] = Notification.objects.filter(
+                user=user, 
+                is_read=False
+            ).count()
+        except Exception:
+            pass
+
+        # Unread Messages Count
+        stats['unread_messages_count'] = 0
+        try:
+            from .models import Message
+            # Count unread messages in tasks where user is poster or doer, sent by others
+            stats['unread_messages_count'] = Message.objects.filter(
+                Q(task__poster=user) | Q(task__doer=user),
+                is_read=False
+            ).exclude(sender=user).count()
+        except Exception:
+            pass
+            
     except Exception as e:
         # If there's an error, return default values
         import logging

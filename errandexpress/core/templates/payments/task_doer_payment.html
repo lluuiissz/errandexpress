@@ -92,8 +92,7 @@
                         {% for method in payment_methods %}
                         <label
                             class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition mb-3">
-                            <input type="radio" name="payment_method" value="{{ method.value }}" {{
-                                forloop.first|yesno:"checked," }} class="w-4 h-4 text-blue-600">
+                            <input type="radio" name="payment_method" value="{{ method.value }}" {{ forloop.first|yesno:"checked," }} class="w-4 h-4 text-blue-600">
                             <div class="ml-4 flex-grow">
                                 <div class="font-bold text-gray-900">{{ method.name }}</div>
                                 <div class="text-sm text-gray-600">

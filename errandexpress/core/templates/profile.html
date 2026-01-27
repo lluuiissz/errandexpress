@@ -121,7 +121,7 @@
                                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all">
                                     <option value="">Select your campus college...</option>
                                     {% for value, name in CAMPUS_CHOICES %}
-                                    <option value="{{ value }}" {% if user.campus_location == value %}selected{% endif %}>
+                                    <option value="{{ value }}" {% if user.campus_location == value %}selected {% endif %}>
                                         {{ name }}</option>
                                     {% endfor %}
                                 </select>

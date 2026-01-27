@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 
 urlpatterns = [
     path('admin/', RedirectView.as_view(pattern_name='admin_dashboard', permanent=False)),
@@ -16,6 +16,7 @@ urlpatterns = [
     path('pending-ratings/', views.pending_ratings, name='pending_ratings'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),
+    path('guide/', TemplateView.as_view(template_name='guide.html'), name='guide'),
     
     # Legal Pages
     path('terms/', views.terms_of_service, name='terms_of_service'),
