@@ -124,7 +124,7 @@
                             </div>
                             <p class="font-semibold text-lg">
                                 {% if app.current_rating > 0 %}
-                                {{ app.current_rating }}/10
+                                {{ app.current_rating|floatformat:1 }}/10
                                 {% else %}
                                 <span class="text-muted text-sm">No ratings yet</span>
                                 {% endif %}
@@ -260,10 +260,7 @@
                             <i data-lucide="x" class="w-4 h-4 mr-2"></i>
                             Reject
                         </a>
-                        <a href="{% url 'profile' %}" class="btn btn-secondary">
-                            <i data-lucide="user" class="w-4 h-4 mr-2"></i>
-                            View Profile
-                        </a>
+
                     </div>
                 </div>
                 {% endfor %}

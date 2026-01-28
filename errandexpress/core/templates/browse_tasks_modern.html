@@ -106,13 +106,16 @@
                             <select name="category"
                                 class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all bg-white">
                                 <option value="">All Categories</option>
-                                <option value="typing" {% if filter_form.category.value == 'typing' %}selected {% endif %}>
+                                <option value="typing" {% if filter_form.category.value == 'typing' %}selected{% endif %}>
                                     ⌨️ Typing</option>
-                                <option value="powerpoint" {% if filter_form.category.value == 'powerpoint' %}selected {% endif %}>📊 PowerPoint</option>
-                                <option value="graphics" {% if filter_form.category.value == 'graphics' %}selected {% endif %}>🎨 Graphics</option>
-                                <option value="research" {% if filter_form.category.value == 'research' %}selected {% endif %}>📚 Research</option>
-                                <option value="other" {% if filter_form.category.value == 'other' %}selected {% endif %}>📌
-                                    Other</option>
+                                <option value="powerpoint" {% if filter_form.category.value == 'powerpoint' %}selected{% endif %}>
+                                    📊 PowerPoint</option>
+                                <option value="graphics" {% if filter_form.category.value == 'graphics' %}selected{% endif %}>
+                                    🎨 Graphics</option>
+                                <option value="research" {% if filter_form.category.value == 'research' %}selected{% endif %}>
+                                    📚 Research</option>
+                                <option value="other" {% if filter_form.category.value == 'other' %}selected{% endif %}>
+                                    📌 Other</option>
                             </select>
                         </div>
 
@@ -146,12 +149,14 @@
                             </label>
                             <select name="sort_by"
                                 class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all bg-white">
-                                <option value="-created_at" {% if filter_form.sort_by.value == '-created_at' %}selected {% endif %}>🆕 Newest First</option>
-                                <option value="price" {% if filter_form.sort_by.value == 'price' %}selected {% endif %}>💰
-                                    Price: Low → High</option>
-                                <option value="-price" {% if filter_form.sort_by.value == '-price' %}selected {% endif %}>
+                                <option value="-created_at" {% if filter_form.sort_by.value == '-created_at' %}selected{% endif %}>
+                                    🆕 Newest First</option>
+                                <option value="price" {% if filter_form.sort_by.value == 'price' %}selected{% endif %}>
+                                    💰 Price: Low → High</option>
+                                <option value="-price" {% if filter_form.sort_by.value == '-price' %}selected{% endif %}>
                                     💎 Price: High → Low</option>
-                                <option value="deadline" {% if filter_form.sort_by.value == 'deadline' %}selected {% endif %}>⏰ Deadline: Soonest</option>
+                                <option value="deadline" {% if filter_form.sort_by.value == 'deadline' %}selected{% endif %}>
+                                    ⏰ Deadline: Soonest</option>
                             </select>
                         </div>
 
@@ -162,35 +167,7 @@
                         </button>
                     </form>
 
-                    <!-- Quick Filters -->
-                    <div class="mt-6 pt-6 border-t-2 border-gray-100">
-                        <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
-                            Quick Filters
-                        </h4>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button
-                                class="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all text-center">
-                                <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mb-1"></i>
-                                <span class="text-xs font-medium text-gray-700">Urgent</span>
-                            </button>
-                            <button
-                                class="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all text-center">
-                                <i data-lucide="dollar-sign" class="w-5 h-5 text-green-500 mb-1"></i>
-                                <span class="text-xs font-medium text-gray-700">High Pay</span>
-                            </button>
-                            <button
-                                class="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-center">
-                                <i data-lucide="clock" class="w-5 h-5 text-blue-500 mb-1"></i>
-                                <span class="text-xs font-medium text-gray-700">Quick</span>
-                            </button>
-                            <button
-                                class="flex flex-col items-center justify-center p-3 rounded-lg border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-center">
-                                <i data-lucide="map-pin" class="w-5 h-5 text-purple-500 mb-1"></i>
-                                <span class="text-xs font-medium text-gray-700">Nearby</span>
-                            </button>
-                        </div>
-                    </div>
+
                 </div>
             </div>
 
@@ -295,11 +272,7 @@
                                 <i data-lucide="eye" class="w-5 h-5"></i>
                                 Details
                             </button>
-                            <button
-                                class="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors"
-                                onclick="saveTask('{{ task.id }}')" title="Save task">
-                                <i data-lucide="bookmark" class="w-5 h-5"></i>
-                            </button>
+
                             <button
                                 class="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors"
                                 onclick="shareTask('{{ task.id }}')" title="Share task">
@@ -337,8 +310,7 @@
                         <div class="flex items-center gap-1">
                             {% for num in tasks.paginator.page_range %}
                             {% if num == tasks.number %}
-                            <span class="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium">{{ num
-                                }}</span>
+                            <span class="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium">{{ num }}</span>
                             {% else %}
                             <a href="?page={{ num }}"
                                 class="px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg text-sm">{{ num }}</a>

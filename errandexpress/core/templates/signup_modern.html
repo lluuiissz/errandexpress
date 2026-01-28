@@ -38,10 +38,15 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i data-lucide="mail" class="w-5 h-5 text-text-secondary"></i>
                 </div>
-                <input type="email" id="email" name="email" required
+                <input type="email" id="email" name="email" required pattern=".+@asscat\.edu\.ph"
+                    title="Please use your institutional email ending in @asscat.edu.ph"
                     class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-ui"
-                    placeholder="your.email@example.com">
+                    placeholder="your.email@asscat.edu.ph">
             </div>
+            <p class="text-xs text-red-500 mt-1 ml-1 flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                Must use institutional email (@asscat.edu.ph)
+            </p>
         </div>
 
         <!-- Password Field -->

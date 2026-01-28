@@ -159,8 +159,9 @@
                         <a href="{% url 'view_applications' task.id %}"
                             class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
                             <i data-lucide="users" class="w-5 h-5"></i>
-                            View Applications
+                            View Applicants
                         </a>
+
 
                         <a href="{% url 'edit_task' task.id %}"
                             class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
@@ -345,8 +346,7 @@
                                 <span class="text-xs font-bold text-green-700 uppercase">👍 Best</span>
                                 <span class="font-bold text-green-700">{{ poster_highest_rating.score }}/10</span>
                             </div>
-                            <p class="text-xs text-gray-600 italic">"{{ poster_highest_rating.feedback|truncatewords:10
-                                }}"</p>
+                            <p class="text-xs text-gray-600 italic">"{{ poster_highest_rating.feedback|truncatewords:10  }}"</p>
                         </div>
 
                         <!-- Worst Review (only if different) -->
@@ -356,8 +356,7 @@
                                 <span class="text-xs font-bold text-red-700 uppercase">👎 Critical</span>
                                 <span class="font-bold text-red-700">{{ poster_lowest_rating.score }}/10</span>
                             </div>
-                            <p class="text-xs text-gray-600 italic">"{{ poster_lowest_rating.feedback|truncatewords:10
-                                }}"</p>
+                            <p class="text-xs text-gray-600 italic">"{{ poster_lowest_rating.feedback|truncatewords:10  }}"</p>
                         </div>
                         {% endif %}
                         {% else %}
@@ -390,8 +389,7 @@
                 <i data-lucide="lock" class="w-8 h-8 text-accent"></i>
             </div>
             <h3 class="font-poppins font-semibold text-xl mb-2">Chat is Locked</h3>
-            <p class="text-muted mb-6">To ensure fair transactions, chat is locked until the ₱{{ task.commission_amount
-                }} system fee is paid.
+            <p class="text-muted mb-6">To ensure fair transactions, chat is locked until the ₱{{ task.commission_amount  }} system fee is paid.
             </p>
 
             <div class="space-y-3">
