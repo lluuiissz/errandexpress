@@ -60,3 +60,7 @@ faker==21.0.0
 pytest==7.4.3
 pytest-django==4.7.0
 pytest-cov==4.1.0
+
+# Storage
+django-storages==1.14.2
+boto3==1.33.13
