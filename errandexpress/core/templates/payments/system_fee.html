@@ -1,134 +1,245 @@
 {% extends 'base_complete.html' %}
+{% load static %}
 
 {% block title %}Unlock Chat - ErrandExpress{% endblock %}
 
-{% block content %}
-{% load static %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
-    <div class="max-w-2xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <div
-                class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-4">
-                <i data-lucide="unlock" class="w-8 h-8 text-white"></i>
-            </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Unlock Chat</h1>
-            <p class="text-gray-600">Pay the 10% system fee to enable unlimited messaging for this task</p>
-        </div>
+{% block extra_css %}
+<style>
+    /* Premium Animations & Glassmorphism */
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
 
-        <!-- Main Card -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <!-- Task Info Section -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200">
+        50% {
+            transform: translateY(-10px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .glass-input {
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        transition: all 0.3s ease;
+    }
+
+    .glass-input:focus {
+        background: rgba(255, 255, 255, 1);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div
+    class="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 py-12 px-4 relative overflow-hidden flex items-center justify-center">
+
+    <!-- Decorative Elements -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div class="absolute top-[10%] left-[10%] w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-[20%] right-[10%] w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"
+            style="animation-delay: 2s;"></div>
+    </div>
+
+    <div class="max-w-5xl w-full grid lg:grid-cols-2 gap-8 items-start relative z-10">
+
+        <!-- Left Column: Requirements & Info -->
+        <div class="text-white lg:sticky lg:top-8 pt-4">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-sm font-semibold mb-6 border border-white/10 shadow-lg hover:bg-white/20 transition-all cursor-default">
+                <i data-lucide="lock" class="w-4 h-4 text-emerald-300"></i>
+                <span>Secure Gateway</span>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight drop-shadow-md">
+                Unlock Unlimited <br>
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-100">Messaging</span>
+            </h1>
+
+            <p class="text-indigo-100 text-lg mb-8 leading-relaxed max-w-lg">
+                Pay the small <strong>10% system fee</strong> to instantly unlock chat with your task doer. Secure your
+                transaction and coordinate freely.
+            </p>
+
+            <!-- Task Card Mini -->
+            <div
+                class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 group">
                 <div class="flex items-start gap-4">
                     <div
-                        class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-                        {{ task.title|first|upper }}
+                        class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 border border-white/10 group-hover:scale-110 transition-transform duration-300">
+                        <span class="text-xl font-bold">{{ task.title|first|upper }}</span>
                     </div>
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-900 mb-1">{{ task.title }}</h3>
-                        <div class="flex items-center gap-3 text-sm">
-                            <span
-                                class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
-                                <i data-lucide="tag" class="w-3 h-3"></i>
-                                {{ task.get_category_display }}
-                            </span>
-                            <span class="text-gray-600">{{ task.location }}</span>
+                    <div>
+                        <h3 class="font-bold text-lg mb-1">{{ task.title }}</h3>
+                        <div class="flex items-center gap-4 text-sm text-indigo-200">
+                            <span class="flex items-center gap-1.5"><i data-lucide="tag" class="w-3.5 h-3.5"></i> {{ task.get_category_display }}</span>
+                            <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> {{ task.location }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Payment Section -->
-            <div class="p-6 space-y-6">
-                <!-- Price Breakdown -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <span class="text-gray-700 font-medium">System Fee</span>
-                        <span class="text-2xl font-bold text-gray-900">₱{{ system_fee }}</span>
+            <div class="mt-8 space-y-4">
+                <div class="flex items-center gap-3 text-indigo-100">
+                    <div
+                        class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 shrink-0">
+                        <i data-lucide="check" class="w-5 h-5"></i>
                     </div>
-                    <p class="text-xs text-gray-600 text-center">One-time payment to unlock unlimited messaging</p>
+                    <span>Instant chat unlock</span>
                 </div>
-
-                <!-- Benefits -->
-                <div class="bg-blue-50 rounded-xl p-4 space-y-2">
-                    <p class="text-sm font-semibold text-gray-900 mb-3">✨ What You Get:</p>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2 text-sm text-gray-700">
-                            <i data-lucide="check" class="w-4 h-4 text-green-600 flex-shrink-0"></i>
-                            <span>Unlimited messages with task doer</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-700">
-                            <i data-lucide="check" class="w-4 h-4 text-green-600 flex-shrink-0"></i>
-                            <span>Real-time chat notifications</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-700">
-                            <i data-lucide="check" class="w-4 h-4 text-green-600 flex-shrink-0"></i>
-                            <span>Secure communication</span>
-                        </div>
+                <div class="flex items-center gap-3 text-indigo-100">
+                    <div
+                        class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 shrink-0">
+                        <i data-lucide="check" class="w-5 h-5"></i>
                     </div>
+                    <span>Secure payment processing</span>
                 </div>
-
-                <!-- Payment Method -->
-                <form method="post" class="space-y-4">
-                    {% csrf_token %}
-
-                    <div class="space-y-3">
-                        <label
-                            class="flex items-center p-4 border-2 border-blue-500 bg-blue-50 rounded-xl cursor-pointer transition-all">
-                            <input type="radio" name="payment_method" value="gcash" checked
-                                class="w-4 h-4 text-blue-600">
-                            <div class="ml-3 flex-1">
-                                <p class="font-semibold text-gray-900">GCash</p>
-                                <p class="text-xs text-gray-600">Instant payment via GCash</p>
-                            </div>
-                            <i data-lucide="smartphone" class="w-5 h-5 text-blue-600"></i>
-                        </label>
-
-                        <label
-                            class="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50">
-                            <input type="radio" name="payment_method" value="card" class="w-4 h-4 text-blue-600">
-                            <div class="ml-3 flex-1">
-                                <p class="font-semibold text-gray-900">Credit/Debit Card</p>
-                                <p class="text-xs text-gray-600">Visa, Mastercard, or other cards</p>
-                            </div>
-                            <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
-                        </label>
+                <div class="flex items-center gap-3 text-indigo-100">
+                    <div
+                        class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 shrink-0">
+                        <i data-lucide="check" class="w-5 h-5"></i>
                     </div>
-
-                    <!-- Action Buttons -->
-                    <div class="space-y-3 pt-4">
-                        <button type="submit"
-                            class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                            <i data-lucide="credit-card" class="w-5 h-5"></i>
-                            <span>Pay ₱{{ system_fee }}</span>
-                        </button>
-                        <a href="{% url 'messages_chat' task.id %}"
-                            class="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium text-center">
-                            Back to Chat
-                        </a>
-                    </div>
-                </form>
-
-                <!-- Security Info -->
-                <div class="border-t border-gray-200 pt-4">
-                    <div class="flex items-start gap-2 text-xs text-gray-600">
-                        <i data-lucide="shield-check" class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5"></i>
-                        <p>Your payment is secured by <strong>PayMongo</strong>. We never store your card details.</p>
-                    </div>
+                    <span>24/7 Support assistance</span>
                 </div>
             </div>
         </div>
 
-        <!-- Info Banner -->
-        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p class="text-sm text-blue-900">
-                <strong>💡 Tip:</strong> After payment, you'll have unlimited messaging for this task. The task doer
-                will be notified immediately.
-            </p>
+        <!-- Right Column: Payment Form -->
+        <div class="glass-card rounded-3xl p-6 md:p-8 animate-float shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Payment Details</h2>
+                <div class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold border border-blue-100">
+                    System Fee
+                </div>
+            </div>
+
+            <!-- Amount Display -->
+            <div
+                class="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-6 mb-8 border border-slate-200 relative overflow-hidden group">
+                <div
+                    class="absolute right-0 top-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors">
+                </div>
+                <div class="relative z-10 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium mb-1">Total Amount</p>
+                        <p class="text-3xl font-black text-gray-900 tracking-tight">₱{{ system_fee }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600">
+                        <i data-lucide="credit-card" class="w-6 h-6"></i>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="space-y-5">
+                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">Your Information</h3>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Full Name</label>
+                            <div class="relative group">
+                                <i data-lucide="user"
+                                    class="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <input type="text" name="fullname" required
+                                    class="glass-input w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none placeholder:text-gray-400 font-medium text-gray-800"
+                                    placeholder="e.g. Juan Dela Cruz">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Phone Number</label>
+                            <div class="relative group">
+                                <i data-lucide="phone"
+                                    class="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <input type="tel" name="phone" required
+                                    class="glass-input w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none placeholder:text-gray-400 font-medium text-gray-800"
+                                    placeholder="0912 345 6789">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Email Address</label>
+                            <div class="relative group">
+                                <i data-lucide="mail"
+                                    class="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <input type="email" name="email" required
+                                    class="glass-input w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none placeholder:text-gray-400 font-medium text-gray-800"
+                                    placeholder="juan@example.com">
+                            </div>
+                        </div>
+
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5 ml-1">GCash Number</label>
+                            <div class="relative group">
+                                <i data-lucide="smartphone"
+                                    class="absolute left-4 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                                <input type="tel" name="gcash_number" required
+                                    class="glass-input w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none placeholder:text-gray-400 font-medium text-gray-800"
+                                    placeholder="0912 345 6789">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Payment
+                        Method</label>
+                    <button type="submit" name="payment_method" value="gcash"
+                        class="relative w-full text-left group transition-all duration-200 focus:outline-none">
+                        <div
+                            class="flex items-center p-4 border border-gray-200 rounded-xl bg-white hover:border-blue-500 hover:shadow-lg transition-all active:scale-[0.99] group-hover:bg-blue-50/30">
+                            <div
+                                class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mr-4 shrink-0 group-hover:scale-110 transition-transform">
+                                <i data-lucide="smartphone" class="w-6 h-6"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="font-bold text-gray-900 group-hover:text-blue-700 transition-colors">Pay via
+                                    GCash</div>
+                                <div class="text-xs text-gray-500">Instant verification • Zero additional fees</div>
+                            </div>
+                            <div
+                                class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="pt-4 text-center">
+                    <a href="{% url 'messages_chat' task.id %}"
+                        class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Cancel and return to messages
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<script src="{% static 'js/paymongo-live.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
 {% endblock %}

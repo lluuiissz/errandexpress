@@ -3,443 +3,315 @@
 
 {% block title %}Edit Task - ErrandExpress{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* Optimized form styles - minimal !important usage */
-    .form-section {
-        background: white;
-        border-radius: 1rem;
-        padding: 2.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f3f4f6;
-        margin-bottom: 2rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        display: block;
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.75rem;
-    }
-
-    /* Optimized form inputs - no !important */
-    input[type="text"],
-    input[type="email"],
-    input[type="number"],
-    input[type="date"],
-    input[type="datetime-local"],
-    select,
-    textarea {
-        width: 100%;
-        padding: 1rem 1.25rem;
-        font-size: 1rem;
-        border-radius: 0.5rem;
-        border: 1px solid #d1d5db;
-        transition: border-color 0.15s ease;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-        border-color: #3b82f6;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    textarea {
-        min-height: 120px;
-        resize: vertical;
-    }
-
-    select {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.75rem center;
-        background-repeat: no-repeat;
-        background-size: 1.25em 1.25em;
-        padding-right: 2.5rem;
-    }
-
-    /* Mobile responsive */
-    @media (max-width: 640px) {
-        .form-section {
-            padding: 1.5rem;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        input[type="date"],
-        input[type="datetime-local"],
-        select,
-        textarea {
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-        }
-
-        textarea {
-            min-height: 100px;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="min-h-screen bg-bg pb-20 lg:pb-6">
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                        <i data-lucide="edit-3" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-bold font-poppins">Edit Task</h1>
-                        <p class="text-blue-100 mt-1">Update your task details</p>
-                    </div>
-                </div>
-                <a href="{% url 'task_detail' task.id %}"
-                    class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                    Back to Task
-                </a>
-            </div>
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20 relative overflow-hidden">
+
+    <!-- Decorative Elements -->
+    <div
+        class="absolute top-0 right-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none">
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 relative z-10">
 
-        <!-- Display Django Messages -->
-        {% if messages %}
-        <div class="mb-6 space-y-3">
-            {% for message in messages %}
+        <!-- Header Section -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'task_detail' task.id %}"
+                    class="w-10 h-10 bg-white/60 hover:bg-white backdrop-blur-sm rounded-xl flex items-center justify-center text-slate-500 hover:text-indigo-600 shadow-sm hover:shadow transition-all group">
+                    <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Edit Task</h1>
+                    <p class="text-slate-500 font-medium">Update the details of your request</p>
+                </div>
+            </div>
+
             <div
-                class="{% if message.tags %}{{ message.tags }}{% else %}bg-blue-50 border-2 border-blue-200{% endif %} rounded-xl p-4">
-                <div class="flex items-start gap-3">
-                    <i data-lucide="{% if 'error' in message.tags %}alert-circle{% elif 'success' in message.tags %}check-circle{% else %}info{% endif %}"
-                        class="w-5 h-5 {% if 'error' in message.tags %}text-red-600{% elif 'success' in message.tags %}text-green-600{% else %}text-blue-600{% endif %} mt-0.5 flex-shrink-0"></i>
+                class="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-50/50 rounded-lg border border-indigo-100/50">
+                <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                <span class="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Editing Mode</span>
+            </div>
+        </div>
+
+        <div class="grid xl:grid-cols-3 gap-8 items-start">
+
+            <!-- Left Column: Edit Form -->
+            <div class="xl:col-span-2 space-y-6">
+
+                <!-- Display Messages -->
+                {% if messages %}
+                <div class="space-y-3">
+                    {% for message in messages %}
+                    <div
+                        class="bg-indigo-50/80 backdrop-blur border border-indigo-200 text-indigo-800 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm">
+                        <i data-lucide="info" class="w-5 h-5 mt-0.5 shrink-0"></i>
+                        <p class="font-medium">{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                <div
+                    class="bg-red-50/80 backdrop-blur border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm">
+                    <i data-lucide="alert-circle" class="w-5 h-5 mt-0.5 shrink-0"></i>
                     <div>
-                        <p
-                            class="{% if 'error' in message.tags %}text-red-700{% elif 'success' in message.tags %}text-green-700{% else %}text-blue-700{% endif %} font-medium">
-                            {{ message }}</p>
+                        <h4 class="font-bold">Please correct the errors below:</h4>
+                        <ul class="list-disc list-inside text-sm mt-1">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+                {% endif %}
 
-        <!-- Display Form Errors -->
-        {% if form.non_field_errors %}
-        <div class="mb-6 bg-red-50 border-2 border-red-200 rounded-xl p-4">
-            <div class="flex items-start gap-3">
-                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"></i>
-                <div>
-                    <h3 class="font-semibold text-red-800 mb-2">Form Errors</h3>
-                    <ul class="text-sm text-red-700 space-y-1">
-                        {% for error in form.non_field_errors %}
-                        <li>• {{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <div class="grid xl:grid-cols-4 gap-8">
-            <!-- Main Form -->
-            <div class="xl:col-span-3">
-                <form method="POST" class="space-y-8">
+                <form method="POST" class="space-y-6" id="editTaskForm">
                     {% csrf_token %}
 
-                    <!-- Task Details Section -->
-                    <div class="form-section">
-                        <div class="flex items-center gap-3 mb-8">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                    <!-- Main Details Card -->
+                    <div
+                        class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-inner">
+                                <i data-lucide="file-edit" class="w-5 h-5"></i>
                             </div>
-                            <h2 class="text-2xl font-bold">Task Details</h2>
+                            <h2 class="text-xl font-bold text-slate-900">Task Information</h2>
                         </div>
 
-                        <!-- Title -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i data-lucide="heading-2" class="w-4 h-4 inline mr-2"></i>
-                                What do you need help with?
-                            </label>
-                            {{ form.title }}
-                            {% if form.title.errors %}
-                            <div class="mt-2 text-sm text-red-600">
-                                {% for error in form.title.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Description -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i data-lucide="align-left" class="w-4 h-4 inline mr-2"></i>
-                                Detailed Description
-                            </label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                            <div class="mt-2 text-sm text-red-600">
-                                {% for error in form.description.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <p class="text-sm text-gray-600 mt-2">Be specific about what needs to be done</p>
-                        </div>
-
-                        <!-- Category & Tags -->
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i data-lucide="tag" class="w-4 h-4 inline mr-2"></i>
-                                    Category
-                                </label>
-                                {{ form.category }}
-                                {% if form.category.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.category.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
+                        <div class="space-y-6">
+                            <!-- Title -->
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Title</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i data-lucide="heading-2" class="w-5 h-5 text-slate-400"></i>
+                                    </div>
+                                    {{ form.title }}
                                 </div>
+                                {% if form.title.errors %}
+                                <p class="text-sm text-red-600 flex items-center gap-1"><i data-lucide="alert-circle"
+                                        class="w-3 h-3"></i> {{ form.title.errors.0 }}</p>
                                 {% endif %}
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i data-lucide="tags" class="w-4 h-4 inline mr-2"></i>
-                                    Tags
-                                </label>
-                                {{ form.tags }}
-                                {% if form.tags.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.tags.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
+                            <!-- Description -->
+                            <div class="space-y-2">
+                                <label
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider">Description</label>
+                                <div class="relative">
+                                    {{ form.description }}
                                 </div>
+                                {% if form.description.errors %}
+                                <p class="text-sm text-red-600 flex items-center gap-1"><i data-lucide="alert-circle"
+                                        class="w-3 h-3"></i> {{ form.description.errors.0 }}</p>
                                 {% endif %}
-                                <p class="text-sm text-gray-600 mt-2">e.g., urgent, easy, typing</p>
+                                <p class="text-xs text-slate-500">Provide clear instructions for the best results.</p>
+                            </div>
+
+                            <!-- Category & Tags -->
+                            <div class="grid sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-sm font-bold text-slate-700 uppercase tracking-wider">Category</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="layout-grid" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.category }}
+                                    </div>
+                                    {% if form.category.errors %}
+                                    <p class="text-sm text-red-600">{{ form.category.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-sm font-bold text-slate-700 uppercase tracking-wider">Tags</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="tags" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.tags }}
+                                    </div>
+                                    {% if form.tags.errors %}
+                                    <p class="text-sm text-red-600">{{ form.tags.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Requirements & Location Section -->
-                    <div class="form-section">
-                        <div class="flex items-center gap-3 mb-8">
-                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <i data-lucide="list-checks" class="w-5 h-5 text-purple-600"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold">Requirements & Location</h2>
-                        </div>
-
-                        <!-- Requirements -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i data-lucide="clipboard-list" class="w-4 h-4 inline mr-2"></i>
-                                Special Requirements
-                            </label>
-                            {{ form.requirements }}
-                            {% if form.requirements.errors %}
-                            <div class="mt-2 text-sm text-red-600">
-                                {% for error in form.requirements.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <p class="text-sm text-gray-600 mt-2">Qualifications, skills, or specific instructions</p>
-                        </div>
-
-                        <!-- Location & Campus Location -->
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i data-lucide="building" class="w-4 h-4 inline mr-2"></i>
-                                    Campus Location
-                                </label>
-                                {{ form.campus_location }}
-                                {% if form.campus_location.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.campus_location.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
+                    <!-- Requirements & Payment Card -->
+                    <div
+                        class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40">
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- Left: Requirements -->
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div
+                                        class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                                        <i data-lucide="list-checks" class="w-4 h-4"></i>
+                                    </div>
+                                    <h2 class="text-lg font-bold text-slate-900">Requirements</h2>
                                 </div>
-                                {% endif %}
-                                <p class="text-sm text-gray-600 mt-2">Select your campus</p>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Special
+                                        Instructions</label>
+                                    {{ form.requirements }}
+                                    {% if form.requirements.errors %}
+                                    <p class="text-sm text-red-600">{{ form.requirements.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-wider">Campus</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="building-2" class="w-4 h-4 text-slate-400"></i>
+                                        </div>
+                                        {{ form.campus_location }}
+                                    </div>
+                                    {% if form.campus_location.errors %}
+                                    <p class="text-sm text-red-600">{{ form.campus_location.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Specific
+                                        Location</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+                                        </div>
+                                        {{ form.location }}
+                                    </div>
+                                    {% if form.location.errors %}
+                                    <p class="text-sm text-red-600">{{ form.location.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i data-lucide="map-pin" class="w-4 h-4 inline mr-2"></i>
-                                    Specific Location / Venue
-                                </label>
-                                {{ form.location }}
-                                {% if form.location.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.location.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
+                            <!-- Right: Payment & Deadline -->
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div
+                                        class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                        <i data-lucide="banknote" class="w-4 h-4"></i>
+                                    </div>
+                                    <h2 class="text-lg font-bold text-slate-900">Payment & Time</h2>
                                 </div>
-                                {% endif %}
-                                <p class="text-sm text-gray-600 mt-2">e.g. Room 305, Library, or "Online"</p>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Offer
+                                        Amount (₱)</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-slate-500 font-bold">₱</span>
+                                        </div>
+                                        {{ form.price }}
+                                    </div>
+                                    {% if form.price.errors %}
+                                    <p class="text-sm text-red-600">{{ form.price.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Payment
+                                        Method</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="credit-card" class="w-4 h-4 text-slate-400"></i>
+                                        </div>
+                                        {{ form.payment_method }}
+                                    </div>
+                                    {% if form.payment_method.errors %}
+                                    <p class="text-sm text-red-600">{{ form.payment_method.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-xs font-bold text-slate-500 uppercase tracking-wider">Deadline</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="calendar-clock" class="w-4 h-4 text-slate-400"></i>
+                                        </div>
+                                        {{ form.deadline }}
+                                    </div>
+                                    {% if form.deadline.errors %}
+                                    <p class="text-sm text-red-600">{{ form.deadline.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Payment Section -->
-                    <div class="form-section">
-                        <div class="flex items-center gap-3 mb-8">
-                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i data-lucide="credit-card" class="w-5 h-5 text-green-600"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold">Payment Details</h2>
-                        </div>
-
-                        <!-- Price & Payment Method -->
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i data-lucide="peso-sign" class="w-4 h-4 inline mr-2"></i>
-                                    How much will you pay?
-                                </label>
-                                {{ form.price }}
-                                {% if form.price.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.price.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                                <p class="text-sm text-gray-600 mt-2">Minimum ₱10</p>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">
-                                    <i data-lucide="wallet" class="w-4 h-4 inline mr-2"></i>
-                                    Payment Method
-                                </label>
-                                {{ form.payment_method }}
-                                {% if form.payment_method.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.payment_method.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Deadline Section -->
-                    <div class="form-section">
-                        <div class="flex items-center gap-3 mb-8">
-                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                <i data-lucide="calendar" class="w-5 h-5 text-red-600"></i>
-                            </div>
-                            <h2 class="text-2xl font-bold">When do you need this done?</h2>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i data-lucide="clock" class="w-4 h-4 inline mr-2"></i>
-                                Deadline
-                            </label>
-                            {{ form.deadline }}
-                            {% if form.deadline.errors %}
-                            <div class="mt-2 text-sm text-red-600">
-                                {% for error in form.deadline.errors %}
-                                <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            <p class="text-sm text-gray-600 mt-2">Must be in the future</p>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="flex gap-4">
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-4 pt-4">
                         <button type="submit"
-                            class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg">
+                            class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-lg">
                             <i data-lucide="save" class="w-5 h-5"></i>
                             Save Changes
                         </button>
                         <a href="{% url 'task_detail' task.id %}"
-                            class="flex-1 bg-gray-200 text-gray-800 px-8 py-4 rounded-xl font-bold hover:bg-gray-300 transition-all flex items-center justify-center gap-2 text-lg">
-                            <i data-lucide="x" class="w-5 h-5"></i>
+                            class="px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2">
                             Cancel
                         </a>
-                    </div>
-
-                    <!-- Info Box -->
-                    <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                        <div class="flex gap-3">
-                            <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
-                            <div>
-                                <p class="text-blue-900 font-medium">Note:</p>
-                                <p class="text-blue-800 text-sm mt-1">You can only edit tasks that are still open. Once
-                                    a doer has accepted the task, you won't be able to make changes.</p>
-                            </div>
-                        </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Sidebar -->
-            <div class="xl:col-span-1">
-                <!-- Task Summary -->
-                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 sticky top-24">
-                    <h3 class="text-xl font-bold mb-6">Current Task</h3>
+            <!-- Right Column: Context/Preview -->
+            <div class="hidden xl:block xl:col-span-1">
+                <div class="sticky top-24 space-y-6">
+                    <!-- Task Status Card -->
+                    <div
+                        class="bg-white/60 backdrop-blur-xl border border-white/50 rounded-3xl p-6 shadow-lg shadow-slate-200/40">
+                        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Original Task</h3>
 
-                    <div class="space-y-4">
-                        <div>
-                            <p class="text-sm text-gray-600">Title</p>
-                            <p class="font-semibold text-gray-900 truncate">{{ task.title }}</p>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-xs text-slate-400 mb-1">Status</div>
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
+                                    {{ task.get_status_display }}
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-1">Posted</div>
+                                    <div class="text-sm font-semibold text-slate-700">{{ task.created_at|date:"M d" }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-1">Views</div>
+                                    <div class="text-sm font-semibold text-slate-700">--</div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100">
+                                <p class="text-xs text-slate-500 leading-relaxed">
+                                    <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
+                                    You can only edit tasks that have not yet been accepted by a runner.
+                                </p>
+                            </div>
                         </div>
-
-                        <div>
-                            <p class="text-sm text-gray-600">Status</p>
-                            <span
-                                class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium capitalize">{{
-                                task.status }}</span>
-                        </div>
-
-                        <div>
-                            <p class="text-sm text-gray-600">Price</p>
-                            <p class="text-2xl font-bold text-green-600">₱{{ task.price }}</p>
-                        </div>
-
-                        <div class="pt-4 border-t border-gray-200">
-                            <p class="text-sm text-gray-600">Posted</p>
-                            <p class="text-sm text-gray-900">{{ task.created_at|date:"M d, Y H:i" }}</p>
-                        </div>
-
-                        <div>
-                            <p class="text-sm text-gray-600">Deadline</p>
-                            <p class="text-sm text-gray-900">{{ task.deadline|date:"M d, Y H:i" }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Quick Links -->
-                    <div class="mt-6 pt-6 border-t border-gray-200 space-y-2">
-                        <a href="{% url 'task_detail' task.id %}"
-                            class="block w-full text-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
-                            View Task
-                        </a>
-                        <a href="{% url 'browse_tasks' %}"
-                            class="block w-full text-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
-                            Back to Browse
-                        </a>
                     </div>
                 </div>
             </div>
@@ -447,12 +319,64 @@
     </div>
 </div>
 
-{% block extra_scripts %}
-<script>
-    // Initialize icons using the base template's lucide instance
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
+<style>
+    /* Premium Form Inputs - High specificity to override forms.py and Bootstrap/Tailwind defaults */
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    select,
+    textarea,
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.875rem 1rem 0.875rem 3rem !important;
+        /* Large Left padding for icons */
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 0.95rem;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        height: auto !important;
+        /* Override fixed height from forms.py */
+        line-height: 1.5;
     }
+
+    input:focus,
+    select:focus,
+    textarea:focus,
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #ffffff;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+
+    /* Requirement/Description Textareas need less left padding if no icon inside */
+    textarea,
+    textarea.form-control {
+        padding-left: 1rem !important;
+        /* Reset specific padding for textareas */
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    /* Fix for select arrow */
+    select,
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25em 1.25em;
+        padding-right: 2.5rem !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+    });
 </script>
-{% endblock %}
 {% endblock %}

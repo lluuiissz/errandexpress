@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from core import views
+from core import api_views  # Import API views directly
 from django.views.generic import RedirectView, TemplateView
 
 urlpatterns = [
@@ -25,6 +26,7 @@ urlpatterns = [
     # Task Management
     path('tasks/create/', views.create_task, name='create_task'),
     path('tasks/<uuid:task_id>/edit/', views.edit_task, name='edit_task'),
+    path('tasks/<uuid:task_id>/delete/', views.delete_task, name='delete_task'),
     path('tasks/browse/', views.browse_tasks, name='browse_tasks'),
     path('tasks/<uuid:task_id>/', views.task_detail, name='task_detail'),
     path('tasks/<uuid:task_id>/accept/', views.accept_task, name='accept_task'),
@@ -47,9 +49,10 @@ urlpatterns = [
     path('payment/system-fee/<uuid:task_id>/', views.payment_system_fee, name='payment_system_fee'),
     path('payment/commission/<uuid:task_id>/', views.payment_commission, name='payment_commission'),
     path('payment/commission-process/<uuid:task_id>/', views.payment_commission_process, name='payment_commission_process'),
+
     path('payment/task-doer/<uuid:task_id>/', views.payment_task_doer, name='payment_task_doer'),
     path('payment/task-doer-process/<uuid:task_id>/', views.payment_task_doer_process, name='payment_task_doer_process'),
-    path('payment/task-doer-card/<uuid:task_id>/', views.payment_task_doer_card, name='payment_task_doer_card'),
+
     path('payment/gcash-form/<uuid:task_id>/', views.gcash_payment_form, name='gcash_payment_form'),
     path('payment/gcash-process/<uuid:task_id>/', views.gcash_payment_process, name='gcash_payment_process'),
     path('payment/success/', views.payment_success, name='payment_success'),
@@ -60,13 +63,17 @@ urlpatterns = [
     # Payment APIs
     path('api/create-payment-intent/', views.create_payment_intent, name='create_payment_intent'),
     path('api/create-gcash-payment/', views.create_gcash_payment, name='create_gcash_payment'),
-    path('api/create-card-payment/', views.create_card_payment, name='create_card_payment'),
+
     path('api/create-task-payment-intent/', views.create_task_payment_intent, name='create_task_payment_intent'),
     path('api/create-task-gcash-payment/', views.create_task_gcash_payment, name='create_task_gcash_payment'),
-    path('api/create-task-card-payment/', views.create_task_card_payment, name='create_task_card_payment'),
+
+
+    # Mock Payment Interfaces (User Requested)
+    path('mock/gcash/<uuid:task_id>/type=<str:payment_type>/', views.mock_gcash_view, name='mock_gcash'),
+
     
     # Card Payment Form
-    path('payments/card-form/<uuid:task_id>/', views.card_payment_form, name='card_payment_form'),
+
     
     # Rating and Reporting
     path('rate/<uuid:task_id>/<uuid:user_id>/', views.rate_user, name='rate_user'),
@@ -124,6 +131,12 @@ urlpatterns = [
     path('api/check-payment-status/', views.api_check_payment_status, name='api_check_payment_status'),
     path('api/create-task-payment-intent/', views.create_task_payment_intent, name='create_task_payment_intent'),
     path('api/create-task-gcash-payment/', views.create_task_gcash_payment, name='create_task_gcash_payment'),
+    
+    # Prioritization API Endpoints (Phase 2)
+    path('api/tasks/prioritized/', api_views.api_get_prioritized_tasks, name='api_get_prioritized_tasks'),
+    path('api/tasks/auto-assign/', api_views.api_auto_assign_task, name='api_auto_assign_task_v2'),
+    path('api/tasks/schedule/', api_views.api_get_scheduled_tasks, name='api_get_scheduled_tasks'),
+    path('api/tasks/reschedule/', api_views.api_reschedule_task, name='api_reschedule_task'),
     
     # Admin Dashboard
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),

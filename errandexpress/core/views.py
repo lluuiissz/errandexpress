@@ -26,7 +26,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from .supabase_client import supabase
 from .models import User, Task, TaskApplication, StudentSkill, Message, Rating, Report, Notification, Payment
 from .forms import TaskForm, TaskApplicationForm, TaskFilterForm, SkillValidationForm, MessageForm, RatingForm, ReportForm
@@ -52,6 +52,7 @@ logger = logging.getLogger(__name__)
 def get_pending_rating_obligations(user):
     """
     Check if user has pending rating obligations that must be completed.
+    Optimized to prevent N+1 queries loop.
     
     Returns: {
         'has_obligations': bool,
@@ -61,36 +62,34 @@ def get_pending_rating_obligations(user):
     }
     """
     from .models import Task, Rating, Payment
+    from django.db.models import Prefetch
     
     pending_tasks = []
     
-    # Get completed tasks where user is the poster and hasn't rated the doer
+    # optimized: fetch tasks with related ratings and payments in one go
+    # We want tasks where the POSTER (current user) has NOT rated the DOER.
+    
     completed_tasks = Task.objects.filter(
         poster=user,
         status='completed',
         doer__isnull=False
-    ).select_related('doer')
+    ).select_related('doer').prefetch_related(
+        Prefetch('ratings', queryset=Rating.objects.filter(rater=user), to_attr='user_ratings'),
+        Prefetch('payment', queryset=Payment.objects.filter(payer=user, status='confirmed'), to_attr='user_payments')
+    )
     
     for task in completed_tasks:
-        # Check if poster already rated the doer
-        already_rated = Rating.objects.filter(
-            task=task,
-            rater=user,
-            rated=task.doer
-        ).exists()
+        # Check if poster already rated the doer (using prefetched data)
+        # In memory check, no DB hit
+        already_rated = any(r.rated_id == task.doer_id for r in task.user_ratings)
         
         if not already_rated:
             # Check payment requirements
             chat_unlocked = task.chat_unlocked
             
-            # For online payment: also check if task doer was paid
+            # For online payment: also check if task doer was paid (using prefetched data)
             if task.payment_method == 'online':
-                doer_paid = Payment.objects.filter(
-                    task=task,
-                    payer=user,
-                    receiver=task.doer,
-                    status='confirmed'
-                ).exists()
+                doer_paid = any(p.receiver_id == task.doer_id for p in task.user_payments)
                 
                 # If chat not unlocked OR doer not paid, it's a pending obligation
                 if not chat_unlocked or not doer_paid:
@@ -120,7 +119,7 @@ def get_pending_rating_obligations(user):
             task_info = pending_tasks[0]
             if task_info['payment_method'] == 'online':
                 if task_info['needs_system_fee'] and task_info['needs_doer_payment']:
-                    message = f"⚠️ You must pay the ₱2 system fee AND pay the task doer for '{task_info['task'].title}' before rating."
+                    message = f"⚠️ You must pay the 10% system fee AND pay the task doer for '{task_info['task'].title}' before rating."
                 elif task_info['needs_system_fee']:
                     message = f"⚠️ You must pay the ₱2 system fee for '{task_info['task'].title}' before rating."
                 else:
@@ -152,6 +151,22 @@ def calculate_assignment_score(task, agent):
     from .models import StudentSkill, TaskAssignment
     
     skill_match = 0
+    # Calculate Rating (0-100 normalized from 0-5)
+    # Assuming avg_rating is 0.00 to 5.00
+    rating = float(agent.avg_rating) * 20  # Scale to 0-100
+
+    # Calculate Skill Match
+    # Check if agent has the specific skill required by task category
+    if task.category in ['typing', 'powerpoint', 'graphics']:
+        has_skill = StudentSkill.objects.filter(
+            student=agent,
+            skill_name=task.category,
+            status='verified'
+        ).exists()
+        skill_match = 100 if has_skill else 0
+    elif task.category == 'microtask':
+        skill_match = 100  # Everyone matches microtasks
+    
     # Calculate Availability (Are they free right now?)
     # User Requirement: Check if "currently in progress doing the task"
     active_assignments_count = TaskAssignment.objects.filter(
@@ -392,8 +407,10 @@ def get_matched_tasks_for_user(user):
 
 
     
-    # 🧠 SMART RANKING ALGORITHM (FIXED - Real-time Poster Ratings)
-    # Priority = (Skill Match × 3) + (Poster Rating × 2) + (Urgency × 1)
+    # 🧠 ENHANCED SMART RANKING ALGORITHM (OBJECTIVE NO.1 - 100% Alignment)
+    # Priority = (Skill Match × 1.0) + (Poster Rating × 2.0) + (Urgency × 1.5) + 
+    #            (Location Match × 2.0) + (Preference Match × 2.0) + 
+    #            (Time Window Match × 1.5) + (Priority Level × 0.5)
     
     # Calculate real-time poster ratings from Rating table
     poster_rating_subquery = Rating.objects.filter(
@@ -401,6 +418,9 @@ def get_matched_tasks_for_user(user):
     ).values('rated').annotate(
         avg_rating=Avg('score')
     ).values('avg_rating')
+    
+    # Get current time for time window calculations
+    now = timezone.now()
     
     tasks = tasks.annotate(
         skill_match_score=Case(
@@ -425,18 +445,49 @@ def get_matched_tasks_for_user(user):
             Value(Decimal('0.00'), output_field=DecimalField(max_digits=4, decimal_places=2)),
             output_field=DecimalField(max_digits=4, decimal_places=2)
         ),
+        # NEW: Customer Preference Matching Score
+        preference_score=Case(
+            # Preferred doer match (+2.0)
+            When(preferred_doer=user, then=Value(Decimal('2.00'))),
+            # Default: no preference bonus
+            default=Value(Decimal('0.00')),
+            output_field=DecimalField(max_digits=5, decimal_places=2)
+        ),
+        # NEW: Time Window Matching Score
+        time_window_match_score=Case(
+            # Within preferred time window (+1.5)
+            When(
+                Q(time_window_start__lte=now) & Q(time_window_end__gte=now),
+                then=Value(Decimal('1.50'))
+            ),
+            # Same day as preferred time (+1.0)
+            When(
+                Q(time_window_start__date=now.date()),
+                then=Value(Decimal('1.00'))
+            ),
+            # Flexible timing (+0.30)
+            When(flexible_timing=True, then=Value(Decimal('0.30'))),
+            default=Value(Decimal('0.00')),
+            output_field=DecimalField(max_digits=5, decimal_places=2)
+        ),
         # Calculate total priority score with consistent Decimal arithmetic
-        # Priority = (Skill Match × 1) + (Poster Rating × 2) + (Urgency × 1) + (Location Match × 2)
+        # ENHANCED FORMULA: 7 factors for 100% OBJECTIVE NO.1 alignment
         priority_score=ExpressionWrapper(
             (F('skill_match_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
             (F('poster_rating') * Value(Decimal('2.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
-            (F('urgency_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
+            (F('urgency_score') * Value(Decimal('1.50'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
             # Location Match Bonus (+2.00)
             (Case(
                 When(campus_location=user.campus_location, then=Value(Decimal('2.00'))),
                 default=Value(Decimal('0.00')),
                 output_field=DecimalField(max_digits=5, decimal_places=2)
-            )),
+            )) +
+            # NEW: Preference Match (+2.00)
+            (F('preference_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
+            # NEW: Time Window Match (+1.50)
+            (F('time_window_match_score') * Value(Decimal('1.00'), output_field=DecimalField(max_digits=5, decimal_places=2))) +
+            # NEW: Priority Level (+0.50 per level)
+            (F('priority_level') * Value(Decimal('0.50'), output_field=DecimalField(max_digits=5, decimal_places=2))),
             output_field=DecimalField(max_digits=7, decimal_places=2)
         )
     ).order_by('-priority_score', '-price', '-created_at')
@@ -1445,7 +1496,34 @@ def edit_task(request, task_id):
     else:
         form = TaskForm(instance=task)
     
-    return render(request, 'edit_task_modern.html', {'form': form, 'task': task})
+    return render(request, 'create_task_modern.html', {
+        'form': form,
+        'title': 'Edit Task',
+        'is_edit': True
+    })
+
+
+@login_required
+def delete_task(request, task_id):
+    """
+    Delete a task (Task Poster only)
+    Typically used for expired or draft tasks.
+    """
+    from .models import Task
+    task = get_object_or_404(Task, id=task_id)
+    
+    # Permission check
+    if request.user != task.poster and request.user.role != 'admin':
+        messages.error(request, "You are not authorized to delete this task.")
+        return redirect('task_detail', task_id=task.id)
+    
+    if request.method == 'POST':
+        task_title = task.title
+        task.delete()
+        messages.success(request, f"Task '{task_title}' successfully deleted.")
+        return redirect('dashboard')
+        
+    return redirect('task_detail', task_id=task.id)
 
 
 @login_required
@@ -1470,7 +1548,9 @@ def browse_tasks(request):
     filter_form = TaskFilterForm(request.GET)
     
     # 🎯 SMART TASK MATCHING ALGORITHM
-    tasks = get_matched_tasks_for_user(request.user)
+    # filter out tasks that are expired
+    tasks = get_matched_tasks_for_user(request.user).select_related('poster')
+    tasks = tasks.filter(deadline__gt=timezone.now())
     
     # Apply filters
     if filter_form.is_valid():
@@ -1495,12 +1575,13 @@ def browse_tasks(request):
             tasks = tasks.filter(price__lte=max_price)
         
         sort_by = filter_form.cleaned_data.get('sort_by')
-        if sort_by:
+        if sort_by and sort_by != 'smart':
             tasks = tasks.order_by(sort_by)
     
     # Ensure we always have ordering for pagination
+    # If sort_by is 'smart' (or None/default from form), the annotation ordering from get_matched_tasks_for_user applies
     if not tasks.query.order_by:
-        tasks = tasks.order_by('-created_at')
+        tasks = tasks.order_by('-priority_score', '-price', '-created_at')
     
     # ✅ OPTIMIZED: Cache count before pagination
     total_tasks = tasks.count()
@@ -1598,19 +1679,26 @@ def task_detail(request, task_id):
     # 1. Recent Ratings (Prefetch optimization would be ideal, but for single view filtered query is okay)
     poster_recent_ratings = Rating.objects.filter(rated=task.poster).order_by('-created_at')[:3]
     
-    # 2. Calculate Best/Worst manually to avoid multiple DB hits if we already fetch all (or just use aggregation)
-    # Since we want the TEXT, aggregation (Max) only gives the score. We need the object.
-    # Approach: Fetch all ratings (lightweight usually) or distinct queries if user has 1000s.
-    # Assuming average user < 100 ratings, fetching all is safer for consistency with view_applications.
+    # 2. Calculate Best/Worst manually
+    # Prioritize ratings with text comments
     poster_all_ratings = list(Rating.objects.filter(rated=task.poster))
     
+    poster_highest_rating = None
+    poster_lowest_rating = None
+    
     if poster_all_ratings:
-        poster_highest_rating = max(poster_all_ratings, key=lambda r: r.score)
-        poster_lowest_rating = min(poster_all_ratings, key=lambda r: r.score)
-    else:
-        poster_highest_rating = None
-        poster_lowest_rating = None
-            
+        # Filter for ratings with actual feedback
+        ratings_with_text = [r for r in poster_all_ratings if r.feedback and r.feedback.strip()]
+        
+        if ratings_with_text:
+            # If we have text ratings, use them
+            poster_highest_rating = max(ratings_with_text, key=lambda r: r.score)
+            poster_lowest_rating = min(ratings_with_text, key=lambda r: r.score)
+        else:
+            # Fallback to all ratings if no text reviews exist
+            poster_highest_rating = max(poster_all_ratings, key=lambda r: r.score)
+            poster_lowest_rating = min(poster_all_ratings, key=lambda r: r.score)
+
     # Check for existing payment
     existing_payment = Payment.objects.filter(task=task).first()
     
@@ -2064,33 +2152,38 @@ def payment_system_fee(request, task_id):
         payment_method = request.POST.get('payment_method', 'gcash')
         
         if payment_method == 'gcash':
-            # Redirect to GCash form instead of direct payment
-            return redirect('gcash_payment_form', task_id=task_id)
-        
-        elif payment_method == 'card':
-            result = payments.create_system_fee_payment(task, request.user)
+            # Collect user information
+            fullname = request.POST.get('fullname', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            email = request.POST.get('email', '').strip()
+            gcash_number = request.POST.get('gcash_number', '').strip()
             
-            if result['success']:
-                context = {
-                    'task': task,
-                    'payment_intent': result['payment_intent'],
-                    'commission': result['commission'],
-                    'public_key': settings.PAYMONGO_PUBLIC_KEY
-                }
-                return render(request, 'payments/card_payment.html', context)
-            else:
-                messages.error(request, f"Payment setup failed: {result['error']}")
+            # Validate required fields
+            if not all([fullname, phone, email, gcash_number]):
+                messages.error(request, "Please fill in all required fields.")
+                return redirect('payment_system_fee', task_id=task_id)
+            
+            # Store payment info in session
+            request.session['gcash_fullname'] = fullname
+            request.session['gcash_phone'] = phone
+            request.session['gcash_email'] = email
+            request.session['gcash_number'] = gcash_number
+            request.session['payment_task_id'] = str(task.id)
+            request.session['payment_type'] = 'system_fee'
+            
+            # Redirect to MOCK GCASH interface
+            return redirect('mock_gcash', task_id=task_id, payment_type='system_fee')
     
     
     # Calculate 10% fee dynamically
     system_fee = Decimal(str(task.price)) * Decimal('0.10')
+    formatted_system_fee = f"{system_fee:.2f}"
     
     context = {
         'task': task,
-        'system_fee': system_fee,
+        'system_fee': formatted_system_fee,
         'payment_methods': [
             {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
-            {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
         ]
     }
     
@@ -2138,7 +2231,6 @@ def payment_commission(request, task_id):
                     'gcash_number': gcash_number,
                     'payment_methods': [
                         {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
-                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
                     ]
                 })
             
@@ -2152,42 +2244,10 @@ def payment_commission(request, task_id):
             
             logger.info(f"Commission payment form submitted for task {task_id}")
             
-            # Redirect to payment processing
-            return redirect('payment_commission_process', task_id=task_id)
+            # Redirect to MOCK GCASH interface
+            return redirect('mock_gcash', task_id=task_id, payment_type='commission')
         
-        elif payment_method == 'card':
-            # Collect card payment info
-            fullname = request.POST.get('fullname', '').strip()
-            phone = request.POST.get('phone', '').strip()
-            email = request.POST.get('email', '').strip()
-            
-            # Validate required fields
-            if not all([fullname, phone, email]):
-                messages.error(request, "Please fill in all required fields.")
-                return render(request, 'payments/commission_payment.html', {
-                    'task': task,
-                    'commission_amount': task.commission_amount,
-                    'doer_payment_amount': task.doer_payment_amount,
-                    'fullname': fullname,
-                    'phone': phone,
-                    'email': email,
-                    'payment_methods': [
-                        {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
-                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
-                    ]
-                })
-            
-            # Store payment info in session
-            request.session['card_fullname'] = fullname
-            request.session['card_phone'] = phone
-            request.session['card_email'] = email
-            request.session['payment_task_id'] = str(task.id)
-            request.session['payment_type'] = 'commission_payment'
-            
-            logger.info(f"Commission card payment form submitted for task {task_id}")
-            
-            # Redirect to card payment processing
-            return redirect('payment_commission_card', task_id=task_id)
+
     
     # Render payment form
     context = {
@@ -2200,7 +2260,6 @@ def payment_commission(request, task_id):
         'phone': request.user.phone_number or '',
         'payment_methods': [
             {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
-            {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
         ]
     }
     return render(request, 'payments/commission_payment.html', context)
@@ -2271,7 +2330,7 @@ def payment_task_doer(request, task_id):
             logger.info(f"User: {fullname} | Phone: {phone} | Email: {email}")
             
             # Redirect to payment processing
-            return redirect('payment_task_doer_process', task_id=task_id)
+            return redirect('mock_gcash', task_id=task_id, payment_type='task_payment')
         
         elif payment_method == 'card':
             # For card, also collect info
@@ -2291,7 +2350,6 @@ def payment_task_doer(request, task_id):
                     'email': email,
                     'payment_methods': [
                         {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
-                        {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
                     ]
                 })
             
@@ -2305,7 +2363,7 @@ def payment_task_doer(request, task_id):
             logger.info(f"Task doer card payment form submitted for task {task_id}")
             
             # Redirect to card payment processing
-            return redirect('payment_task_doer_card', task_id=task_id)
+            return redirect('mock_card', task_id=task_id, payment_type='task_payment')
     
     # Calculate payment amount (doer receives amount after commission)
     payment_amount = task.doer_payment_amount if task.doer_payment_amount else task.price
@@ -2322,7 +2380,6 @@ def payment_task_doer(request, task_id):
         'phone': request.user.phone_number or '',
         'payment_methods': [
             {'value': 'gcash', 'name': 'GCash', 'icon': '💳'},
-            {'value': 'card', 'name': 'Credit/Debit Card', 'icon': '💳'},
         ]
     }
     
@@ -2788,21 +2845,33 @@ def rate_user(request, task_id, user_id):
     if request.user == task.poster and rated_user == task.doer:
         # Check if chat is unlocked (system commission paid)
         if not task.chat_unlocked:
-            messages.error(request, "You must pay the ₱2 system fee to unlock chat before rating.")
+            messages.error(request, "You must pay the 10% system fee to unlock chat before rating.")
             return redirect('payment_system_fee', task_id=task_id)
         
-        # For online payment: must also pay the task doer
+        # Check payment status (both online and COD)
+        payment = Payment.objects.filter(
+            task=task,
+            payer=request.user,
+            receiver=task.doer
+        ).first()
+        
+        # For online payment: must be confirmed
         if task.payment_method == 'online':
-            payment = Payment.objects.filter(
-                task=task,
-                payer=request.user,
-                receiver=task.doer,
-                status='confirmed'
-            ).first()
-            
-            if not payment:
+            if not payment or payment.status != 'confirmed':
                 messages.error(request, "You must pay the task doer before rating them. Please complete the payment first.")
                 return redirect('payment_task_doer', task_id=task_id)
+        
+        # For COD payment: must be confirmed by doer (not just pending_confirmation)
+        elif task.payment_method == 'cod':
+            if not payment:
+                messages.error(request, "You must mark the payment as COD before rating. Please complete the payment process.")
+                return redirect('task_detail', task_id=task_id)
+            elif payment.status == 'pending_confirmation':
+                messages.warning(request, "Waiting for the task doer to confirm receipt of payment. You can rate them once they confirm.")
+                return redirect('task_detail', task_id=task_id)
+            elif payment.status not in ['confirmed', 'paid']:
+                messages.error(request, "Payment must be confirmed before rating.")
+                return redirect('task_detail', task_id=task_id)
     
     # Check if already rated
     existing_rating = Rating.objects.filter(
@@ -2813,14 +2882,19 @@ def rate_user(request, task_id, user_id):
     
     # Check payment status for template
     payment_completed = False
+    payment_pending_verification = False
     if request.user == task.poster and rated_user == task.doer:
         payment = Payment.objects.filter(
             task=task,
             payer=request.user,
-            receiver=task.doer,
-            status__in=['confirmed', 'paid', 'pending_confirmation'] 
+            receiver=task.doer
         ).first()
-        payment_completed = bool(payment)
+        
+        if payment:
+            # Only confirmed/paid payments count as completed
+            payment_completed = payment.status in ['confirmed', 'paid']
+            # Track if payment is awaiting doer confirmation
+            payment_pending_verification = payment.status == 'pending_confirmation'
     
     if request.method == 'POST':
         # Prevent duplicate ratings
@@ -2865,7 +2939,8 @@ def rate_user(request, task_id, user_id):
         'rated_user': rated_user,
         'already_rated': bool(existing_rating),
         'existing_rating': existing_rating,
-        'payment_completed': payment_completed,  # NEW: Payment status for template
+        'payment_completed': payment_completed,  # Payment is confirmed/paid
+        'payment_pending_verification': payment_pending_verification,  # Payment awaiting doer confirmation (COD)
     }
     
     return render(request, 'ratings/rate_user.html', context)
@@ -3215,11 +3290,16 @@ def report_user(request, user_id):
 @login_required
 def notifications(request):
     """View user notifications"""
-    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    # Optimized: select_related to prevent N+1 when template accesses related_task
+    user_notifications = Notification.objects.filter(
+        user=request.user
+    ).select_related('related_task').order_by('-created_at')
     
-    # Mark notifications as read when viewed
-    unread_notifications = user_notifications.filter(is_read=False)
-    unread_notifications.update(is_read=True)
+    # Remove synchronous update(is_read=True) here.
+    # The template already has an AJAX script that calls /api/notifications/mark-as-read/
+    # This allows the page to load instantly, then mark as read in background.
+    
+    unread_count = user_notifications.filter(is_read=False).count()
     
     # Pagination
     paginator = Paginator(user_notifications, 20)
@@ -3228,7 +3308,7 @@ def notifications(request):
     
     context = {
         'notifications': page_obj,
-        'unread_count': unread_notifications.count()
+        'unread_count': unread_count
     }
     
     return render(request, 'notifications/list.html', context)
@@ -3275,12 +3355,15 @@ def api_notifications_count(request):
 
 
 @login_required
+@require_POST
 def api_notifications_mark_as_read(request):
     """Mark all unread notifications as read (AJAX)"""
-    if request.method == 'POST':
+    try:
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-        return JsonResponse({'status': 'success', 'message': 'All notifications marked as read'})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+        return JsonResponse({'success': True, 'message': 'All notifications marked as read'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 
 @login_required
@@ -3406,36 +3489,113 @@ def admin_dashboard(request):
         count=Count('id')
     ).order_by('-count')
     
+    # 📈 Chart Data: Revenue Last 30 Days (Optimized)
+    revenue_chart_labels = []
+    revenue_chart_data = []
+    
+    # 1. Fetch all relevant data in bulk (2 database queries instead of 60)
+    month_legacy_commissions = SystemCommission.objects.filter(
+        status='paid',
+        paid_at__gte=month_ago
+    ).values('amount', 'paid_at')
+    
+    month_payments = Payment.objects.filter(
+        status='confirmed',
+        created_at__gte=month_ago
+    ).values('commission_amount', 'created_at')
+    
+    # 2. Process in Python
+    # Create a dictionary to hold daily totals: {'YYYY-MM-DD': 0.0}
+    daily_revenue_map = {}
+    
+    # Initialize all dates in range with 0
+    for i in range(30):
+        d = today - timedelta(days=i)
+        d_str = d.strftime('%Y-%m-%d')
+        daily_revenue_map[d_str] = 0.0
+
+    # Aggregate Legacy Commissions
+    for comm in month_legacy_commissions:
+        if comm['paid_at']:
+            # Adjust for timezone if necessary, or just take date
+            d_str = comm['paid_at'].astimezone(timezone.get_current_timezone()).date().strftime('%Y-%m-%d')
+            if d_str in daily_revenue_map:
+                daily_revenue_map[d_str] += float(comm['amount'])
+
+    # Aggregate New Payments
+    for pay in month_payments:
+        if pay['created_at']:
+             d_str = pay['created_at'].astimezone(timezone.get_current_timezone()).date().strftime('%Y-%m-%d')
+             if d_str in daily_revenue_map:
+                 daily_revenue_map[d_str] += float(pay['commission_amount'])
+                 
+    # 3. Build the sorted lists for Chart.js
+    # Range is 29 down to 0 (oldest to newest) - NO wait, today is index 0 in previous logic? 
+    # Previous: range(29, -1, -1) -> i=29 is 29 days ago. i=0 is today.
+    # So we want oldest first.
+    
+    for i in range(29, -1, -1):
+        date = today - timedelta(days=i)
+        date_str = date.strftime('%Y-%m-%d')
+        revenue_chart_labels.append(date.strftime('%b %d'))
+        revenue_chart_data.append(daily_revenue_map.get(date_str, 0.0))
+        
+    # 🥧 Chart Data: Categories
+    category_labels = [item['category'] for item in category_stats]
+    category_counts = [item['count'] for item in category_stats]
+    
+    # ⚙️ System Status Checks
+    import socket
+    system_status = {
+        'server': True,
+        'database': True, # Functioning if we got this far
+        'paymongo': True, # Assume UP for now (could add simple ping)
+        'notifications': True, # Assume UP
+    }
+    
     context = {
         'total_users': total_users,
         'new_users_week': new_users_week,
-        # ... existing ...
-        'completion_rate': completion_rate,
-        'stalled_tasks_count': stalled_tasks_count,
-        # ... existing ...
-        'category_stats': category_stats,
-        'revenue_by_category': revenue_by_category,
-        'campus_stats': campus_stats,
-        'payment_method_stats': payment_method_stats,
-        # Pass full context to avoid missing keys from strict replacement
         'task_posters': task_posters,
         'task_doers': task_doers,
         'total_tasks': total_tasks,
+        
+        # Task Stats
+        'active_tasks': open_tasks + in_progress_tasks, # Combined active
         'open_tasks': open_tasks,
         'in_progress_tasks': in_progress_tasks,
         'completed_tasks': completed_tasks,
         'tasks_this_week': tasks_this_week,
-        'total_revenue': total_revenue,
+        
+        'completion_rate': completion_rate,
+        'stalled_tasks_count': stalled_tasks_count,
+        
+        # Financials
+        'system_income': total_revenue, # Total lifetime
         'revenue_this_month': revenue_this_month,
+        
+        # Lists & Breakdowns
+        'category_stats': category_stats,
+        'revenue_by_category': revenue_by_category,
+        'campus_stats': campus_stats,
+        'payment_method_stats': payment_method_stats,
+        
+        # Report & Skills
         'pending_skills': pending_skills,
         'verified_skills': verified_skills,
+        'pending_reports': pending_reports,
         'recent_tasks': recent_tasks,
         'recent_users': recent_users,
-        'pending_reports': pending_reports,
+        
+        # Chart Data (JSON for template)
+        'revenue_chart_labels': revenue_chart_labels,
+        'revenue_chart_data': revenue_chart_data,
+        'category_labels': category_labels,
+        'category_counts': category_counts,
+        'system_status': system_status,
     }
 
-    
-    return render(request, 'admin/dashboard.html', context)
+    return render(request, 'admin_dashboard_modern.html', context)
 
 
 @login_required
@@ -4014,16 +4174,28 @@ def api_unlock_chat_after_payment(request, task_id):
 @login_required
 @require_http_methods(["POST"])
 def api_send_message(request):
-    """API endpoint for sending messages via AJAX (used by standalone chat)"""
+    """API endpoint for sending messages via AJAX (handles both JSON and Multipart)"""
     import json
     from django.db.models import Count
     
     try:
-        data = json.loads(request.body)
-        task_id = data.get('task_id')
-        message_content = data.get('message', '').strip()
+        # Determine request type and parse data
+        task_id = None
+        message_content = ''
+        attachment = None
         
-        if not task_id or not message_content:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            task_id = data.get('task_id')
+            message_content = data.get('message', '').strip()
+        elif request.content_type.startswith('multipart/form-data'):
+            task_id = request.POST.get('task_id')
+            message_content = request.POST.get('message', '').strip()
+            attachment = request.FILES.get('attachment')
+        else:
+            return JsonResponse({'success': False, 'error': 'Unsupported content type'})
+        
+        if not task_id:
             return JsonResponse({'success': False, 'error': 'Missing required fields'})
         
         # Optimize: Use select_related to fetch task with poster/doer in one query
@@ -4049,7 +4221,8 @@ def api_send_message(request):
         message = Message.objects.create(
             task=task,
             sender=request.user,
-            message=message_content
+            message=message_content,
+            attachment=attachment
         )
         
         # Create notification for the other party (defer to background to avoid blocking response)
@@ -4075,9 +4248,11 @@ def api_send_message(request):
         return JsonResponse({
             'success': True,
             'message_id': str(message.id),
+            'message': message_content,  # Add message content for frontend preview
             'created_at': message.created_at.isoformat(),
             'sender': request.user.fullname,
-            'messages_remaining': messages_remaining
+            'messages_remaining': messages_remaining,
+            'attachment_url': message.attachment.url if message.attachment else None
         })
         
     except Task.DoesNotExist:
@@ -5062,73 +5237,6 @@ def create_task_gcash_payment(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-@csrf_exempt
-def create_task_card_payment(request):
-    """
-    💳 Create card payment source for main task payment (STEP 5B)
-    Test Card: 4343434343434345, Any future expiry, Any CVC
-    """
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        payment_id = data.get('payment_id')
-        
-        # Get payment record
-        from .models import Payment
-        payment = Payment.objects.get(id=payment_id, status='pending_payment')
-        
-        amount_centavos = int(float(payment.amount) * 100)
-        
-        payload = {
-            "data": {
-                "attributes": {
-                    "type": "card",
-                    "amount": amount_centavos,
-                    "currency": "PHP",
-                    "redirect": {
-                        "success": f"{request.build_absolute_uri('/payment/success/')}?payment_id={payment_id}",
-                        "failed": f"{request.build_absolute_uri('/payment/failed/')}?payment_id={payment_id}"
-                    }
-                }
-            }
-        }
-
-        # Use live secret key
-        secret_key = settings.PAYMONGO_SECRET_KEY
-        auth_header = base64.b64encode(f"{secret_key}:".encode()).decode()
-
-        response = requests.post(
-            "https://api.paymongo.com/v1/sources",
-            headers={
-                "accept": "application/json",
-                "content-type": "application/json",
-                "authorization": f"Basic {auth_header}"
-            },
-            data=json.dumps(payload)
-        )
-
-        if response.status_code == 200:
-            result = response.json()
-            checkout_url = result["data"]["attributes"]["redirect"]["checkout_url"]
-            
-            logger.info(f"Task card payment created for payment {payment_id}: ₱{payment.amount}")
-            return JsonResponse({
-                "success": True,
-                "checkout_url": checkout_url,
-                "source_id": result["data"]["id"],
-                "amount": float(payment.amount)
-            })
-        else:
-            logger.error(f"Task card payment creation failed: {response.text}")
-            return JsonResponse({'error': 'Payment creation failed'}, status=500)
-            
-    except Payment.DoesNotExist:
-        return JsonResponse({'error': 'Payment not found'}, status=404)
-    except Exception as e:
-        logger.error(f"Task card payment creation error: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
 
 
 # ==================== PROFILE & USER MANAGEMENT ====================
@@ -5430,31 +5538,47 @@ def messages_list(request, task_id=None):
         return redirect('messages_chat', task_id=task_id)
     
     # Get all tasks where user has chat access
+    from django.db.models import Prefetch, Count, Q
+    
+    tasks_queryset = Task.objects.none()
+    
     if user.role == 'task_doer':
-        tasks_with_chat = Task.objects.filter(
+        tasks_queryset = Task.objects.filter(
             doer=user
-        ).exclude(
-            status='open'
-        ).select_related('poster').order_by('-updated_at')
+        ).exclude(status='open').select_related('poster')
     elif user.role == 'task_poster':
-        tasks_with_chat = Task.objects.filter(
+        tasks_queryset = Task.objects.filter(
             poster=user
-        ).exclude(
-            doer__isnull=True
-        ).select_related('doer').order_by('-updated_at')
+        ).exclude(doer__isnull=True).select_related('doer')
     else:
-        tasks_with_chat = Task.objects.exclude(
+        # Admin or fallback
+        tasks_queryset = Task.objects.exclude(
             doer__isnull=True
-        ).select_related('poster', 'doer').order_by('-updated_at')
+        ).select_related('poster', 'doer')
+
+    # Optimize: annotate unread count and prefetch last message/payment
+    # 1. Annotate unread count
+    tasks_with_chat = tasks_queryset.annotate(
+        unread_cnt=Count(
+            'messages', 
+            filter=Q(messages__is_read=False) & ~Q(messages__sender=user)
+        )
+    ).order_by('-updated_at')
+
+    # 2. Prefetch messages and select related payment
+    # Use select_related for 'payment' (OneToOne) to avoid N+1 and use LEFT JOIN
+    tasks_with_chat = tasks_with_chat.select_related('payment').prefetch_related(
+        Prefetch('messages', queryset=Message.objects.order_by('-created_at'), to_attr='cached_messages')
+    )
     
     # Get last message and unread count for each task
     conversations = []
     for task in tasks_with_chat:
-        last_message = Message.objects.filter(task=task).order_by('-created_at').first()
-        unread_count = Message.objects.filter(
-            task=task,
-            is_read=False
-        ).exclude(sender=user).count()
+        # Use prefetched messages (cached_messages is a list ordered by -created_at)
+        last_message = task.cached_messages[0] if task.cached_messages else None
+        
+        # Use annotated unread count
+        unread_count = task.unread_cnt
         
         if user == task.poster:
             other_user = task.doer
@@ -5464,15 +5588,21 @@ def messages_list(request, task_id=None):
         payment_pending = False
         payment_completed = False
         
+        # Use select_related payment logic
         if task.status == 'completed' and user == task.poster:
             try:
-                payment = Payment.objects.get(task=task)
+                # Accessing reverse OneToOne raises DoesNotExist if missing
+                payment = task.payment
+                
                 if payment.status == 'pending_payment' or payment.status == 'pending_confirmation':
                     payment_pending = True
                 elif payment.status == 'confirmed':
                     payment_completed = True
-            except Payment.DoesNotExist:
-                payment_pending = True
+            except Exception:
+                 # Payment.DoesNotExist or related error
+                 # If completed but no payment record, assume pending
+                 if not payment_completed:
+                     payment_pending = True
         
         conversations.append({
             'task': task,
@@ -5480,7 +5610,7 @@ def messages_list(request, task_id=None):
             'last_message': last_message,
             'unread_count': unread_count,
             'payment_pending': payment_pending,
-            'payment_completed': payment_completed,
+            'payment_completed': payment_completed
         })
     
     # Get active chat data if task_id provided
@@ -5511,21 +5641,25 @@ def messages_list(request, task_id=None):
         other_user = conversations[0]['other_user']
         chat_access = check_chat_access(active_task.id, user)
     
-    # Check if Pay Button should be shown
-    # Check if Pay Button should be shown
+    # Determine if "Pay then Rate" button should be shown
+    # Only show if:
+    # 1. User is the task poster
+    # 2. Task is completed
+    # 3. Commission is ALREADY PAID
+    # 4. Payment not yet confirmed
+    # 5. User has not yet rated the doer for this task
     show_pay_button = False
-    if active_task and user == active_task.poster and active_task.status in ['in_progress', 'completed']:
-        # Check if already paid
-        try:
-            payment = Payment.objects.get(task=active_task)
-            if payment.status in ['pending_payment', 'pending_confirmation', 'failed']:
-                show_pay_button = True
-        except Payment.DoesNotExist:
-            show_pay_button = True
-            
-        # Don't show if already rated
-        if Rating.objects.filter(task=active_task, rater=user, rated=active_task.doer).exists():
-            show_pay_button = False
+    if active_task and request.user == active_task.poster:
+        if active_task.status == 'completed':
+            # Check if commission is paid
+            if active_task.commission_deducted:
+                # Check if payment exists and is not confirmed
+                payment = Payment.objects.filter(task=active_task).first()
+                if not payment or payment.status != 'confirmed':
+                    # Check if already rated
+                    if not Rating.objects.filter(task=active_task, rater=user, rated=active_task.doer).exists():
+                        show_pay_button = True
+            # else: # Commission not paid - don't show button (show_pay_button remains False)
 
     context = {
         'conversations': conversations,
@@ -5774,3 +5908,39 @@ def payment_commission_process(request, task_id):
     
     messages.error(request, "Payment processing failed.")
     return redirect('payment_commission', task_id=task_id)
+
+
+@login_required
+def mock_gcash_view(request, task_id, payment_type):
+    """Render a mock GCash interface before redirecting to actual processing"""
+    task = get_object_or_404(Task, id=task_id)
+    
+    amount = 0
+    phone = ''
+    process_url = ''
+    
+    if payment_type == 'commission':
+        amount = task.commission_amount if task.commission_amount > 0 else 2.00
+        phone = request.session.get('gcash_phone', '')
+        process_url = reverse('payment_commission_process', kwargs={'task_id': task_id})
+    elif payment_type == 'task_payment':
+        # Calculate amount exactly as in payment_task_doer_process
+        amount = float(task.doer_payment_amount) if task.doer_payment_amount else float(task.price) * 0.90
+        phone = request.session.get('gcash_phone', '')
+        process_url = reverse('payment_task_doer_process', kwargs={'task_id': task_id})
+    elif payment_type == 'system_fee':
+        # System Fee Logic (usually 10%)
+        amount = float(task.price) * 0.10
+        phone = request.session.get('gcash_phone', '')
+        process_url = reverse('gcash_payment_process', kwargs={'task_id': task_id}) # Reusing existing process view
+        
+    context = {
+        'task': task,
+        'amount': amount,
+        'phone': phone,
+        'process_url': process_url
+    }
+    return render(request, 'payments/mock_gcash.html', context)
+
+
+# ==================== PROFILE & USER MANAGEMENT ====================

@@ -85,43 +85,38 @@
                             placeholder="your@email.com">
                     </div>
 
-                    <!-- Payment Methods -->
-                    <div class="pt-4">
-                        <h3 class="text-lg font-bold text-gray-900 mb-3">Select Payment Method</h3>
+                    <!-- Payment Methods (Direct Action Buttons) -->
+                    <div class="pt-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Select Method to Pay</h3>
 
-                        {% for method in payment_methods %}
-                        <label
-                            class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition mb-3">
-                            <input type="radio" name="payment_method" value="{{ method.value }}" {{ forloop.first|yesno:"checked," }} class="w-4 h-4 text-blue-600">
-                            <div class="ml-4 flex-grow">
-                                <div class="font-bold text-gray-900">{{ method.name }}</div>
-                                <div class="text-sm text-gray-600">
-                                    {% if method.value == 'gcash' %}
-                                    Pay via GCash - Fast and secure
-                                    {% elif method.value == 'card' %}
-                                    Pay via Credit/Debit Card
-                                    {% endif %}
+                        <div class="grid grid-cols-1 gap-4">
+                            {% for method in payment_methods %}
+                            <button type="submit" name="payment_method" value="{{ method.value }}"
+                                class="relative w-full text-left group transition-all duration-200 focus:outline-none">
+
+                                <div
+                                    class="flex items-center p-4 border-2 border-gray-200 rounded-xl bg-white hover:border-blue-500 hover:shadow-md transition-all active:scale-[0.98]">
+                                    <div class="text-3xl mr-4">{{ method.icon }}</div>
+                                    <div class="flex-grow">
+                                        <div class="font-bold text-gray-900">{{ method.name }}</div>
+                                        <div class="text-sm text-gray-600">
+                                            {% if method.value == 'gcash' %}
+                                            Instant verification • Zero fees
+                                            {% else %}
+                                            Secure encrypted transaction
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                                        <i data-lucide="chevron-right"
+                                            class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+                                    </div>
                                 </div>
-                            </div>
-                            <span class="text-2xl">{{ method.icon }}</span>
-                        </label>
-                        {% endfor %}
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
-
-                    <!-- GCash Number (conditional) -->
-                    <div id="gcash-number-field" class="hidden">
-                        <label class="block text-sm font-bold text-gray-900 mb-2">GCash Number (Optional)</label>
-                        <input type="text" name="gcash_number" value="{{ gcash_number }}"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                            placeholder="09XXXXXXXXX">
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit"
-                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2 mt-6">
-                        <i data-lucide="send" class="w-5 h-5"></i>
-                        Proceed to Payment
-                    </button>
                 </form>
             </div>
 
@@ -154,24 +149,6 @@
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
-    }
-
-    // Show/hide GCash number field based on payment method
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-        radio.addEventListener('change', function () {
-            const gcashField = document.getElementById('gcash-number-field');
-            if (this.value === 'gcash') {
-                gcashField.classList.remove('hidden');
-            } else {
-                gcashField.classList.add('hidden');
-            }
-        });
-    });
-
-    // Initialize on page load
-    const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
-    if (selectedMethod && selectedMethod.value === 'gcash') {
-        document.getElementById('gcash-number-field').classList.remove('hidden');
     }
 </script>
 {% endblock %}

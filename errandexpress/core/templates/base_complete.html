@@ -11,6 +11,12 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 
+    <!-- ✅ PERFORMANCE: Preconnect to CDN domains -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+
     <!-- Tailwind CSS with Fallback -->
     <script src="https://cdn.tailwindcss.com" onerror="loadTailwindFallback()"></script>
     <script>
@@ -34,7 +40,8 @@
         rel="stylesheet">
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+    <!-- ✅ PERFORMANCE: Defer non-critical icon library -->
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" defer></script>
     <script>
         // Initialize Lucide icons when library loads
         function initLucideIcons() {
@@ -428,6 +435,15 @@
                         Post Task
                     </a>
                     {% endif %}
+                    <!-- Notification Bell -->
+                    <a href="{% url 'notifications' %}"
+                        class="relative p-2 text-gray-400 hover:text-gray-500 transition-colors">
+                        <i data-lucide="bell" class="w-6 h-6"></i>
+                        {% if user_stats.unread_notifications_count > 0 %}
+                        <span id="desktop-notification-dot"
+                            class="absolute top-1.5 right-1.5 block h-2.5 w-2.5 rounded-full ring-2 ring-white bg-red-500 transform scale-100 animate-pulse"></span>
+                        {% endif %}
+                    </a>
 
                     <!-- Profile Menu -->
                     <div class="relative ml-2">
@@ -529,18 +545,19 @@
                         </div>
                     </div>
 
-                    <!-- Quick Stats Mini -->
-                    <div class="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2 text-center">
-                        <div>
-                            <div class="text-lg font-bold text-primary">{{ user_stats.tasks_completed }}</div>
-                            <div class="text-xs text-gray-500">Tasks</div>
+                    <!-- Campus Location -->
+                    <div class="mt-3 pt-3 border-t border-gray-100 text-center">
+                        {% if user.campus_location %}
+                        <div
+                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100">
+                            <i data-lucide="map-pin" class="w-3 h-3"></i>
+                            {{ user.get_campus_location_display }}
                         </div>
-                        <div>
-                            <div class="text-lg font-bold text-green-600">₱{{ user_stats.total_earned|floatformat:0 }}
-                            </div>
-                            <div class="text-xs text-gray-500">{% if user.role == 'task_doer' %}Earned{% else %}Spent{% endif %}</div>
-
+                        {% else %}
+                        <div class="text-xs text-gray-400">
+                            No campus set
                         </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -575,7 +592,8 @@
                             <span>Notifications</span>
                             {% if user_stats.unread_notifications_count > 0 %}
                             <span id="sidebar-notification-badge"
-                                class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">{{ user_stats.unread_notifications_count }}</span>
+                                class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                                {{ user_stats.unread_notifications_count }}</span>
                             {% endif %}
                         </a>
 
@@ -590,8 +608,8 @@
                             <i data-lucide="message-circle" class="w-5 h-5"></i>
                             <span>Messages</span>
                             {% if user_stats.unread_messages_count > 0 %}
-                            <span
-                                class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">{{ user_stats.unread_messages_count }}</span>
+                            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                                {{ user_stats.unread_messages_count }}</span>
                             {% endif %}
                         </a>
 
@@ -678,10 +696,7 @@
     <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize Lucide icons
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+
 
             // Initialize AOS
             if (typeof AOS !== 'undefined') {

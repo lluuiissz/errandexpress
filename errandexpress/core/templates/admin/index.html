@@ -17,10 +17,52 @@
         margin-bottom: 2rem;
     }
 
+    /* Analytics Banner */
+    .analytics-banner {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%};
+        border-radius: 1rem;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    .analytics-content h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .analytics-content p {
+        opacity: 0.9;
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .analytics-btn {
+        background: white;
+        color: #4f46e5;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .analytics-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        color: #4338ca;
+    }
+
     /* App List */
     .app-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr}};
         gap: 1.5rem;
         margin-top: 2rem;
     }
@@ -116,136 +158,6 @@
     .changelink::before {
         content: '✎ ';
     }
-
-    /* Recent Actions */
-    #recent-actions-module {
-        grid-column: 1 / -1;
-    }
-
-    #recent-actions-module h2 {
-        color: var(--gray-800);
-    }
-
-    #recent-actions-module ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    #recent-actions-module li {
-        padding: 0.75rem;
-        border-bottom: 1px solid var(--gray-200);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    #recent-actions-module li:last-child {
-        border-bottom: none;
-    }
-
-    #recent-actions-module a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    #recent-actions-module a:hover {
-        text-decoration: underline;
-    }
-
-    .mini {
-        color: var(--gray-500);
-        font-size: 0.85rem;
-    }
-
-    /* Stats Cards */
-    .admin-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: var(--radius-md);
-        padding: 1.5rem;
-        box-shadow: var(--shadow-md);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        transition: all var(--transition-base);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lg);
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: var(--gray-500);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--gray-900);
-        line-height: 1;
-        margin-top: 0.5rem;
-    }
-
-    /* Animation */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .module {
-        animation: fadeInUp 0.5s ease-out backwards;
-    }
-
-    .module:nth-child(1) {
-        animation-delay: 0.1s;
-    }
-
-    .module:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .module:nth-child(3) {
-        animation-delay: 0.3s;
-    }
-
-    .module:nth-child(4) {
-        animation-delay: 0.4s;
-    }
-
-    @media (max-width: 768px) {
-        .app-list {
-            grid-template-columns: 1fr;
-        }
-
-        .admin-stats {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 480px) {
-        .admin-stats {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 {% endblock %}
 
@@ -258,6 +170,15 @@
 {% block content %}
 <div class="dashboard-title">Dashboard Overview</div>
 <div class="dashboard-subtitle">Manage your ErrandExpress platform</div>
+
+<!-- Link to New Analytics Dashboard -->
+<div class="analytics-banner">
+    <div class="analytics-content">
+        <h2>🚀 System Management Panel</h2>
+        <p>View real-time revenue charts, user statistics, and system health status.</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="analytics-btn">View Analytics Dashboard →</a>
+</div>
 
 <div id="content-main">
     {% if app_list %}

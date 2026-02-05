@@ -74,7 +74,7 @@
         
         /* Gradient text */
         .gradient-text {
-            background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
+            background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%};
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -216,21 +216,7 @@
             }
             
             // Animate in
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 100);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
-        }
-        
-        // Show Django messages as toasts
-        document.addEventListener('DOMContentLoaded', function() {
-            {% for message in messages %}
-                showToast('{{ message|escapejs }}', '{{ message.tags }}');
+            setTimeout(() => { toast.classList.remove('translate-x-full'); }, 100); // Auto remove after 5 seconds setTimeout(() => { toast.classList.add('translate-x-full'); setTimeout(() => toast.remove(), 300); }, 5000); } // Show Django messages as toasts document.addEventListener('DOMContentLoaded', function() { {% for message in messages %} showToast('{{ message|escapejs }}', '{{ message.tags }}');
             {% endfor %}
         });
     </script>

@@ -175,6 +175,46 @@ class Task(models.Model):
     commission_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Commission amount (10% of task price)')
     doer_payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Amount to pay doer (price - commission)')
     
+    # Time Windows & Scheduling (OBJECTIVE NO.1 Enhancement)
+    time_window_start = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Preferred start time for task execution"
+    )
+    time_window_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Preferred end time for task execution"
+    )
+    preferred_delivery_time = models.TimeField(
+        null=True,
+        blank=True,
+        help_text="Specific preferred time of day"
+    )
+    flexible_timing = models.BooleanField(
+        default=False,
+        help_text="Allow flexible scheduling outside preferred window"
+    )
+    
+    # Customer Preferences (OBJECTIVE NO.1 Enhancement)
+    preferred_doer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='preferred_tasks',
+        help_text="Preferred doer for this task"
+    )
+    auto_assign_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable automatic assignment based on matching algorithm"
+    )
+    priority_level = models.IntegerField(
+        default=3,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Priority level (1=Low, 3=Normal, 5=Urgent)"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
@@ -186,6 +226,14 @@ class Task(models.Model):
     def get_tags_list(self):
         """Return tags as a list"""
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+
+    @property
+    def is_expired(self):
+        """Check if task is past its deadline"""
+        from django.utils import timezone
+        if not self.deadline:
+            return False
+        return timezone.now() > self.deadline
 
     @property
     def is_new(self):
@@ -201,6 +249,10 @@ class Task(models.Model):
             models.Index(fields=['doer']),
             models.Index(fields=['created_at']),
             models.Index(fields=['status', 'created_at']),
+            # Performance indexes for prioritization algorithm
+            models.Index(fields=['priority_level', '-created_at']),
+            models.Index(fields=['time_window_start', 'time_window_end']),
+            models.Index(fields=['preferred_doer', 'status']),
         ]
 
 

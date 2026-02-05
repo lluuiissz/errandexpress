@@ -11,7 +11,9 @@ class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
         fields = ['title', 'description', 'category', 'tags', 'price', 'payment_method', 
-                 'deadline', 'location', 'campus_location', 'requirements']
+                 'deadline', 'location', 'campus_location', 'requirements',
+                 'time_window_start', 'time_window_end', 'preferred_delivery_time',
+                 'flexible_timing', 'preferred_doer', 'priority_level']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -61,8 +63,66 @@ class TaskForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Special requirements or qualifications needed'
+            }),
+            'time_window_start': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
+            'time_window_end': forms.DateTimeInput(attrs={
+                'class': 'form-control',
+                'type': 'datetime-local',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
+            'preferred_delivery_time': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
+            'flexible_timing': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
+                'style': 'width: 20px; height: 20px;'
+            }),
+            'preferred_doer': forms.Select(attrs={
+                'class': 'form-select',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
+            }),
+            'priority_level': forms.Select(attrs={
+                'class': 'form-select',
+                'style': 'height: 40px; width: 100%; font-size: 14px;'
             })
         }
+    
+    PRIORITY_CHOICES = [
+        (1, '⭐ Low Priority'),
+        (2, '⭐⭐ Below Normal'),
+        (3, '⭐⭐⭐ Normal'),
+        (4, '⭐⭐⭐⭐ High Priority'),
+        (5, '⭐⭐⭐⭐⭐ Urgent')
+    ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Populate preferred_doer choices with task doers
+        from .models import User
+        self.fields['preferred_doer'].queryset = User.objects.filter(
+            role='task_doer', is_active=True
+        ).order_by('fullname')
+        self.fields['preferred_doer'].required = False
+        self.fields['preferred_doer'].empty_label = "No preference"
+        
+        # Set priority level choices and widget
+        self.fields['priority_level'].widget.choices = self.PRIORITY_CHOICES
+        self.fields['priority_level'].choices = self.PRIORITY_CHOICES
+        self.fields['priority_level'].initial = 3
+        self.fields['priority_level'].required = False
+        
+        # Make new fields optional
+        self.fields['time_window_start'].required = False
+        self.fields['time_window_end'].required = False
+        self.fields['preferred_delivery_time'].required = False
+        self.fields['flexible_timing'].required = False
+    
     
     def clean_deadline(self):
         deadline = self.cleaned_data.get('deadline')
@@ -88,7 +148,8 @@ class TaskApplicationForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 5,
                 'placeholder': 'Explain why you are the best fit for this task. Mention your relevant experience and skills...',
-                'required': True
+                'required': True,
+                'maxlength': '50'
             }),
             'proposed_timeline': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -98,8 +159,8 @@ class TaskApplicationForm(forms.ModelForm):
     
     def clean_cover_letter(self):
         cover_letter = self.cleaned_data.get('cover_letter')
-        if cover_letter and len(cover_letter) < 50:
-            raise ValidationError("Please provide a more detailed explanation (at least 50 characters).")
+        if cover_letter and len(cover_letter) > 50:
+            raise ValidationError("Please keep your explanation short (maximum 50 characters).")
         return cover_letter
 
 
@@ -107,8 +168,9 @@ class TaskFilterForm(forms.Form):
     """Form for filtering and searching tasks"""
     
     SORT_CHOICES = [
-        ('created_at', 'Newest First'),
-        ('-created_at', 'Oldest First'),
+        ('smart', '✨ Recommended'),
+        ('-created_at', 'Newest First'),
+        ('created_at', 'Oldest First'),
         ('price', 'Price: Low to High'),
         ('-price', 'Price: High to Low'),
         ('deadline', 'Deadline: Soonest First'),
@@ -149,7 +211,7 @@ class TaskFilterForm(forms.Form):
     sort_by = forms.ChoiceField(
         choices=SORT_CHOICES,
         required=False,
-        initial='created_at',
+        initial='smart',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 

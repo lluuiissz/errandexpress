@@ -1,322 +1,411 @@
-{% extends 'base_complete.html' %}
+{% extends "base_complete.html" %}
+{% load static %}
 
 {% block title %}My Profile - ErrandExpress{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50">
-    <!-- Header with Cover -->
-    <div class="bg-gradient-to-r from-primary to-indigo-600 h-48"></div>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20 relative overflow-hidden">
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32">
+    <!-- Decorative Elements -->
+    <div
+        class="absolute top-0 right-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none">
+    </div>
 
-        <!-- Profile Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 relative z-10">
 
+        <!-- Header Profile Card -->
+        <div
+            class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40 mb-8 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            </div>
+
+            <div class="relative flex flex-col md:flex-row items-center md:items-start gap-8">
                 <!-- Profile Picture -->
-                <div class="relative">
+                <div class="relative group/avatar">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full opacity-75 blur transition-opacity duration-500 group-hover/avatar:opacity-100">
+                    </div>
                     {% if user.profile_picture %}
                     <img src="{{ user.profile_picture.url }}" alt="{{ user.fullname }}"
-                        class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl">
+                        class="relative w-32 h-32 rounded-full object-cover border-4 border-white shadow-md">
                     {% else %}
                     <div
-                        class="w-32 h-32 bg-gradient-to-br from-primary to-indigo-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl">
-                        <span class="text-white font-bold text-5xl">{{ user.fullname.0|upper }}</span>
+                        class="relative w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center border-4 border-white shadow-md">
+                        <span class="text-4xl font-black text-indigo-500">{{ user.fullname.0|upper }}</span>
                     </div>
                     {% endif %}
 
                     <button onclick="showProfilePictureModal()"
-                        class="absolute bottom-0 right-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-all shadow-lg hover:scale-110">
-                        <i data-lucide="camera" class="w-5 h-5"></i>
+                        class="absolute bottom-1 right-1 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-all shadow-lg hover:scale-110 z-10 border-2 border-white">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
                     </button>
                 </div>
 
                 <!-- User Info -->
-                <div class="flex-1 text-center md:text-left">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ user.fullname }}</h1>
-                    <p class="text-gray-600 mb-3">@{{ user.username }} • {{ user.email }}</p>
-
-                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
+                <div class="flex-1 text-center md:text-left space-y-2">
+                    <div class="flex flex-col md:flex-row items-center md:items-end gap-3 mb-1">
+                        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ user.fullname }}</h1>
                         <span
-                            class="px-4 py-2 rounded-full text-sm font-semibold {% if user.role == 'task_poster' %}bg-blue-100 text-blue-800{% elif user.role == 'task_doer' %}bg-green-100 text-green-800{% else %}bg-purple-100 text-purple-800{% endif %}">
-                            <i data-lucide="{% if user.role == 'task_poster' %}briefcase{% elif user.role == 'task_doer' %}user-check{% else %}shield{% endif %}"
-                                class="w-4 h-4 inline"></i>
-                            {% if user.role == 'task_poster' %}Task Poster{% elif user.role == 'task_doer' %}Task Doer{% else %}{{ user.role|title }}{% endif %}
+                            class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider {% if user.role == 'task_poster' %}bg-blue-100 text-blue-700{% elif user.role == 'task_doer' %}bg-emerald-100 text-emerald-700{% else %}bg-purple-100 text-purple-700{% endif %}">
+                            {{ user.get_role_display }}
                         </span>
-                        <span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm">
-                            <i data-lucide="calendar" class="w-4 h-4 inline"></i>
+                    </div>
+
+                    <p class="text-slate-500 font-medium flex items-center justify-center md:justify-start gap-2">
+                        <span>@{{ user.username }}</span>
+                        <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                        <span>{{ user.email }}</span>
+                    </p>
+
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
+                        <div
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100/50 text-slate-600 text-sm font-medium border border-slate-200/50">
+                            <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
                             Joined {{ user.date_joined|date:"M Y" }}
-                        </span>
+                        </div>
                         {% if user.campus_location %}
-                        <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm">
-                            <i data-lucide="map-pin" class="w-4 h-4 inline"></i>
+                        <div
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50/50 text-indigo-600 text-sm font-medium border border-indigo-100/50">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-indigo-500"></i>
                             {{ user.get_campus_location_display }}
-                        </span>
+                        </div>
                         {% endif %}
                     </div>
 
                     {% if user.bio %}
-                    <p class="text-gray-700 mb-4">{{ user.bio }}</p>
+                    <p class="text-slate-600 max-w-2xl mt-4 leading-relaxed">{{ user.bio }}</p>
                     {% else %}
-                    <p class="text-gray-400 italic mb-4">No bio added yet</p>
+                    <p class="text-slate-400 italic mt-4 flex items-center justify-center md:justify-start gap-2">
+                        <i data-lucide="pen-line" class="w-4 h-4"></i>
+                        No bio added yet. Tell us about yourself!
+                    </p>
                     {% endif %}
-
-                    <button onclick="toggleEdit('personal-info')"
-                        class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <i data-lucide="edit-2" class="w-4 h-4 inline"></i>
-                        Edit Profile
-                    </button>
                 </div>
 
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-blue-50 rounded-xl p-4 text-center border-2 border-blue-100">
-                        <p class="text-3xl font-bold text-primary">{{ tasks_completed }}</p>
-                        <p class="text-sm text-gray-600">Tasks Done</p>
+                <!-- Quick Stats -->
+                <div class="flex flex-row md:flex-col gap-4 min-w-[140px]">
+                    <div
+                        class="bg-indigo-50/50 rounded-2xl p-4 text-center border border-indigo-100 hover:bg-indigo-50 transition-colors">
+                        <p class="text-2xl font-black text-indigo-600">{{ tasks_completed }}</p>
+                        <p class="text-xs font-bold text-indigo-400 uppercase tracking-wide">Tasks Done</p>
                     </div>
-                    <div class="bg-green-50 rounded-xl p-4 text-center border-2 border-green-100">
-                        <p class="text-3xl font-bold text-green-600">{% if user_rating > 0 %}{{ user_rating }}{% else %}N/A{% endif %}</p>
-                        <p class="text-sm text-gray-600">Rating</p>
+                    <div
+                        class="bg-emerald-50/50 rounded-2xl p-4 text-center border border-emerald-100 hover:bg-emerald-50 transition-colors">
+                        <p class="text-2xl font-black text-emerald-600">
+                            {% if user_rating > 0 %}
+                            {{ user_rating }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </p>
+                        <p class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Rating</p>
                     </div>
-                    {% if user.role == 'task_doer' %}
-                    <div class="bg-purple-50 rounded-xl p-4 text-center border-2 border-purple-100 col-span-2">
-                        <p class="text-3xl font-bold text-purple-600">₱{{ total_earned|floatformat:2 }}</p>
-                        <p class="text-sm text-gray-600">Total Earned</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-8">
 
-            <!-- Main Content -->
+            <!-- Left Column: Settings -->
             <div class="lg:col-span-2 space-y-8">
 
-                <!-- Edit Profile Form (Hidden by default) -->
-                <div id="personal-info-form" class="hidden bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
-                    <h3 class="text-xl font-bold text-gray-900 mb-6">Edit Profile Information</h3>
+                <!-- Personal Info Form -->
+                <div
+                    class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-lg shadow-slate-200/40 relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm">
+                                <i data-lucide="user-cog" class="w-5 h-5"></i>
+                            </div>
+                            Personal Information
+                        </h2>
+                        <button onclick="toggleEdit('personal-info')"
+                            class="text-sm font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            Edit Details
+                        </button>
+                    </div>
 
-                    <form method="POST" action="{% url 'profile' %}">
+                    <!-- Display Mode -->
+                    <div id="personal-info-display" class="space-y-6">
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Full
+                                    Name</label>
+                                <p class="text-lg font-medium text-slate-900">{{ user.fullname }}</p>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</label>
+                                <p class="text-lg font-medium text-slate-900">{{ user.phone_number|default:"Not set" }}
+                                </p>
+                            </div>
+                            <div class="space-y-2 sm:col-span-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Campus
+                                    Location</label>
+                                <p class="text-lg font-medium text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="building" class="w-4 h-4 text-slate-400"></i>
+                                    {{ user.get_campus_location_display|default:"Not set" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode (Hidden) -->
+                    <form id="personal-info-form" method="POST" action="{% url 'profile' %}"
+                        class="hidden space-y-6 mt-6 pt-6 border-t border-slate-100">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="update_profile">
 
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                                <input type="text" name="fullname" value="{{ user.fullname }}" required
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all">
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700">Full Name</label>
+                                <input type="text" name="fullname" value="{{ user.fullname }}"
+                                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-900">
                             </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700">Phone Number</label>
+                                <input type="tel" name="phone" value="{{ user.phone_number|default:'' }}"
+                                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-900">
+                            </div>
+                            <div class="space-y-2 sm:col-span-2">
+                                <label class="text-sm font-bold text-slate-700">Campus Location</label>
+                                <div class="relative">
+                                    <i data-lucide="chevron-down"
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none"></i>
+                                    <select name="campus_location"
+                                        class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-900 appearance-none">
+                                        <option value="">Select your campus college...</option>
+                                        {% for value, name in CAMPUS_CHOICES %}
+                                        {% if user.campus_location == value %}
+                                        <option value="{{ value }}" selected>{{ name }}</option>
+                                        {% else %}
+                                        <option value="{{ value }}">{{ name }}</option>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="space-y-2 sm:col-span-2">
+                                <label class="text-sm font-bold text-slate-700">Bio</label>
+                                <textarea name="bio" rows="3"
+                                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-900 resize-none">{{ user.bio|default:'' }}</textarea>
+                            </div>
+                        </div>
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                                <input type="tel" name="phone" value="{{ user.phone|default:'' }}"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Campus Location (Home
-                                    Base)</label>
-                                <select name="campus_location"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all">
-                                    <option value="">Select your campus college...</option>
-                                    {% for value, name in CAMPUS_CHOICES %}
-                                    <option value="{{ value }}" {% if user.campus_location == value %}selected {% endif %}>
-                                        {{ name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Bio</label>
-                                <textarea name="bio" rows="4"
-                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all">{{ user.bio|default:'' }}</textarea>
-                                <p class="text-sm text-gray-500 mt-1">Tell others about yourself and your experience</p>
-                            </div>
-
-                            <div class="flex items-center gap-3 pt-4">
-                                <button type="submit"
-                                    class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                                    <i data-lucide="save" class="w-4 h-4 inline"></i>
-                                    Save Changes
-                                </button>
-                                <button type="button" onclick="toggleEdit('personal-info')"
-                                    class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors">
-                                    Cancel
-                                </button>
-                            </div>
+                        <div class="flex items-center gap-3">
+                            <button type="submit"
+                                class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Save
+                                Changes</button>
+                            <button type="button" onclick="toggleEdit('personal-info')"
+                                class="px-6 py-3 bg-white text-slate-600 font-bold rounded-xl hover:bg-slate-50 border border-slate-200 transition-colors">Cancel</button>
                         </div>
                     </form>
                 </div>
 
                 <!-- Recent Activity -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <i data-lucide="activity" class="w-6 h-6 text-primary"></i>
-                            Recent Activity
-                        </h3>
-                    </div>
+                <div
+                    class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-lg shadow-slate-200/40">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shadow-sm">
+                            <i data-lucide="activity" class="w-5 h-5"></i>
+                        </div>
+                        Recent Activity
+                    </h2>
 
                     <div class="space-y-4">
                         {% for task in recent_tasks %}
                         <div
-                            class="flex items-start gap-4 p-4 rounded-xl border-2 {% if task.status == 'completed' %}border-green-100 bg-green-50{% elif task.status == 'in_progress' %}border-blue-100 bg-blue-50{% else %}border-yellow-100 bg-yellow-50{% endif %} hover:shadow-md transition-all">
+                            class="group flex items-start gap-4 p-4 rounded-2xl bg-white/50 border border-white/60 hover:bg-white hover:shadow-md transition-all duration-300">
                             <div
-                                class="w-12 h-12 rounded-full flex items-center justify-center {% if task.status == 'completed' %}bg-green-200{% elif task.status == 'in_progress' %}bg-blue-200{% else %}bg-yellow-200{% endif %}">
-                                <i data-lucide="{% if task.status == 'completed' %}check-circle{% elif task.status == 'in_progress' %}clock{% else %}circle-dot{% endif %}"
-                                    class="w-6 h-6 {% if task.status == 'completed' %}text-green-700{% elif task.status == 'in_progress' %}text-blue-700{% else %}text-yellow-700{% endif %}"></i>
+                                class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {% if task.status == 'completed' %}bg-emerald-100/50 text-emerald-600{% elif task.status == 'in_progress' %}bg-blue-100/50 text-blue-600{% else %}bg-amber-100/50 text-amber-600{% endif %}">
+                                <i data-lucide="{% if task.status == 'completed' %}check-circle-2{% elif task.status == 'in_progress' %}clock{% else %}circle-dot{% endif %}"
+                                    class="w-6 h-6"></i>
                             </div>
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-gray-900 mb-1">{{ task.title }}</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-600">
+
+                            <div class="flex-1 min-w-0">
+                                <h3
+                                    class="font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                                    {{ task.title }}</h3>
+                                <div class="flex items-center gap-3 text-sm text-slate-500 mt-1">
                                     <span
-                                        class="px-2 py-1 rounded-full {% if task.status == 'completed' %}bg-green-200 text-green-800{% elif task.status == 'in_progress' %}bg-blue-200 text-blue-800{% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                                        class="px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide {% if task.status == 'completed' %}bg-emerald-100 text-emerald-700{% elif task.status == 'in_progress' %}bg-blue-100 text-blue-700{% else %}bg-amber-100 text-amber-700{% endif %}">
                                         {{ task.get_status_display }}
                                     </span>
-                                    <span class="font-semibold text-primary">₱{{ task.price }}</span>
+                                    <span class="font-semibold text-slate-700">₱{{ task.price }}</span>
+                                    <span>•</span>
                                     <span>
-                                        {% if task.completed_at %}{{ task.completed_at|timesince }}
-                                        {% elif task.accepted_at %}{{ task.accepted_at|timesince }}
-                                        {% else %}{{ task.created_at|timesince }}{% endif %} ago
+                                        {% if task.completed_at %}
+                                        {{ task.completed_at|timesince }}
+                                        {% elif task.accepted_at %}
+                                        {{ task.accepted_at|timesince }}
+                                        {% else %}
+                                        {{ task.created_at|timesince }}
+                                        {% endif %}
+                                        ago
                                     </span>
                                 </div>
                             </div>
+
                             <a href="{% url 'task_detail' task.id %}"
-                                class="px-4 py-2 bg-white border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition-all text-sm font-semibold">
-                                View
+                                class="self-center p-2 rounded-lg bg-slate-100 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                                <i data-lucide="arrow-right" class="w-5 h-5"></i>
                             </a>
                         </div>
                         {% empty %}
-                        <div class="text-center py-12">
-                            <i data-lucide="inbox" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
-                            <p class="text-gray-500 mb-4">No recent activity</p>
-                            <a href="{% url 'browse_tasks' %}"
-                                class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors inline-block">
-                                <i data-lucide="search" class="w-4 h-4 inline"></i>
-                                Browse Tasks
+                        <div
+                            class="text-center py-12 px-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+                            <div class="flex justify-center mb-4">
+                                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+                                    <i data-lucide="ghost" class="w-8 h-8 text-slate-400"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900">No activity yet</h3>
+                            <p class="text-slate-500 mb-6">Start your journey by posting or finding tasks.</p>
+                            <a href="{% if user.role == 'task_poster' %}{% url 'create_task' %}{% else %}{% url 'browse_tasks' %}{% endif %}"
+                                class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors">
+                                <i data-lucide="rocket" class="w-5 h-5"></i>
+                                Get Started
                             </a>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
-
             </div>
 
-            <!-- Sidebar -->
+            <!-- Right Column: Sidebar -->
             <div class="space-y-8">
 
-                <!-- Skills & Verification (for doers) -->
+                <!-- Account Security -->
+                <div
+                    class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-lg shadow-slate-200/40">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-3 mb-6">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-sm">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        </div>
+                        Security
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div
+                            class="flex items-center justify-between p-4 rounded-2xl bg-white/50 border border-white/60">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                    <i data-lucide="lock" class="w-5 h-5 text-slate-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-900 text-sm">Password</p>
+                                    <p class="text-xs text-slate-500">Last changed recently</p>
+                                </div>
+                            </div>
+                            <button onclick="showChangePassword()"
+                                class="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline">
+                                Change
+                            </button>
+                        </div>
+
+                        <div
+                            class="flex items-center justify-between p-4 rounded-2xl bg-white/50 border border-white/60">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                    <i data-lucide="mail-check" class="w-5 h-5 text-emerald-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-900 text-sm">Email</p>
+                                    <p class="text-xs text-slate-500">Verified</p>
+                                </div>
+                            </div>
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verified Skills (Doer Only) -->
                 {% if user.role == 'task_doer' or user.role == 'admin' %}
-                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
+                <div
+                    class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-lg shadow-slate-200/40">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <i data-lucide="award" class="w-6 h-6 text-primary"></i>
-                            Verified Skills
-                        </h3>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-3">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-sm">
+                                <i data-lucide="award" class="w-5 h-5"></i>
+                            </div>
+                            Skills
+                        </h2>
                         <a href="{% url 'skill_validation' %}"
-                            class="text-primary hover:text-blue-700 text-sm font-semibold">
-                            Manage
+                            class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center hover:bg-amber-100 transition-colors">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
                         </a>
                     </div>
 
                     <div class="space-y-3">
                         {% for skill in verified_skills %}
                         <div
-                            class="flex items-center justify-between p-3 border-2 border-green-100 bg-green-50 rounded-lg">
+                            class="flex items-center justify-between p-3 rounded-xl bg-amber-50/50 border border-amber-100">
                             <div class="flex items-center gap-3">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-amber-500"></i>
                                 <div>
-                                    <p class="font-semibold text-gray-900">{{ skill.get_skill_name_display }}</p>
+                                    <p class="font-bold text-slate-900 text-sm">{{ skill.get_skill_name_display }}</p>
                                     {% if skill.test_score %}
-                                    <p class="text-xs text-gray-600">Score: {{ skill.test_score }}%</p>
+                                    <p class="text-xs text-amber-700 font-medium">Score: {{ skill.test_score }}%</p>
                                     {% endif %}
                                 </div>
                             </div>
-                            <span class="px-3 py-1 bg-green-200 text-green-800 text-xs font-bold rounded-full">
-                                ✓ Verified
-                            </span>
                         </div>
                         {% empty %}
-                        <div class="text-center py-8">
-                            <i data-lucide="award" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
-                            <p class="text-gray-500 text-sm mb-4">No verified skills yet</p>
-                            <a href="{% url 'skill_validation' %}"
-                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors text-sm inline-block">
-                                <i data-lucide="plus" class="w-4 h-4 inline"></i>
-                                Add Skills
-                            </a>
-                        </div>
+                        <p
+                            class="text-sm text-slate-500 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                            No verified skills yet.</p>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Account Security -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100">
-                    <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                        <i data-lucide="shield-check" class="w-6 h-6 text-primary"></i>
-                        Account Security
-                    </h3>
-
-                    <div class="space-y-3">
-                        <div
-                            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 border-gray-100">
-                            <div class="flex items-center gap-3">
-                                <i data-lucide="lock" class="w-5 h-5 text-gray-600"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-900">Password</p>
-                                    <p class="text-sm text-gray-500">••••••••</p>
-                                </div>
-                            </div>
-                            <button onclick="showChangePassword()"
-                                class="px-4 py-2 bg-white border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-blue-50 transition-all text-sm font-semibold">
-                                Change
-                            </button>
-                        </div>
-
-                        <div
-                            class="flex items-center justify-between p-4 bg-green-50 rounded-lg border-2 border-green-100">
-                            <div class="flex items-center gap-3">
-                                <i data-lucide="mail-check" class="w-5 h-5 text-green-600"></i>
-                                <div>
-                                    <p class="font-semibold text-gray-900">Email</p>
-                                    <p class="text-sm text-green-600">Verified</p>
-                                </div>
-                            </div>
-                            <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Quick Actions -->
-                <div class="bg-gradient-to-br from-primary to-indigo-600 rounded-2xl p-6 text-white shadow-lg">
-                    <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
-                    <div class="space-y-2">
+                <div
+                    class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl p-8 shadow-xl shadow-indigo-200 text-white relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2">
+                    </div>
+
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-3 relative z-10">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                            <i data-lucide="zap" class="w-5 h-5 text-yellow-300"></i>
+                        </div>
+                        Quick Actions
+                    </h2>
+
+                    <div class="space-y-3 relative z-10">
                         <a href="{% url 'dashboard' %}"
-                            class="flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
-                            <i data-lucide="home" class="w-5 h-5"></i>
-                            <span>Dashboard</span>
+                            class="flex items-center gap-3 p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 transition-all group">
+                            <i data-lucide="home"
+                                class="w-5 h-5 text-indigo-200 group-hover:text-white transition-colors"></i>
+                            <span class="font-semibold">Dashboard</span>
                         </a>
                         {% if user.role == 'task_poster' or user.role == 'admin' %}
                         <a href="{% url 'create_task' %}"
-                            class="flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
-                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                            <span>Post New Task</span>
+                            class="flex items-center gap-3 p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 transition-all group">
+                            <i data-lucide="plus-circle"
+                                class="w-5 h-5 text-indigo-200 group-hover:text-white transition-colors"></i>
+                            <span class="font-semibold">Post New Task</span>
                         </a>
                         {% endif %}
                         {% if user.role == 'task_doer' or user.role == 'admin' %}
                         <a href="{% url 'browse_tasks' %}"
-                            class="flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
-                            <i data-lucide="search" class="w-5 h-5"></i>
-                            <span>Browse Tasks</span>
+                            class="flex items-center gap-3 p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 transition-all group">
+                            <i data-lucide="search"
+                                class="w-5 h-5 text-indigo-200 group-hover:text-white transition-colors"></i>
+                            <span class="font-semibold">Browse Tasks</span>
                         </a>
                         {% endif %}
-                        <a href="{% url 'my_tasks' %}"
-                            class="flex items-center gap-3 p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
-                            <i data-lucide="list-checks" class="w-5 h-5"></i>
-                            <span>My Tasks</span>
-                        </a>
                     </div>
                 </div>
 
@@ -325,54 +414,60 @@
     </div>
 </div>
 
+<!-- Modal Backdrop -->
+<div id="modal-backdrop"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-40 transition-opacity duration-300 opacity-0"
+    onclick="closeAllModals()"></div>
+
 <!-- Profile Picture Modal -->
-<div id="profile-picture-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">Profile Picture</h3>
+<div id="profile-picture-modal" class="fixed inset-0 hidden items-center justify-center z-50 pointer-events-none p-4">
+    <div
+        class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl shadow-indigo-900/20 transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4">
             <button onclick="closeModal('profile-picture-modal')"
-                class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
-                <i data-lucide="x" class="w-5 h-5"></i>
+                class="p-2 rounded-full hover:bg-slate-100 transition-colors">
+                <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
             </button>
         </div>
 
-        <div class="text-center mb-6">
-            {% if user.profile_picture %}
-            <img src="{{ user.profile_picture.url }}" alt="{{ user.fullname }}"
-                class="w-32 h-32 rounded-full object-cover mx-auto border-4 border-gray-200 mb-4">
-            {% else %}
-            <div
-                class="w-32 h-32 bg-gradient-to-br from-primary to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="text-white font-bold text-5xl">{{ user.fullname.0|upper }}</span>
-            </div>
-            {% endif %}
-        </div>
+        <h3 class="text-xl font-bold text-slate-900 mb-6 text-center">Update Profile Photo</h3>
 
-        <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data" class="space-y-4">
+        <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
             <input type="hidden" name="action" value="update_profile">
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Upload New Picture</label>
-                <input type="file" name="profile_picture" accept="image/*"
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary transition-all">
-                <p class="text-xs text-gray-500 mt-2">
-                    <i data-lucide="info" class="w-3 h-3 inline"></i>
-                    JPG, PNG, GIF (Max 5MB). Auto-compressed.
-                </p>
+            <div class="flex justify-center">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}"
+                    class="w-32 h-32 rounded-full object-cover border-4 border-indigo-50 shadow-inner">
+                {% else %}
+                <div
+                    class="w-32 h-32 rounded-full bg-slate-100 flex items-center justify-center border-4 border-white shadow-inner">
+                    <i data-lucide="user" class="w-12 h-12 text-slate-300"></i>
+                </div>
+                {% endif %}
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="relative">
+                <input type="file" name="profile_picture" id="photo-upload" accept="image/*" class="hidden"
+                    onchange="document.getElementById('upload-btn-text').innerText = this.files[0].name">
+                <label for="photo-upload"
+                    class="flex flex-col items-center justify-center gap-2 p-6 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all cursor-pointer group">
+                    <i data-lucide="upload-cloud"
+                        class="w-8 h-8 text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
+                    <span id="upload-btn-text"
+                        class="text-sm font-medium text-slate-600 group-hover:text-indigo-600">Click to upload
+                        image</span>
+                </label>
+            </div>
+
+            <div class="flex gap-3">
                 <button type="submit"
-                    class="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                    <i data-lucide="upload" class="w-4 h-4 inline"></i>
-                    Upload
-                </button>
+                    class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Save</button>
                 {% if user.profile_picture %}
                 <button type="button" onclick="deleteProfilePicture()"
-                    class="px-6 py-3 bg-red-50 text-red-600 font-semibold rounded-lg hover:bg-red-100 transition-colors">
-                    <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
-                    Delete
+                    class="px-4 py-3 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
                 </button>
                 {% endif %}
             </div>
@@ -381,13 +476,14 @@
 </div>
 
 <!-- Change Password Modal -->
-<div id="change-password-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full">
+<div id="change-password-modal" class="fixed inset-0 hidden items-center justify-center z-50 pointer-events-none p-4">
+    <div
+        class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl shadow-indigo-900/20 transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto">
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">Change Password</h3>
+            <h3 class="text-xl font-bold text-slate-900">Change Password</h3>
             <button onclick="closeModal('change-password-modal')"
-                class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
-                <i data-lucide="x" class="w-5 h-5"></i>
+                class="p-2 rounded-full hover:bg-slate-100 transition-colors">
+                <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
             </button>
         </div>
 
@@ -395,115 +491,76 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="change_password">
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Current Password</label>
                 <input type="password" name="current_password" required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary transition-all">
+                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium">
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">New Password</label>
                 <input type="password" name="new_password" required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary transition-all">
+                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium">
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Confirm New Password</label>
                 <input type="password" name="confirm_password" required
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary transition-all">
+                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium">
             </div>
 
-            <div class="flex items-center gap-3 pt-4">
+            <div class="pt-4 flex gap-3">
                 <button type="submit"
-                    class="flex-1 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                    <i data-lucide="lock" class="w-4 h-4 inline"></i>
-                    Update Password
-                </button>
+                    class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">Update
+                    Password</button>
                 <button type="button" onclick="closeModal('change-password-modal')"
-                    class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors">
-                    Cancel
-                </button>
+                    class="px-6 py-3 bg-white text-slate-600 font-bold rounded-xl hover:bg-slate-50 border border-slate-200 transition-colors">Cancel</button>
             </div>
         </form>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-    // Initialize Lucide icons when available
-    if (typeof lucide !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
-    }
+    });
 
     function toggleEdit(section) {
-        const formEl = document.getElementById(`${section}-form`);
-        if (formEl) {
-            formEl.classList.toggle('hidden');
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+        const display = document.getElementById(`${section}-display`);
+        const form = document.getElementById(`${section}-form`);
+
+        if (display && form) {
+            display.classList.toggle('hidden');
+            form.classList.toggle('hidden');
         }
     }
 
-    function showChangePassword() {
-        const modal = document.getElementById('change-password-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
-    }
-
-    function showProfilePictureModal() {
-        const modal = document.getElementById('profile-picture-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
-    }
-
-    function closeModal(modalId) {
+    function openModalAnimation(modalId) {
+        const backdrop = document.getElementById('modal-backdrop');
         const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-    }
+        const modalContent = modal.querySelector('div');
 
-    function deleteProfilePicture() {
-        if (confirm('Are you sure you want to delete your profile picture?')) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.remove('opacity-0'), 10); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => { modalContent.classList.remove('scale-95', 'opacity-0'); modalContent.classList.add('scale-100', 'opacity-100'); }, 10); } function closeModalAnimation(modalId) { const backdrop = document.getElementById('modal-backdrop'); const modal = document.getElementById(modalId); const modalContent = modal.querySelector('div'); modalContent.classList.remove('scale-100', 'opacity-100'); modalContent.classList.add('scale-95', 'opacity-0'); backdrop.classList.add('opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); backdrop.classList.add('hidden'); }, 300); } function showProfilePictureModal() { openModalAnimation('profile-picture-modal'); } function showChangePassword() { openModalAnimation('change-password-modal'); } function closeModal(modalId) { closeModalAnimation(modalId); } function closeAllModals() { closeModalAnimation('profile-picture-modal'); closeModalAnimation('change-password-modal'); } function deleteProfilePicture() { if (confirm('Are you sure you want to remove your profile photo?')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '{% url "profile" %}';
 
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrfmiddlewaretoken';
-            csrfInput.value = csrfToken;
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
 
-            const actionInput = document.createElement('input');
-            actionInput.type = 'hidden';
-            actionInput.name = 'action';
-            actionInput.value = 'delete_profile_picture';
+            const action = document.createElement('input');
+            action.type = 'hidden';
+            action.name = 'action';
+            action.value = 'delete_profile_picture';
 
-            form.appendChild(csrfInput);
-            form.appendChild(actionInput);
+            form.appendChild(csrf);
+            form.appendChild(action);
             document.body.appendChild(form);
             form.submit();
         }
     }
-
-    // Close modals on backdrop click
-    document.querySelectorAll('.fixed').forEach(modal => {
-        modal.addEventListener('click', function (e) {
-            if (e.target === this) {
-                this.classList.add('hidden');
-            }
-        });
-    });
 </script>
 {% endblock %}

@@ -3,741 +3,454 @@
 
 {% block title %}Post New Task - ErrandExpress{% endblock %}
 
-{% block extra_css %}
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20 relative overflow-hidden">
+
+    <!-- Decorative Elements -->
+    <div
+        class="absolute top-0 right-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none">
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 relative z-10">
+
+        <!-- Header Section -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <i data-lucide="plus" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Post New Task</h1>
+                    <p class="text-slate-500 font-medium">Find the perfect helper for your errand</p>
+                </div>
+            </div>
+
+            <div
+                class="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-50/50 rounded-lg border border-indigo-100/50">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-xs font-semibold text-indigo-700 uppercase tracking-wider">New Request</span>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto gap-8 items-start">
+
+            <!-- Left Column: Main Form -->
+            <div class="w-full space-y-6">
+
+                <!-- Display Messages -->
+                {% if messages %}
+                <div class="space-y-3">
+                    {% for message in messages %}
+                    <div
+                        class="bg-indigo-50/80 backdrop-blur border border-indigo-200 text-indigo-800 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm">
+                        <i data-lucide="info" class="w-5 h-5 mt-0.5 shrink-0"></i>
+                        <p class="font-medium">{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                <div
+                    class="bg-red-50/80 backdrop-blur border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm">
+                    <i data-lucide="alert-circle" class="w-5 h-5 mt-0.5 shrink-0"></i>
+                    <div>
+                        <h4 class="font-bold">Please correct the errors below:</h4>
+                        <ul class="list-disc list-inside text-sm mt-1">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data" id="task-form" class="space-y-6">
+                    {% csrf_token %}
+
+                    <!-- Section 1: Task Info -->
+                    <div
+                        class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shadow-inner">
+                                <span class="font-bold text-lg">1</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Task Information</h2>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">What do you
+                                    need help with?</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i data-lucide="type" class="w-5 h-5 text-slate-400"></i>
+                                    </div>
+                                    {{ form.title }}
+                                </div>
+                                {% if form.title.errors %}
+                                <p class="text-sm text-red-600">{{ form.title.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="grid sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-sm font-bold text-slate-700 uppercase tracking-wider">Category</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="layout-grid" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.category }}
+                                    </div>
+                                    {% if form.category.errors %}
+                                    <p class="text-sm text-red-600">{{ form.category.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="space-y-2">
+                                    <label
+                                        class="text-sm font-bold text-slate-700 uppercase tracking-wider">Tags</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="tags" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.tags }}
+                                    </div>
+                                    {% if form.tags.errors %}
+                                    <p class="text-sm text-red-600">{{ form.tags.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="text-xs text-slate-500">Separated by commas (e.g. urgent, easy)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Details -->
+                    <div
+                        class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-inner">
+                                <span class="font-bold text-lg">2</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Task Details</h2>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider">Description</label>
+                                <div class="relative">
+                                    {{ form.description }}
+                                </div>
+                                {% if form.description.errors %}
+                                <p class="text-sm text-red-600">{{ form.description.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-slate-500">Be as specific as possible.</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Special
+                                    Requirements (Optional)</label>
+                                <div class="relative">
+                                    {{ form.requirements }}
+                                </div>
+                                {% if form.requirements.errors %}
+                                <p class="text-sm text-red-600">{{ form.requirements.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Payment & Time -->
+                    <div
+                        class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner">
+                                <span class="font-bold text-lg">3</span>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-900">Payment & Deadline</h2>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="grid sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Offer
+                                        Amount (₱)</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-slate-500 font-bold">₱</span>
+                                        </div>
+                                        {{ form.price }}
+                                    </div>
+                                    {% if form.price.errors %}
+                                    <p class="text-sm text-red-600">{{ form.price.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Payment
+                                        Method</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.payment_method }}
+                                    </div>
+                                    {% if form.payment_method.errors %}
+                                    <p class="text-sm text-red-600">{{ form.payment_method.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label
+                                    class="text-sm font-bold text-slate-700 uppercase tracking-wider">Deadline</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i data-lucide="calendar-clock" class="w-5 h-5 text-slate-400"></i>
+                                    </div>
+                                    {{ form.deadline }}
+                                </div>
+                                {% if form.deadline.errors %}
+                                <p class="text-sm text-red-600">{{ form.deadline.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="grid sm:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Campus
+                                        (Optional)</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="building-2" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.campus_location }}
+                                    </div>
+                                    {% if form.campus_location.errors %}
+                                    <p class="text-sm text-red-600">{{ form.campus_location.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Specific
+                                        Location (Optional)</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="map-pin" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.location }}
+                                    </div>
+                                    {% if form.location.errors %}
+                                    <p class="text-sm text-red-600">{{ form.location.errors.0 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Preferences & Scheduling (NEW) -->
+                    <div
+                        class="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-xl shadow-slate-200/40">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shadow-inner">
+                                <span class="font-bold text-lg">4</span>
+                            </div>
+                            <div class="flex-1">
+                                <h2 class="text-xl font-bold text-slate-900">Preferences & Scheduling</h2>
+                                <p class="text-xs text-slate-500">Optional - Helps match you with the right doer</p>
+                            </div>
+                            <div class="px-3 py-1 bg-purple-50 rounded-lg border border-purple-100">
+                                <span class="text-xs font-bold text-purple-600">⭐ NEW</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Time Window -->
+                            <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <i data-lucide="clock" class="w-5 h-5 text-indigo-600"></i>
+                                    <h3 class="font-bold text-slate-800">Time Window (Optional)</h3>
+                                </div>
+                                <p class="text-xs text-slate-600 mb-4">Specify when you'd like this task done</p>
+
+                                <div class="grid sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Start
+                                            Time</label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i data-lucide="calendar-clock" class="w-5 h-5 text-slate-400"></i>
+                                            </div>
+                                            {{ form.time_window_start }}
+                                        </div>
+                                        {% if form.time_window_start.errors %}
+                                        <p class="text-sm text-red-600">{{ form.time_window_start.errors.0 }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">End
+                                            Time</label>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i data-lucide="calendar-clock" class="w-5 h-5 text-slate-400"></i>
+                                            </div>
+                                            {{ form.time_window_end }}
+                                        </div>
+                                        {% if form.time_window_end.errors %}
+                                        <p class="text-sm text-red-600">{{ form.time_window_end.errors.0 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                                    {{ form.flexible_timing }}
+                                    <label for="id_flexible_timing"
+                                        class="text-sm font-medium text-slate-700 cursor-pointer">
+                                        I'm flexible with timing (task remains visible outside time window)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Preferred Doer & Priority -->
+                            <div class="grid sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Preferred
+                                        Doer (Optional)</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="user-check" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.preferred_doer }}
+                                    </div>
+                                    {% if form.preferred_doer.errors %}
+                                    <p class="text-sm text-red-600">{{ form.preferred_doer.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="text-xs text-slate-500">Choose a specific doer you'd like to work with</p>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700 uppercase tracking-wider">Priority
+                                        Level</label>
+                                    <div class="relative">
+                                        <div
+                                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i data-lucide="flame" class="w-5 h-5 text-slate-400"></i>
+                                        </div>
+                                        {{ form.priority_level }}
+                                    </div>
+                                    {% if form.priority_level.errors %}
+                                    <p class="text-sm text-red-600">{{ form.priority_level.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="text-xs text-slate-500">How urgent is this task?</p>
+                                </div>
+                            </div>
+
+                            <!-- Info Box -->
+                            <div class="flex items-start gap-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 shrink-0"></i>
+                                <div class="text-sm text-blue-800">
+                                    <p class="font-semibold mb-1">How this helps:</p>
+                                    <ul class="text-xs space-y-1 list-disc list-inside">
+                                        <li>Tasks matching doer preferences appear higher in their browse list</li>
+                                        <li>Time windows help doers find tasks that fit their schedule</li>
+                                        <li>Priority levels ensure urgent tasks get attention faster</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-4 pt-4">
+                        <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-lg">
+                            <i data-lucide="send" class="w-5 h-5"></i>
+                            Post Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
 <style>
-    .form-section {
-        @apply bg-white rounded-2xl p-10 shadow-sm border border-gray-100 mb-8;
-    }
-
-    .form-group {
-        @apply mb-6;
-    }
-
-    .form-label {
-        @apply block text-base font-semibold text-gray-800 mb-3;
-    }
-
-    .form-input {
-        @apply w-full p-6 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200 text-lg;
-    }
-
-    .form-textarea {
-        @apply w-full p-6 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all duration-200 resize-none text-lg min-h-[200px];
-    }
-
-    /* Make all form inputs larger and more responsive */
+    /* Premium Form Inputs - High specificity to override forms.py and Bootstrap/Tailwind defaults */
     input[type="text"],
-    input[type="email"],
     input[type="number"],
-    input[type="date"],
     input[type="datetime-local"],
-    input[type="file"],
-    select {
-        width: 100% !important;
-        height: 40px !important;
-        padding: 0 15px !important;
-        font-size: 0.95rem !important;
-        line-height: 40px !important;
-        border-radius: 0.5rem !important;
-        border: 2px solid #e5e7eb !important;
-        transition: all 0.2s ease !important;
+    select,
+    textarea,
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.875rem 1rem 0.875rem 3rem !important;
+        /* Large Left padding for icons */
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        font-size: 0.95rem;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        height: auto !important;
+        /* Override fixed height from forms.py */
+        line-height: 1.5;
     }
 
-    textarea {
-        width: 100% !important;
-        padding: 1rem 1.25rem !important;
-        font-size: 1rem !important;
-        border-radius: 0.75rem !important;
-        border: 2px solid #e5e7eb !important;
-        transition: all 0.2s ease !important;
-    }
-
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="number"]:focus,
-    input[type="date"]:focus,
-    input[type="datetime-local"]:focus,
+    input:focus,
     select:focus,
-    textarea:focus {
-        border-color: #3b82f6 !important;
-        ring: 2px !important;
-        ring-color: rgba(59, 130, 246, 0.1) !important;
-        outline: none !important;
+    textarea:focus,
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #ffffff;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        outline: none;
     }
 
-    textarea {
-        min-height: 180px !important;
-        resize: vertical !important;
+    /* Requirement/Description Textareas need less left padding if no icon inside */
+    textarea,
+    textarea.form-control {
+        padding-left: 1rem !important;
+        /* Reset specific padding for textareas */
+        min-height: 120px;
+        resize: vertical;
     }
 
-    select {
-        appearance: none !important;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-        background-position: right 1rem center !important;
-        background-repeat: no-repeat !important;
-        background-size: 1.5em 1.5em !important;
-        padding-right: 3rem !important;
-    }
-
-    /* Mobile responsive */
-    @media (max-width: 640px) {
-
-        input[type="text"],
-        input[type="email"],
-        input[type="number"],
-        input[type="date"],
-        input[type="datetime-local"],
-        select,
-        textarea {
-            padding: 1rem 1.25rem !important;
-            font-size: 1rem !important;
-        }
-
-        textarea {
-            min-height: 150px !important;
-        }
-    }
-
-    .price-preview {
-        @apply bg-gradient-to-r from-primary to-indigo-600 text-white rounded-2xl p-6 text-center;
-    }
-
-    .step-indicator {
-        @apply flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium;
-    }
-
-    .step-active {
-        @apply bg-primary text-white;
-    }
-
-    .step-completed {
-        @apply bg-mint text-white;
-    }
-
-    .step-pending {
-        @apply bg-gray-200 text-gray-600;
+    /* Fix for select arrow */
+    select,
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1.25em 1.25em;
+        padding-right: 2.5rem !important;
     }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-bg pb-20 lg:pb-6">
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                    <i data-lucide="plus-circle" class="w-6 h-6 text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-3xl font-bold font-poppins">Post New Task</h1>
-                    <p class="text-blue-100 mt-1">Fill out the form to find the perfect helper</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
-        <!-- Display Django Messages -->
-        {% if messages %}
-        <div class="mb-6 space-y-3">
-            {% for message in messages %}
-            <div
-                class="{% if message.tags %}{{ message.tags }}{% else %}bg-blue-50 border-2 border-blue-200{% endif %} rounded-xl p-4">
-                <div class="flex items-start gap-3">
-                    <i data-lucide="{% if 'error' in message.tags %}alert-circle{% elif 'success' in message.tags %}check-circle{% else %}info{% endif %}"
-                        class="w-5 h-5 {% if 'error' in message.tags %}text-red-600{% elif 'success' in message.tags %}text-green-600{% else %}text-blue-600{% endif %} mt-0.5 flex-shrink-0"></i>
-                    <div>
-                        <p
-                            class="{% if 'error' in message.tags %}text-red-700{% elif 'success' in message.tags %}text-green-700{% else %}text-blue-700{% endif %} font-medium">
-                            {{ message }}</p>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Display Form Errors -->
-        {% if form.non_field_errors %}
-        <div class="mb-6 bg-red-50 border-2 border-red-200 rounded-xl p-4">
-            <div class="flex items-start gap-3">
-                <i data-lucide="alert-circle" class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0"></i>
-                <div>
-                    <h3 class="font-semibold text-red-800 mb-2">Form Errors</h3>
-                    <ul class="text-sm text-red-700 space-y-1">
-                        {% for error in form.non_field_errors %}
-                        <li>• {{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <form method="POST" enctype="multipart/form-data" id="task-form">
-            {% csrf_token %}
-
-            <div class="grid grid-cols-1 xl:grid-cols-4 gap-12">
-
-                <!-- Main Form -->
-                <div class="xl:col-span-3">
-
-                    <!-- STEP 1: Basic Information -->
-                    <div class="form-section">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-lg">
-                                    1
-                                </div>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-gray-900">Task Information</h2>
-                                    <p class="text-sm text-gray-600 mt-1">📝 Tell us what you need done</p>
-                                </div>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Required</span>
-                        </div>
-
-                        <!-- Task Title Section -->
-                        <div class="mb-6">
-                            <label class="block text-lg font-bold text-gray-900 mb-3">
-                                <span class="flex items-center gap-2">
-                                    <span
-                                        class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                                    What do you need help with? *
-                                </span>
-                            </label>
-                            <div
-                                class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 {% if form.title.errors %}border-red-500{% else %}border-blue-200{% endif %}">
-                                {{ form.title }}
-                                {% if form.title.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.title.errors %}
-                                    <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                                <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-yellow-400">
-                                    <p class="text-sm text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="lightbulb"
-                                            class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Example:</strong> "Type 10-page research paper on climate change"
-                                            or "Create PowerPoint presentation with 15 slides"</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Category Section -->
-                        <div class="mb-6">
-                            <label class="block text-xl font-bold text-gray-900 mb-4">
-                                <span class="flex items-center gap-2">
-                                    <span
-                                        class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                                    Task Category *
-                                </span>
-                            </label>
-                            <div
-                                class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-8">
-                                {{ form.category }}
-                                <p class="text-base text-gray-600 mt-4 flex items-center gap-2">
-                                    <i data-lucide="folder" class="w-5 h-5 text-green-600"></i>
-                                    Choose the type of work needed
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Tags Section -->
-                        <div class="mb-0">
-                            <label class="block text-xl font-bold text-gray-900 mb-4">
-                                <span class="flex items-center gap-2">
-                                    <span
-                                        class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                                    Tags *
-                                </span>
-                            </label>
-                            <div class="bg-gray-50 rounded-xl p-8 border-2 border-gray-200">
-                                {{ form.tags }}
-                                <div class="mt-4 bg-white rounded-lg p-5 border-l-4 border-blue-400">
-                                    <p class="text-base text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="tag" class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Tip:</strong> Add keywords like "urgent", "research", "academic"
-                                            to help doers find your task faster</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- STEP 2: Task Details -->
-                    <div class="form-section">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl flex items-center justify-center font-bold text-lg">
-                                    2
-                                </div>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-gray-900">Task Details</h2>
-                                    <p class="text-sm text-gray-600 mt-1">📋 Provide clear instructions</p>
-                                </div>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Required</span>
-                        </div>
-
-                        <!-- Description Section -->
-                        <div class="mb-6">
-                            <label class="block text-xl font-bold text-gray-900 mb-4">
-                                <span class="flex items-center gap-2">
-                                    <span
-                                        class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                                    Detailed Description *
-                                </span>
-                            </label>
-                            <div
-                                class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
-                                {{ form.description }}
-                                <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-blue-400">
-                                    <p class="text-sm text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="file-text"
-                                            class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Be specific:</strong> Explain exactly what needs to be done,
-                                            include format requirements, style preferences, and any examples</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Requirements Section -->
-                        <div class="mb-6">
-                            <label class="block text-xl font-bold text-gray-900 mb-4">
-                                <span class="flex items-center gap-2">
-                                    <span
-                                        class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
-                                    Special Requirements
-                                    <span class="text-base font-normal text-gray-500">(Optional)</span>
-                                </span>
-                            </label>
-                            <div
-                                class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-6 border-2 border-orange-200">
-                                {{ form.requirements }}
-                                <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-orange-400">
-                                    <p class="text-sm text-gray-700 flex items-start gap-2">
-                                        <i data-lucide="check-circle"
-                                            class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0"></i>
-                                        <span><strong>Example:</strong> "Must have PowerPoint 2019 or newer",
-                                            "Experience with APA format required", "Fast typing speed (50+ WPM)"</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- STEP 3: Pricing & Timeline -->
-                    <div class="form-section">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl flex items-center justify-center font-bold text-lg">
-                                    3
-                                </div>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-gray-900">Payment & Deadline</h2>
-                                    <p class="text-sm text-gray-600 mt-1">💰 Set price and timeline</p>
-                                </div>
-                            </div>
-                            <span
-                                class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Required</span>
-                        </div>
-
-                        <!-- Pricing Section -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                            <div>
-                                <label class="block text-xl font-bold text-gray-900 mb-4">
-                                    <span class="flex items-center gap-2">
-                                        <span
-                                            class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">7</span>
-                                        How much will you pay? (₱) *
-                                    </span>
-                                </label>
-                                <div
-                                    class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
-                                    {{ form.price }}
-                                    <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-green-400">
-                                        <p class="text-sm text-gray-700 flex items-start gap-2">
-                                            <i data-lucide="trending-up"
-                                                class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"></i>
-                                            <span><strong>Tip:</strong> Fair pricing (₱50-500) attracts quality doers.
-                                                Check market rates in the sidebar →</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xl font-bold text-gray-900 mb-4">
-                                    <span class="flex items-center gap-2">
-                                        <span
-                                            class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">8</span>
-                                        Payment Method *
-                                    </span>
-                                </label>
-                                <div
-                                    class="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6">
-                                    {{ form.payment_method }}
-                                    <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-blue-400">
-                                        <p class="text-sm text-gray-700 flex items-center gap-2">
-                                            <i data-lucide="credit-card" class="w-5 h-5 text-blue-500"></i>
-                                            <span><strong>GCash:</strong> Instant • <strong>COD:</strong> Pay on
-                                                completion</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Timeline Section -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-xl font-bold text-gray-900 mb-4">
-                                    <span class="flex items-center gap-2">
-                                        <span
-                                            class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">9</span>
-                                        When do you need this done? *
-                                    </span>
-                                </label>
-                                <div
-                                    class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-6">
-                                    {{ form.deadline }}
-                                    <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-orange-400">
-                                        <p class="text-sm text-gray-700 flex items-start gap-2">
-                                            <i data-lucide="calendar"
-                                                class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0"></i>
-                                            <span><strong>Tip:</strong> Set realistic deadlines (2-7 days) for quality
-                                                results</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xl font-bold text-gray-900 mb-4">
-                                    <span class="flex items-center gap-2">
-                                        <span
-                                            class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">10</span>
-                                        Campus Location
-                                        <span class="text-base font-normal text-gray-500">(Optional)</span>
-                                    </span>
-                                </label>
-                                <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-6 mb-6">
-                                    {{ form.campus_location }}
-                                    <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-indigo-400">
-                                        <p class="text-sm text-gray-700 flex items-center gap-2">
-                                            <i data-lucide="map" class="w-5 h-5 text-indigo-500"></i>
-                                            <span>Select the college/area heavily prioritizes tasks for students
-                                                there</span>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <label class="block text-xl font-bold text-gray-900 mb-4">
-                                    <span class="flex items-center gap-2">
-                                        <span
-                                            class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">11</span>
-                                        Specific Location
-                                        <span class="text-base font-normal text-gray-500">(Optional)</span>
-                                    </span>
-                                </label>
-                                <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-6">
-                                    {{ form.location }}
-                                    <div class="mt-4 bg-white rounded-lg p-4 border-l-4 border-gray-400">
-                                        <p class="text-sm text-gray-700 flex items-center gap-2">
-                                            <i data-lucide="map-pin" class="w-5 h-5 text-gray-500"></i>
-                                            <span>Room number, building name, or specific meet-up spot</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div
-                        class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 mt-8 border-2 border-blue-200">
-                        <div class="text-center mb-6">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">🎉 Ready to Post Your Task?</h3>
-                            <p class="text-gray-600">Review your information and click "Post Task" to find the perfect
-                                helper!</p>
-                        </div>
-                        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <button type="button" class="btn-ghost w-full sm:w-auto px-8 py-4 text-lg"
-                                onclick="history.back()">
-                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="btn-primary w-full sm:w-auto text-lg px-8 py-4">
-                                <i data-lucide="send" class="w-5 h-5"></i>
-                                Post Your Task
-                            </button>
-                        </div>
-                        <p class="text-center text-sm text-gray-600 mt-4">
-                            <i data-lucide="shield-check" class="w-4 h-4 inline mr-1 text-green-500"></i>
-                            Your task will be reviewed and posted within minutes
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Sidebar -->
-                <div class="xl:col-span-1">
-
-                    <!-- Price Preview Removed -->
-
-                    <!-- Tips Card -->
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center">
-                                <i data-lucide="lightbulb" class="w-5 h-5 text-accent"></i>
-                            </div>
-                            <h3 class="font-bold text-primary">Tips for Success</h3>
-                        </div>
-
-                        <div class="space-y-4 text-sm">
-                            <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                                <i data-lucide="check-circle" class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <div class="font-medium text-green-800">Be Specific</div>
-                                    <div class="text-green-700">Clear descriptions get better results</div>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                                <i data-lucide="clock" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <div class="font-medium text-blue-800">Realistic Deadlines</div>
-                                    <div class="text-blue-700">Allow enough time for quality work</div>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3 p-3 bg-purple-50 rounded-lg">
-                                <i data-lucide="dollar-sign" class="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <div class="font-medium text-purple-800">Fair Pricing</div>
-                                    <div class="text-purple-700">Competitive rates attract top doers</div>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
-                                <i data-lucide="paperclip" class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <div class="font-medium text-orange-800">Add Examples</div>
-                                    <div class="text-orange-700">Reference files help clarify expectations</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Filters -->
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
-                                <i data-lucide="zap" class="w-5 h-5 text-amber-500"></i>
-                            </div>
-                            <h3 class="font-bold text-primary">Quick Presets</h3>
-                        </div>
-
-                        <div class="space-y-3">
-                            <!-- Urgent Task -->
-                            <button type="button" onclick="applyQuickFilter('urgent')"
-                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group">
-                                <div
-                                    class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
-                                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
-                                </div>
-                                <div class="flex-1 text-left">
-                                    <div class="font-semibold text-gray-900">Urgent Task</div>
-                                    <div class="text-xs text-gray-600">24-48 hours deadline</div>
-                                </div>
-                                <i data-lucide="chevron-right"
-                                    class="w-5 h-5 text-gray-400 group-hover:text-red-500"></i>
-                            </button>
-
-                            <!-- Standard Task -->
-                            <button type="button" onclick="applyQuickFilter('standard')"
-                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group">
-                                <div
-                                    class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                                    <i data-lucide="clock" class="w-5 h-5 text-blue-600"></i>
-                                </div>
-                                <div class="flex-1 text-left">
-                                    <div class="font-semibold text-gray-900">Standard Task</div>
-                                    <div class="text-xs text-gray-600">3-7 days deadline</div>
-                                </div>
-                                <i data-lucide="chevron-right"
-                                    class="w-5 h-5 text-gray-400 group-hover:text-blue-500"></i>
-                            </button>
-
-                            <!-- Budget Friendly -->
-                            <button type="button" onclick="applyQuickFilter('budget')"
-                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all group">
-                                <div
-                                    class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                                    <i data-lucide="dollar-sign" class="w-5 h-5 text-green-600"></i>
-                                </div>
-                                <div class="flex-1 text-left">
-                                    <div class="font-semibold text-gray-900">Budget Friendly</div>
-                                    <div class="text-xs text-gray-600">₱50-150 range</div>
-                                </div>
-                                <i data-lucide="chevron-right"
-                                    class="w-5 h-5 text-gray-400 group-hover:text-green-500"></i>
-                            </button>
-
-                            <!-- Premium Task -->
-                            <button type="button" onclick="applyQuickFilter('premium')"
-                                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all group">
-                                <div
-                                    class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                                    <i data-lucide="star" class="w-5 h-5 text-purple-600"></i>
-                                </div>
-                                <div class="flex-1 text-left">
-                                    <div class="font-semibold text-gray-900">Premium Task</div>
-                                    <div class="text-xs text-gray-600">₱300+ high quality</div>
-                                </div>
-                                <i data-lucide="chevron-right"
-                                    class="w-5 h-5 text-gray-400 group-hover:text-purple-500"></i>
-                            </button>
-                        </div>
-
-                        <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                            <div class="flex items-start gap-2">
-                                <i data-lucide="info" class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0"></i>
-                                <p class="text-xs text-amber-800">
-                                    <strong>Quick Presets</strong> auto-fill recommended values based on task type
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Market Insights -->
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-                                <i data-lucide="trending-up" class="w-5 h-5 text-purple-600"></i>
-                            </div>
-                            <h3 class="font-bold text-primary">Market Rates</h3>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-medium text-blue-800">Typing Tasks</span>
-                                    <span class="text-xl font-bold text-blue-900">₱80-150</span>
-                                </div>
-                                <div class="text-xs text-blue-700">Per page or per hour</div>
-                            </div>
-
-                            <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-medium text-green-800">PowerPoint</span>
-                                    <span class="text-xl font-bold text-green-900">₱200-400</span>
-                                </div>
-                                <div class="text-xs text-green-700">Per presentation</div>
-                            </div>
-
-                            <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="font-medium text-purple-800">Graphics Design</span>
-                                    <span class="text-xl font-bold text-purple-900">₱250-500</span>
-                                </div>
-                                <div class="text-xs text-purple-700">Per design/logo</div>
-                            </div>
-
-                            <div class="bg-gray-50 rounded-lg p-4 mt-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i data-lucide="clock" class="w-4 h-4 text-gray-600"></i>
-                                    <span class="font-medium text-gray-700">Peak Hours</span>
-                                </div>
-                                <div class="text-sm text-gray-600">Most doers active: 2:00 PM - 6:00 PM</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Preview Modal -->
-<div id="preview-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-primary">Task Preview</h3>
-                <button onclick="closePreview()" class="btn-icon">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <div id="preview-content">
-                <!-- Preview content will be populated here -->
-            </div>
-
-            <div class="flex gap-3 mt-6">
-                <button onclick="closePreview()" class="btn-ghost flex-1">Edit Task</button>
-                <button onclick="submitTask()" class="btn-primary flex-1">Post Task</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_scripts %}
 <script>
-    // Initialize Lucide icons
-    lucide.createIcons();
-
-    // Price calculation logic removed (UI Hidden)
-
-    // File upload handling
-    document.getElementById('file-upload').addEventListener('change', function (e) {
-        const fileList = document.getElementById('file-list');
-        fileList.innerHTML = '';
-
-        Array.from(e.target.files).forEach((file, index) => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded-lg';
-            fileItem.innerHTML = `
-            <div class="flex items-center gap-2">
-                <i data-lucide="file" class="w-4 h-4 text-gray-500"></i>
-                <span class="text-sm text-gray-700">${file.name}</span>
-                <span class="text-xs text-gray-500">(${(file.size / 1024).toFixed(1)} KB)</span>
-            </div>
-            <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-        `;
-            fileList.appendChild(fileItem);
-        });
-
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
     });
-
-    function removeFile(index) {
-        // Remove file from input (simplified for demo)
-        const fileInput = document.getElementById('file-upload');
-        const dt = new DataTransfer();
-        const files = Array.from(fileInput.files);
-
-        files.forEach((file, i) => {
-            if (i !== index) dt.items.add(file);
-        });
-
-        fileInput.files = dt.files;
-        fileInput.dispatchEvent(new Event('change'));
-    }
 
     // Quick Filter Presets
     function applyQuickFilter(type) {
@@ -745,236 +458,50 @@
         const deadlineInput = document.querySelector('input[name="deadline"]');
         const tagsInput = document.querySelector('input[name="tags"]');
 
-        // Get current date/time
         const now = new Date();
 
         switch (type) {
             case 'urgent':
-                // 24-48 hours from now
-                const urgentDate = new Date(now.getTime() + (36 * 60 * 60 * 1000));
-                deadlineInput.value = urgentDate.toISOString().slice(0, 16);
-                if (!tagsInput.value.includes('urgent')) {
-                    tagsInput.value = tagsInput.value ? tagsInput.value + ', urgent' : 'urgent';
-                }
-                priceInput.value = '150'; // Suggested urgent pricing
-                showToast('✅ Urgent task preset applied!', 'success');
-                break;
+                const urgentDate = new Date(now.getTime() + (36 * 60 * 60 * 1000}
+    };
+    deadlineInput.value = urgentDate.toISOString().slice(0, 16);
+    if (!tagsInput.value.includes('urgent')) {
+        tagsInput.value = tagsInput.value ? tagsInput.value + ', urgent' : 'urgent';
+    }
+    priceInput.value = '150';
+    break;
 
             case 'standard':
-                // 5 days from now
-                const standardDate = new Date(now.getTime() + (5 * 24 * 60 * 60 * 1000));
-                deadlineInput.value = standardDate.toISOString().slice(0, 16);
-                priceInput.value = '100'; // Standard pricing
-                showToast('✅ Standard task preset applied!', 'success');
-                break;
-
-            case 'budget':
-                // 7 days from now
-                const budgetDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-                deadlineInput.value = budgetDate.toISOString().slice(0, 16);
-                priceInput.value = '80'; // Budget pricing
-                showToast('✅ Budget-friendly preset applied!', 'success');
-                break;
+    const standardDate = new Date(now.getTime() + (5 * 24 * 60 * 60 * 1000));
+    deadlineInput.value = standardDate.toISOString().slice(0, 16);
+    priceInput.value = '100';
+    break;
 
             case 'premium':
-                // 3 days from now
-                const premiumDate = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-                deadlineInput.value = premiumDate.toISOString().slice(0, 16);
-                if (!tagsInput.value.includes('premium')) {
-                    tagsInput.value = tagsInput.value ? tagsInput.value + ', premium' : 'premium';
-                }
-                priceInput.value = '350'; // Premium pricing
-                showToast('✅ Premium task preset applied!', 'success');
-                break;
+    const premiumDate = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+    deadlineInput.value = premiumDate.toISOString().slice(0, 16);
+    if (!tagsInput.value.includes('premium')) {
+        tagsInput.value = tagsInput.value ? tagsInput.value + ', premium' : 'premium';
+    }
+    priceInput.value = '350';
+    break;
+
+            case 'budget':
+    const budgetDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+    deadlineInput.value = budgetDate.toISOString().slice(0, 16);
+    priceInput.value = '80';
+    break;
         }
 
-        // Update price preview
-        updatePricePreview();
+    // Animated feedback (Optional)
+    const btn = event.currentTarget;
+    btn.classList.add('scale-95');
+    setTimeout(() => btn.classList.remove('scale-95'), 150);
 
-        // Scroll to form
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to form if mobile
+    if (window.innerWidth < 1280) {
+        document.getElementById('task-form').scrollIntoView({ behavior: 'smooth' });
     }
-
-    function showToast(message, type = 'info') {
-        // Create toast notification
-        const toast = document.createElement('div');
-        toast.className = `fixed bottom-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' :
-            type === 'error' ? 'bg-red-500 text-white' :
-                'bg-blue-500 text-white'
-            }`;
-        toast.innerHTML = `
-        <div class="flex items-center gap-3">
-            <i data-lucide="${type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5"></i>
-            <span class="font-medium">${message}</span>
-        </div>
-    `;
-
-        document.body.appendChild(toast);
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
-
-        // Animate in
-        setTimeout(() => toast.classList.add('translate-y-0'), 10);
-
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
     }
-
-    function saveDraft() {
-        const formData = new FormData(document.getElementById('task-form'));
-
-        // Show saving state
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...';
-        btn.disabled = true;
-
-        // Simulate save
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            showToast('Draft saved successfully', 'success');
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                lucide.createIcons();
-            }
-        }, 1000);
-    }
-
-    function previewTask() {
-        const form = document.getElementById('task-form');
-        const formData = new FormData(form);
-
-        // Generate preview content
-        const previewContent = `
-        <div class="space-y-4">
-            <div>
-                <h4 class="font-semibold text-lg">${formData.get('title') || 'Task Title'}</h4>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="badge-primary">${formData.get('category') || 'Category'}</span>
-                    <span class="badge-mint">${formData.get('doer_type') || 'Doer Type'}</span>
-                </div>
-            </div>
-            
-            <div>
-                <h5 class="font-medium text-gray-700 mb-2">Description:</h5>
-                <p class="text-gray-600">${formData.get('description') || 'No description provided'}</p>
-            </div>
-            
-            <div>
-                <h5 class="font-medium text-gray-700 mb-2">Requirements:</h5>
-                <p class="text-gray-600">${formData.get('requirements') || 'No requirements specified'}</p>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                <div>
-                    <span class="text-sm text-gray-500">Price:</span>
-                    <div class="text-lg font-bold text-primary">₱${formData.get('price') || '0'}</div>
-                </div>
-                <div>
-                    <span class="text-sm text-gray-500">Deadline:</span>
-                    <div class="text-sm font-medium">${formData.get('deadline') || 'Not set'}</div>
-                </div>
-            </div>
-        </div>
-    `;
-
-        document.getElementById('preview-content').innerHTML = previewContent;
-        document.getElementById('preview-modal').classList.remove('hidden');
-    }
-
-    function closePreview() {
-        document.getElementById('preview-modal').classList.add('hidden');
-    }
-
-    function submitTask() {
-        closePreview();
-        document.getElementById('task-form').submit();
-    }
-
-    // Form validation
-    document.getElementById('task-form').addEventListener('submit', function (e) {
-        const requiredFields = ['title', 'category', 'doer_type', 'description', 'price', 'deadline'];
-        let isValid = true;
-
-        requiredFields.forEach(field => {
-            const input = this.querySelector(`[name="${field}"]`);
-            if (!input.value.trim()) {
-                isValid = false;
-                input.classList.add('border-red-500');
-                input.focus();
-            } else {
-                input.classList.remove('border-red-500');
-            }
-        });
-
-        if (!isValid) {
-            e.preventDefault();
-            showToast('Please fill in all required fields', 'error');
-            return;
-        }
-
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Posting Task...';
-        submitBtn.disabled = true;
-
-        // Reinitialize Lucide icons for the new icon
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            lucide.createIcons();
-        }
-    });
-
-    // Real-time price calculation
-    function updatePriceDisplay() {
-        // Try multiple selectors to find the price input
-        let priceInput = document.querySelector('input[name="price"]') ||
-            document.getElementById('id_price') ||
-            document.querySelector('input[type="number"][name="price"]');
-
-        if (priceInput) {
-            priceInput.addEventListener('input', function () {
-                const price = parseFloat(this.value) || 0;
-                const systemFee = 2;
-                const total = price + systemFee;
-
-                // Update display
-                const taskPriceEl = document.getElementById('task-price');
-                const systemFeeEl = document.getElementById('system-fee');
-                const totalPriceEl = document.getElementById('total-price');
-
-                if (taskPriceEl) taskPriceEl.textContent = '₱' + price.toFixed(2);
-                if (systemFeeEl) systemFeeEl.textContent = '₱' + systemFee.toFixed(2);
-                if (totalPriceEl) {
-                    totalPriceEl.textContent = '₱' + total.toFixed(2);
-
-                    // Add animation effect
-                    totalPriceEl.style.transition = 'all 0.3s ease';
-                    totalPriceEl.style.transform = 'scale(1.05)';
-                    setTimeout(() => {
-                        totalPriceEl.style.transform = 'scale(1)';
-                    }, 300);
-                }
-            });
-        }
-    }
-
-    // Call on page load and after a short delay to ensure DOM is ready
-    updatePriceDisplay();
-    setTimeout(updatePriceDisplay, 500);
-
-    // Initialize price preview
-    updatePricePreview();
-
-    // Auto-save draft every 30 seconds
-    setInterval(() => {
-        const form = document.getElementById('task-form');
-        if (form.querySelector('input[name="title"]').value.trim()) {
-            saveDraft();
-        }
-    }, 30000);
 </script>
 {% endblock %}

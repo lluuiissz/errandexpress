@@ -1,0 +1,116 @@
+{% extends 'base_complete.html' %}
+{% load static %}
+
+{% block title %}Card Payment - ErrandExpress{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+
+    <!-- Card Mock Container -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="bg-slate-900 p-8 text-white relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <div class="font-bold text-xl">Card Payment</div>
+                        <p class="text-slate-400 text-xs">Secure Transaction</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="w-8 h-5 bg-white/20 rounded"></div>
+                        <div class="w-8 h-5 bg-white/20 rounded"></div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-2xl font-mono tracking-widest text-slate-300">•••• •••• •••• ••••</div>
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs text-slate-400">
+                            CARD HOLDER<br>
+                            <span class="text-white text-sm font-medium">{{ fullname|upper }}</span>
+                        </div>
+                        <div class="text-xs text-slate-400">
+                            EXPIRES<br>
+                            <span class="text-white text-sm font-medium">MM/YY</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- decorative circles -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2">
+            </div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2">
+            </div>
+        </div>
+
+        <!-- Amount Banner -->
+        <div class="bg-white p-6 border-b border-slate-100 flex justify-between items-center">
+            <span class="text-slate-500 font-bold text-sm">Total to Pay</span>
+            <span class="text-2xl font-black text-slate-900">₱{{ amount|floatformat:2 }}</span>
+        </div>
+
+        <!-- Form -->
+        <div class="p-8">
+            <form method="POST" action="{{ process_url }}" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Card Number Input -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Card
+                        Number</label>
+                    <div class="relative">
+                        <i data-lucide="credit-card" class="absolute left-4 top-3.5 w-5 h-5 text-slate-400"></i>
+                        <input type="text" placeholder="4242 4242 4242 4242"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-11 pr-4 font-mono text-slate-700 focus:outline-none focus:border-slate-400 transition-colors">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">Expiry
+                            Date</label>
+                        <input type="text" placeholder="MM / YY"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-center font-medium text-slate-700 focus:outline-none focus:border-slate-400 transition-colors">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2 ml-1">CVC</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-4 top-3.5 w-4 h-4 text-slate-400"></i>
+                            <input type="password" placeholder="123" maxlength="3"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-center font-bold text-slate-700 focus:outline-none focus:border-slate-400 transition-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mt-2">
+                    <input type="checkbox" id="save_card"
+                        class="rounded border-slate-300 text-slate-900 focus:ring-slate-900">
+                    <label for="save_card" class="text-xs text-slate-500 font-medium">Save card for future
+                        payments</label>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-slate-800 transition-all transform active:scale-95 mt-8 flex items-center justify-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <span>Pay ₱{{ amount|floatformat:2 }}</span>
+                </button>
+            </form>
+
+            <p class="text-center text-[10px] text-slate-400 mt-6">
+                This transaction is secured by PayMongo.<br>
+                Redirecting to secure authentication...
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

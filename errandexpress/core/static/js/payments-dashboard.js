@@ -7,7 +7,7 @@
 function filterPayments(status) {
     const rows = document.querySelectorAll('.payment-row');
     const buttons = document.querySelectorAll('.filter-btn');
-    
+
     // Update active button
     buttons.forEach(btn => {
         if (btn.dataset.filter === status) {
@@ -18,7 +18,7 @@ function filterPayments(status) {
             btn.classList.add('bg-gray-100', 'text-gray-700');
         }
     });
-    
+
     // Filter rows
     rows.forEach(row => {
         const rowStatus = row.dataset.status;
@@ -31,13 +31,13 @@ function filterPayments(status) {
 }
 
 // Search payments
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('search-payments');
     if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
+        searchInput.addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase();
             const rows = document.querySelectorAll('.payment-row');
-            
+
             rows.forEach(row => {
                 const taskName = row.dataset.task;
                 if (taskName.includes(searchTerm)) {
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function viewPaymentDetails(paymentId) {
     const modal = document.getElementById('details-modal');
     const content = document.getElementById('details-content');
-    
+
     // Show loading
     content.innerHTML = `
         <div class="text-center py-8">
@@ -62,13 +62,13 @@ async function viewPaymentDetails(paymentId) {
             <p class="text-gray-600">Loading payment details...</p>
         </div>
     `;
-    
+
     modal.classList.remove('hidden');
-    
+
     try {
         const response = await fetch(`/api/payment-details/${paymentId}/`);
         const data = await response.json();
-        
+
         if (data.success) {
             const payment = data.payment;
             content.innerHTML = `
@@ -89,16 +89,16 @@ async function viewPaymentDetails(paymentId) {
                     <!-- Amount Breakdown -->
                     <div class="bg-blue-50 rounded-lg p-4 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-700">Gross Amount</span>
+                            <span class="text-gray-700">Task Price</span>
                             <span class="font-medium text-gray-900">₱${payment.amount}</span>
                         </div>
-                        <div class="flex justify-between items-center text-red-600">
-                            <span class="text-sm">Commission (10%)</span>
-                            <span class="font-medium">-₱${(parseFloat(payment.amount) * 0.1).toFixed(2)}</span>
+                        <div class="flex justify-between items-center text-blue-600">
+                            <span class="text-sm">Service Charge (10%)</span>
+                            <span class="font-medium">+₱${(parseFloat(payment.amount) * 0.1).toFixed(2)}</span>
                         </div>
                         <div class="flex justify-between items-center py-2 border-t border-blue-200 font-bold">
-                            <span class="text-gray-900">Net Amount</span>
-                            <span class="text-lg text-green-600">₱${(parseFloat(payment.amount) * 0.9).toFixed(2)}</span>
+                            <span class="text-gray-900">Total Amount</span>
+                            <span class="text-lg text-green-600">₱${(parseFloat(payment.amount) * 1.1).toFixed(2)}</span>
                         </div>
                     </div>
                     
@@ -111,9 +111,8 @@ async function viewPaymentDetails(paymentId) {
                     <!-- Status -->
                     <div class="flex justify-between items-center">
                         <span class="text-gray-700">Status</span>
-                        <span class="px-3 py-1 rounded-full text-sm font-medium ${
-                            payment.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                        }">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium ${payment.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                }">
                             ${payment.status_display}
                         </span>
                     </div>
@@ -139,7 +138,7 @@ async function viewPaymentDetails(paymentId) {
                     </div>
                 </div>
             `;
-            
+
             // Reinitialize icons
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
@@ -154,7 +153,7 @@ async function viewPaymentDetails(paymentId) {
                     <p class="text-gray-600 text-sm">${data.message || 'Please try again'}</p>
                 </div>
             `;
-            
+
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
@@ -170,7 +169,7 @@ async function viewPaymentDetails(paymentId) {
                 <p class="text-gray-600 text-sm">${error.message}</p>
             </div>
         `;
-        
+
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -187,10 +186,10 @@ function downloadReceipt(paymentId) {
 }
 
 // Close modals on backdrop click
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const detailsModal = document.getElementById('details-modal');
     if (detailsModal) {
-        detailsModal.addEventListener('click', function(e) {
+        detailsModal.addEventListener('click', function (e) {
             if (e.target === this) {
                 closeDetailsModal();
             }
