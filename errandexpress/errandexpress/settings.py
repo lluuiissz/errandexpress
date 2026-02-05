@@ -49,8 +49,14 @@ INSTALLED_APPS = [
     # "corsheaders",  # Temporarily disabled - install with: pip install django-cors-headers
     # "rest_framework",  # Temporarily disabled - install with: pip install djangorestframework
     "core",
-    "storages",
 ]
+
+# Conditionally add storages if available (for Vercel compatibility)
+try:
+    import storages
+    INSTALLED_APPS.append("storages")
+except ImportError:
+    pass  # storages not available, will use default file storage
 
 MIDDLEWARE = [
     # "corsheaders.middleware.CorsMiddleware",  # Temporarily disabled
