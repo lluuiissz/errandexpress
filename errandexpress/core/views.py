@@ -4192,6 +4192,8 @@ def api_send_message(request):
             task_id = request.POST.get('task_id')
             message_content = request.POST.get('message', '').strip()
             attachment = request.FILES.get('attachment')
+            if attachment:
+                logger.info(f"Attachment received: {attachment.name} ({attachment.size} bytes)")
         else:
             return JsonResponse({'success': False, 'error': 'Unsupported content type'})
         
@@ -4217,12 +4219,20 @@ def api_send_message(request):
                 'payment_required': True
             })
         
+        # Determine attachment type
+        attachment_type = 'file'
+        if attachment:
+            ext = attachment.name.split('.')[-1].lower()
+            if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                attachment_type = 'image'
+
         # Create message
         message = Message.objects.create(
             task=task,
             sender=request.user,
             message=message_content,
-            attachment=attachment
+            attachment=attachment,
+            attachment_type=attachment_type
         )
         
         # Create notification for the other party (defer to background to avoid blocking response)
@@ -4245,6 +4255,13 @@ def api_send_message(request):
         # Calculate remaining messages
         messages_remaining = max(0, 5 - message_count - 1) if message_count < 5 else None
         
+        # Determine attachment type
+        attachment_type = 'file'
+        if message.attachment:
+            ext = message.attachment.name.split('.')[-1].lower()
+            if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                attachment_type = 'image'
+
         return JsonResponse({
             'success': True,
             'message_id': str(message.id),
@@ -4252,7 +4269,8 @@ def api_send_message(request):
             'created_at': message.created_at.isoformat(),
             'sender': request.user.fullname,
             'messages_remaining': messages_remaining,
-            'attachment_url': message.attachment.url if message.attachment else None
+            'attachment_url': message.attachment.url if message.attachment else None,
+            'attachment_type': attachment_type
         })
         
     except Task.DoesNotExist:
@@ -4261,7 +4279,9 @@ def api_send_message(request):
         return JsonResponse({'success': False, 'error': 'Invalid JSON'})
     except Exception as e:
         logger.error(f"Error sending message: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to send message'})
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'error': f'Error: {str(e)}'})
 
 
 @login_required
@@ -4280,13 +4300,23 @@ def api_get_messages(request, task_id):
         messages = list(reversed(messages))  # Reverse to get chronological order
         
         # Serialize messages with minimal data
-        messages_data = [{
-            'id': str(msg.id),
-            'sender_id': str(msg.sender.id),
-            'sender_name': msg.sender.fullname,
-            'message': msg.message,
-            'created_at': msg.created_at.isoformat()
-        } for msg in messages]
+        messages_data = []
+        for msg in messages:
+            attachment_type = 'file'
+            if msg.attachment:
+                ext = msg.attachment.name.split('.')[-1].lower()
+                if ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                    attachment_type = 'image'
+            
+            messages_data.append({
+                'id': str(msg.id),
+                'sender_id': str(msg.sender.id),
+                'sender_name': msg.sender.fullname,
+                'message': msg.message,
+                'created_at': msg.created_at.isoformat(),
+                'attachment_url': msg.attachment.url if msg.attachment else None,
+                'attachment_type': attachment_type
+            })
         
         return JsonResponse({
             'success': True,

@@ -263,6 +263,7 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
     attachment = models.FileField(upload_to='chat_attachments/', null=True, blank=True)
+    attachment_type = models.CharField(max_length=20, choices=[('image', 'Image'), ('file', 'File')], null=True, blank=True)
     is_proof = models.BooleanField(default=False)  # Mark as task proof
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # "corsheaders",  # Temporarily disabled - install with: pip install django-cors-headers
     # "rest_framework",  # Temporarily disabled - install with: pip install djangorestframework
     "core",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -132,10 +133,34 @@ STATICFILES_DIRS = [BASE_DIR / "core" / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # WhiteNoise configuration for Vercel
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Supabase Storage (S3 Compatible)
+AWS_ACCESS_KEY_ID = "ee340b613198c6dc9fc1e22fb4247a41"
+AWS_SECRET_ACCESS_KEY = "1a6c352dd6505265b342ae34c7c5a93b60e3d958129ba14e5c98ed9ae1ea7577"
+AWS_STORAGE_BUCKET_NAME = "errand-uploads"
+AWS_S3_ENDPOINT_URL = "https://yrkvxspmazdrfpbwerzm.storage.supabase.co/storage/v1/s3"
+AWS_S3_REGION_NAME = "ap-south-1"  # Matches DB region (aws-1-ap-south-1)
+AWS_DEFAULT_ACL = None  # Supabase handles permissions via Policies, not ACLs
+AWS_S3_FILE_OVERWRITE = True  # Bypass HeadObject check to avoid 403 if List/Get is restricted
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_ADDRESSING_STYLE = "path"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+
+# Use Supabase Public URL for accessing files (bypasses S3 API signature checks)
+# Format: https://<project_id>.supabase.co/storage/v1/object/public/<bucket_name>
+SUPABASE_PROJECT_ID = "yrkvxspmazdrfpbwerzm"
+AWS_S3_CUSTOM_DOMAIN = f"{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files
-MEDIA_URL = "/media/"
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type

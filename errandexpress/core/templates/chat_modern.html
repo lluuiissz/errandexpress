@@ -257,7 +257,8 @@
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">💳 Commission Payment Required</h3>
                     <p class="text-gray-600 mb-4">
-                        To continue chatting, please pay the <strong class="text-amber-600">₱10.00 commission fee</strong>.<br>
+                        To continue chatting, please pay the <strong class="text-amber-600">₱10.00 commission
+                            fee</strong>.<br>
                         This is a one-time payment for this task.
                     </p>
 
@@ -320,6 +321,15 @@
 
                             {% if message.attachment %}
                             <!-- Attachment -->
+                            {% if message.attachment_type == 'image' %}
+                            <div class="mt-2 text-center">
+                                <a href="{{ message.attachment.url }}" target="_blank">
+                                    <img src="{{ message.attachment.url }}"
+                                        class="rounded-lg max-h-48 object-cover mx-auto hover:opacity-90 transition"
+                                        alt="Attachment">
+                                </a>
+                            </div>
+                            {% else %}
                             <div class="mt-2 p-3 bg-white/20 rounded-lg border border-white/30">
                                 <div class="flex items-center space-x-2">
                                     <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
@@ -333,6 +343,7 @@
                                     </a>
                                 </div>
                             </div>
+                            {% endif %}
                             {% endif %}
                         </div>
                         <p class="text-xs text-muted {% if message.sender == user %}text-right{% endif %} mt-1">
@@ -381,7 +392,9 @@
 
             <div class="flex items-end space-x-3">
                 <!-- Attachment Button -->
-                <button class="btn-icon mb-2" title="Attach File">
+                <input type="file" id="file-input" class="hidden" onchange="handleFileSelect(this)">
+                <button class="btn-icon mb-2" title="Attach File"
+                    onclick="document.getElementById('file-input').click()">
                     <i data-lucide="paperclip" class="w-5 h-5"></i>
                 </button>
 
@@ -461,9 +474,11 @@
                     </div>
                     <div class="flex-1">
                         <p class="text-sm font-bold text-amber-900">Last Free Message</p>
-                        <p class="text-xs text-amber-700 mt-1">You have <span class="font-semibold">1 message remaining</span> before chat unlock is required.</p>
+                        <p class="text-xs text-amber-700 mt-1">You have <span class="font-semibold">1 message
+                                remaining</span> before chat unlock is required.</p>
                         <div class="mt-2 flex items-center gap-2">
-                            <span class="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
+                            <span
+                                class="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
                                 💳 Unlock for ₱2
                             </span>
                             <span class="text-xs text-amber-600">One-time payment per task</span>
@@ -626,8 +641,8 @@
     let isTyping = false;
 
     // 5-Message Limit System
-    const chatUnlocked = {{ task.chat_unlocked| lower }};
-    let messageCount = {{ message_count }}; // Loaded from backend
+    const chatUnlocked = "{{ task.chat_unlocked|lower }}" === "true";
+    let messageCount = parseInt("{{ message_count }}") || 0; // Loaded from backend
     const MAX_FREE_MESSAGES = 5;
 
     // Get CSRF token from cookie or DOM
@@ -674,8 +689,100 @@
         }
 
         // Update progress bar
+        // Update progress bar
         if (messageProgressEl) {
-            const percentage = {{MAX_FREE_MESSAGES - messageCount) / MAX_FREE_MESSAGES) * 100; messageProgressEl.style.width = `${Math.max(0, percentage)}%`; // Change color based on remaining messages if (remaining <= 1) { messageProgressEl.className = 'h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-300'; } else if (remaining <= 2) { messageProgressEl.className = 'h-full bg-gradient-to-r from-amber-500 to-yellow-500 transition-all duration-300'; } } // Show warning at 4th message (1 remaining) if (remaining === 1 && lastMessageWarning) { lastMessageWarning.classList.remove('hidden'); } else if (lastMessageWarning) { lastMessageWarning.classList.add('hidden'); } // Show paywall at 5th message (0 remaining) if (remaining <= 0 && paywallOverlay) { paywallOverlay.classList.remove('hidden'); // Disable input const messageInput = document.getElementById('message-input'); const sendButton = document.getElementById('send-button'); if (messageInput) messageInput.disabled = true; if (sendButton) sendButton.disabled = true; } } // Check if user can send message function canSendMessage() { if (chatUnlocked) return true; return messageCount < MAX_FREE_MESSAGES; } // Unlock chat function function unlockChat() { // Redirect to payment page window.location.href = `/payment/system-fee/${taskId}/`; } // Commission payment function function payCommission() { // Redirect to commission payment page window.location.href = `/payment/commission/${taskId}/`; } // Show commission paywall when needed function showCommissionPaywall() { const commissionOverlay = document.getElementById('commission-paywall-overlay'); if (commissionOverlay) { commissionOverlay.classList.remove('hidden'); // Disable input const messageInput = document.getElementById('message-input'); const sendButton = document.getElementById('send-button'); if (messageInput) messageInput.disabled = true; if (sendButton) sendButton.disabled = true; } } // Character counter for textarea const messageInput = document.getElementById('message-input'); const charCount = document.getElementById('char-count'); if (messageInput && charCount) { messageInput.addEventListener('input', function () { charCount.textContent = this.value.length; if (this.value.length > 500) { charCount.classList.add('text-red-600'); } else { charCount.classList.remove('text-red-600'); } }); } // Initialize on page load document.addEventListener('DOMContentLoaded', function () { initMessageCounter(); // Reinitialize Lucide icons for this page (global handler in base template handles initial load) if (typeof lucide !== 'undefined' && lucide.createIcons) { lucide.createIcons(); } }); // Global handler for commission payment errors window.addEventListener('DOMContentLoaded', function() { // Check if there's a commission error in messages const djangoMessages = document.querySelectorAll('.django-message'); djangoMessages.forEach(msg => { const messageText = msg.getAttribute('data-message'); if (messageText && (messageText.includes('₱10') || messageText.includes('commission'))) {
+            const percentage = ((MAX_FREE_MESSAGES - messageCount) / MAX_FREE_MESSAGES) * 100;
+            messageProgressEl.style.width = `${Math.max(0, percentage)}%`;
+
+            // Change color based on remaining messages
+            if (remaining <= 1) {
+                messageProgressEl.className = 'h-full bg-gradient-to-r from-red-500 to-orange-500 transition-all duration-300';
+            } else if (remaining <= 2) {
+                messageProgressEl.className = 'h-full bg-gradient-to-r from-amber-500 to-yellow-500 transition-all duration-300';
+            } else {
+                messageProgressEl.className = 'h-full bg-purple-600 transition-all duration-300';
+            }
+        }
+
+        // Show warning at 4th message (1 remaining)
+        if (remaining === 1 && lastMessageWarning) {
+            lastMessageWarning.classList.remove('hidden');
+        } else if (lastMessageWarning) {
+            lastMessageWarning.classList.add('hidden');
+        }
+
+        // Show paywall at 5th message (0 remaining)
+        if (remaining <= 0 && paywallOverlay) {
+            paywallOverlay.classList.remove('hidden');
+            // Disable input
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            if (messageInput) messageInput.disabled = true;
+            if (sendButton) sendButton.disabled = true;
+        }
+    }
+
+    // Check if user can send message
+    function canSendMessage() {
+        if (chatUnlocked) return true;
+        return messageCount < MAX_FREE_MESSAGES;
+    }
+
+    // Unlock chat function
+    function unlockChat() {
+        // Redirect to payment page
+        window.location.href = `/payment/system-fee/${taskId}/`;
+    }
+
+    // Commission payment function
+    function payCommission() {
+        // Redirect to commission payment page
+        window.location.href = `/payment/commission/${taskId}/`;
+    }
+
+    // Show commission paywall when needed
+    function showCommissionPaywall() {
+        const commissionOverlay = document.getElementById('commission-paywall-overlay');
+        if (commissionOverlay) {
+            commissionOverlay.classList.remove('hidden');
+            // Disable input
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            if (messageInput) messageInput.disabled = true;
+            if (sendButton) sendButton.disabled = true;
+        }
+    }
+
+    // Character counter for textarea
+    const messageInput = document.getElementById('message-input');
+    const charCount = document.getElementById('char-count');
+    if (messageInput && charCount) {
+        messageInput.addEventListener('input', function () {
+            charCount.textContent = this.value.length;
+            if (this.value.length > 500) {
+                charCount.classList.add('text-red-600');
+            } else {
+                charCount.classList.remove('text-red-600');
+            }
+        });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        initMessageCounter();
+        // Reinitialize Lucide icons for this page
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+        }
+    });
+
+    // Global handler for commission payment errors
+    window.addEventListener('DOMContentLoaded', function () {
+        // Check if there's a commission error in messages
+        const djangoMessages = document.querySelectorAll('.django-message');
+        djangoMessages.forEach(msg => {
+            const messageText = msg.getAttribute('data-message');
+            if (messageText && (messageText.includes('₱10') || messageText.includes('commission'))) {
                 // Show commission overlay
                 showCommissionPaywall();
             }
@@ -685,7 +792,7 @@
     // Override showToast to detect commission errors
     const originalShowToast = window.showToast;
     if (originalShowToast) {
-        window.showToast = function(message, type) {
+        window.showToast = function (message, type) {
             if (message && (message.includes('₱10') || message.includes('commission'))) {
                 showCommissionPaywall();
             } else {
@@ -698,7 +805,7 @@
 
     // Typing indicator functionality
     const typingIndicator = document.getElementById('typing-indicator');
-    const messageInput = document.getElementById('message-input');
+
 
     // Show typing indicator
     function showTypingIndicator(userName) {
@@ -747,16 +854,27 @@
         this.style.height = Math.min(this.scrollHeight, 128) + 'px';
 
         // Send typing indicator
-        if (this.value.trim(}
+        if (this.value.trim().length > 0) {
             sendTypingStatus(true);
+        }
+    });
 
-            // Clear previous timeout
-            clearTimeout(typingTimeout);
+    // Clear previous timeout
+    clearTimeout(typingTimeout);
 
-            // Set timeout to stop typing indicator after 2 seconds of inactivity
-            typingTimeout = setTimeout(() => { sendTypingStatus(false); }, 2000); } else { sendTypingStatus(false); } }); // Check for typing status every 2 seconds (instead of 500ms) // This reduces CPU usage and browser tab activity setInterval(checkOtherUserTyping, 2000); // Send message on Enter (but not Shift+Enter) document.getElementById('message-input')?.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }); // Send message function function sendMessage() { const input = document.getElementById('message-input'); const message = input.value.trim(); if (!message) return; // Check message limit BEFORE doing anything if (!canSendMessage(}
+    // Set timeout to stop typing indicator after 2 seconds of inactivity
+    typingTimeout = setTimeout(() => { sendTypingStatus(false); }, 2000);
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        const fileInput = document.getElementById('file-input');
+        const hasFile = fileInput && fileInput.files.length > 0;
+
+        if (!message && !hasFile) return;
+
+        // Check message limit BEFORE doing anything
+        if (!canSendMessage()) {
             showToast('Message limit reached. Please pay ₱2 system fee to continue chatting.', 'warning');
-            // Show payment modal
             const paywallOverlay = document.getElementById('paywall-overlay');
             if (paywallOverlay) {
                 paywallOverlay.classList.remove('hidden');
@@ -764,55 +882,75 @@
             return;
         }
 
-        // Disable send button to prevent duplicate submissions
+        // Disable send button
         const sendBtn = document.querySelector('button[onclick="sendMessage()"]');
         if (sendBtn) sendBtn.disabled = true;
 
-        // Increment message count
-        messageCount++;
-        updateMessageCounter();
+        // Prepare data
+        const formData = new FormData();
+        formData.append('task_id', taskId);
+        formData.append('message', message || ' '); // Send a space if message is empty but has file
 
-        // Add message to chat immediately (optimistic update)
-        addMessageToChat(message, true);
+        if (hasFile) {
+            formData.append('attachment', fileInput.files[0]);
+        }
+
+        // Optimistic update
+        addMessageToChat(message || (hasFile ? `Sending attachment: ${fileInput.files[0].name}` : ''), true);
+
         input.value = '';
         input.style.height = 'auto';
+        if (hasFile) fileInput.value = ''; // Clear file input
 
-        // Re-enable send button immediately (message already shown to user)
-        if (sendBtn) sendBtn.disabled = false;
-
-        // Send to server (non-blocking, fire and forget)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout fetch(`/api/send-message/`, { method: 'POST', headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json', }, body: JSON.stringify({ task_id: taskId, message: message }), signal: controller.signal }).then(response => response.json()
+        // Send to server
+        fetch(`/api/send-message/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: formData
+        })
+            .then(response => response.json())
             .then(data => {
-                clearTimeout(timeoutId);
                 if (!data.success) {
-                    // If payment required, show paywall
                     if (data.payment_required) {
-                        const paywallOverlay = document.getElementById('paywall-overlay');
-                        if (paywallOverlay) {
-                            paywallOverlay.classList.remove('hidden');
+                        if (document.getElementById('paywall-overlay')) {
+                            document.getElementById('paywall-overlay').classList.remove('hidden');
                         }
                     }
                     showToast(data.error || 'Failed to send message', 'error');
-                    // Remove the optimistically added message
                     removeLastMessage();
+                    // Decrement count if failed
                     messageCount--;
                     updateMessageCounter();
-                }
-            }).catch(error => {
-                clearTimeout(timeoutId);
-                // Only show error if not a timeout/abort
-                if (error.name !== 'AbortError') {
-                    showToast('Failed to send message', 'error');
-                    removeLastMessage();
-                    messageCount--;
+                } else {
+                    // Success - update message limit
+                    messageCount++;
                     updateMessageCounter();
                 }
+                if (sendBtn) sendBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Network error, please try again', 'error');
+                removeLastMessage();
+                if (sendBtn) sendBtn.disabled = false;
             });
     }
 
+    function handleFileSelect(input) {
+        if (input.files.length > 0) {
+            const fileName = input.files[0].name;
+            const messageInput = document.getElementById('message-input');
+            if (messageInput.value === '') {
+                messageInput.value = `[Ready to send: ${fileName}]`;
+            }
+            showToast(`Selected: ${fileName}`, 'info');
+        }
+    }
+
     // Add message to chat UI
-    function addMessageToChat(message, isCurrentUser = false, timestamp = null) {
+    function addMessageToChat(message, isCurrentUser = false, timestamp = null, attachmentUrl = null) {
         const container = document.getElementById('messages-container');
         const messagesDiv = document.getElementById('messages-list');
 
@@ -823,10 +961,30 @@
             ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+        let attachmentHtml = '';
+        if (attachmentUrl) {
+            const isImage = attachmentUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+            if (isImage) {
+                attachmentHtml = `<div class="mt-2 text-center">
+                    <a href="${attachmentUrl}" target="_blank">
+                        <img src="${attachmentUrl}" class="rounded-lg max-h-48 object-cover mx-auto hover:opacity-90 transition" alt="Attachment">
+                    </a>
+                </div>`;
+            } else {
+                attachmentHtml = `<div class="mt-2">
+                    <a href="${attachmentUrl}" target="_blank" class="flex items-center space-x-2 bg-black/10 p-2 rounded hover:bg-black/20 transition">
+                        <i data-lucide="file" class="w-4 h-4"></i>
+                        <span class="text-xs underline truncate max-w-[150px]">View Attachment</span>
+                    </a>
+                </div>`;
+            }
+        }
+
         messageDiv.innerHTML = `
             <div class="max-w-xs lg:max-w-md">
                 <div class="${isCurrentUser ? 'chat-bubble-poster' : 'chat-bubble-doer'}">
-                    <p class="text-sm">${escapeHtml(message)}</p>
+                    <p class="text-sm break-words">${escapeHtml(message)}</p>
+                    ${attachmentHtml}
                 </div>
                 <p class="text-xs text-muted ${isCurrentUser ? 'text-right' : ''} mt-1">${timeString}</p>
             </div>
@@ -834,6 +992,11 @@
 
         messagesDiv.appendChild(messageDiv);
         container.scrollTop = container.scrollHeight;
+
+        // Re-initialize icons for new attachment
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     }
 
     // HTML escaping helper
@@ -900,28 +1063,64 @@
         container.scrollTop = container.scrollHeight;
 
         // Focus message input if chat is unlocked
-        {% if task.chat_unlocked %}
-        document.getElementById('message-input')?.focus();
-        {% endif %}
+        if (chatUnlocked) {
+            document.getElementById('message-input')?.focus();
+        }
 
         // Check for chat unlock status periodically
-        {% if not task.chat_unlocked %}
-        setInterval(async () => {
+        if (!chatUnlocked) {
+            setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/check-chat/{{ task.id }}/`);
+                    const data = await response.json();
+
+                    if (data.allowed) {
+                        showToast('Chat has been unlocked! 💬', 'success');
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                } catch (error) { console.error('Failed to check chat status:', error); }
+            }, 5000);
+        }
+
+        // Poll for new messages with optimized interval
+        let isPolling = false;
+        let lastMessageId = null;
+        let pollController = null;
+
+        async function loadNewMessages() {
+            // Skip if already polling
+            if (isPolling) return;
+
+            // Cancel previous request if still pending
+            if (pollController) {
+                pollController.abort();
+            }
+
+            isPolling = true;
+            pollController = new AbortController();
+
             try {
-                const response = await fetch(`/api/check-chat/{{ task.id }}/`);
+                const response = await fetch(`/api/messages/${taskId}/`, { signal: pollController.signal });
                 const data = await response.json();
 
-                if (data.allowed) {
-                    showToast('Chat has been unlocked! 💬', 'success');
-                    setTimeout(() => location.reload(), 2000); } } catch (error) { console.error('Failed to check chat status:', error); } }, 5000); {% endif %} // Poll for new messages with optimized interval let isPolling = false; let lastMessageId = null; let pollController = null; async function loadNewMessages() { // Skip if already polling if (isPolling) return; // Cancel previous request if still pending if (pollController) { pollController.abort(); } isPolling = true; pollController = new AbortController(); try { const response = await fetch(`/api/messages/${taskId}/`, { signal: pollController.signal }); const data = await response.json(); if (data.success && data.messages && data.messages.length > 0) { const messagesList = document.getElementById('messages-list'); const existingIds = new Set( Array.from(messagesList.querySelectorAll('[data-message-id]'}}
-                            .map(el => el.getAttribute('data-message-id'}}
+                if (data.success && data.messages && data.messages.length > 0) {
+                    const messagesList = document.getElementById('messages-list');
+                    const existingIds = new Set(
+                        Array.from(messagesList.querySelectorAll('[data-message-id]'))
+                            .map(el => el.getAttribute('data-message-id'))
                     );
 
                     // Add only new messages
                     let newMessagesCount = 0;
                     data.messages.forEach(msg => {
                         if (!existingIds.has(msg.id)) {
-                            addMessageToChat(msg.message, msg.sender_id === currentUser, msg.created_at);
+                            addMessageToChat(
+                                msg.message,
+                                msg.sender_id === currentUser,
+                                msg.created_at,
+                                msg.attachment_url,
+                                msg.attachment_type
+                            );
                             messageCount++;
                             newMessagesCount++;
                             lastMessageId = msg.id;
