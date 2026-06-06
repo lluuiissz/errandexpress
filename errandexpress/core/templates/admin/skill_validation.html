@@ -1,408 +1,217 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_site.html' %}
 
-{% block title %}Skill Validation - Admin - ErrandExpress{% endblock %}
+{% block title %}Skill Validation — ErrandExpress Admin{% endblock %}
+
+{% block extrastyle %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#4F46E5'},fontFamily:{poppins:['Poppins','sans-serif']}}}}</script>
+<style>.admin-content{background:transparent!important;box-shadow:none!important;border:none!important;padding:0!important;}</style>
+{% endblock %}
 
 {% block content %}
-<div class="skill-validation-admin">
-    <div class="admin-header">
-        <h1>🎓 Skill Validation Management</h1>
-        <p>Review and approve student skill submissions</p>
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+<div class="pb-8">
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="font-poppins font-bold text-3xl text-gray-800 mb-1">🎓 Skill Validation</h1>
+            <p class="text-gray-500 text-sm">Review and manage student skill submissions</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 text-sm font-medium rounded-xl shadow-sm hover:bg-gray-50 transition">← Back to Overview</a>
     </div>
-    
-    <div class="validation-stats">
-        <div class="stat-item">
-            <strong>{{ total_pending }}</strong> skills awaiting review
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-5 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+            {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %} {{ message }}
         </div>
+        {% endfor %}
     </div>
-    
-    {% if skills %}
-        <div class="skills-list">
-            {% for skill in skills %}
-            <div class="skill-card">
-                <div class="skill-header">
-                    <div class="student-info">
-                        <h3>{{ skill.student.fullname }}</h3>
-                        <p>{{ skill.student.email }}</p>
-                        <span class="skill-type">{{ skill.get_skill_name_display }}</span>
-                    </div>
-                    <div class="submission-date">
-                        <small>Submitted {{ skill.created_at|timesince }} ago</small>
-                    </div>
-                </div>
-                
-                {% if skill.notes %}
-                <div class="skill-notes">
-                    <h4>Student Notes:</h4>
-                    <p>{{ skill.notes }}</p>
-                </div>
-                {% endif %}
-                
-                {% if skill.proof_url %}
-                <div class="skill-proof">
-                    <h4>Submitted Proof:</h4>
-                    <a href="{{ skill.proof_url.url }}" target="_blank" class="proof-link">
-                        📎 View Proof File
-                    </a>
-                </div>
-                {% endif %}
-                
-                <div class="validation-actions">
-                    <form method="post" class="validation-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="skill_id" value="{{ skill.id }}">
-                        
-                        <div class="form-group">
-                            <label for="notes_{{ skill.id }}">Admin Notes:</label>
-                            <textarea name="notes" id="notes_{{ skill.id }}" class="form-control" rows="3" 
-                                      placeholder="Add feedback or notes for the student..."></textarea>
-                        </div>
-                        
-                        <div class="action-buttons">
-                            <button type="submit" name="action" value="approve" class="btn btn-success">
-                                ✅ Approve Skill
-                            </button>
-                            <button type="submit" name="action" value="reject" class="btn btn-danger">
-                                ❌ Reject Skill
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Pagination -->
-        {% if skills.has_other_pages %}
-        <div class="pagination-wrapper">
-            <div class="pagination">
-                {% if skills.has_previous %}
-                    <a href="?page=1" class="page-link">&laquo; First</a>
-                    <a href="?page={{ skills.previous_page_number }}" class="page-link">Previous</a>
-                {% endif %}
-                
-                <span class="page-info">
-                    Page {{ skills.number }} of {{ skills.paginator.num_pages }}
-                </span>
-                
-                {% if skills.has_next %}
-                    <a href="?page={{ skills.next_page_number }}" class="page-link">Next</a>
-                    <a href="?page={{ skills.paginator.num_pages }}" class="page-link">Last &raquo;</a>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-        
-    {% else %}
-        <div class="no-skills">
-            <div class="no-skills-content">
-                <div class="no-skills-icon">🎓</div>
-                <h3>No Pending Skills</h3>
-                <p>All skill submissions have been reviewed. Great job!</p>
-                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
-                    Back to Dashboard
+    {% endif %}
+
+    <!-- Filter Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+
+            <!-- Status Pill Tabs -->
+            <div class="flex items-center gap-2 flex-wrap">
+                {% for tab_status, tab_label, tab_color in statuses %}
+                <a href="?status={{ tab_status }}{% if search %}&search={{ search }}{% endif %}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition
+                       {% if status_filter == tab_status %}{{ tab_color.active }}{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    {{ tab_label }}
+                    <span class="text-xs px-1.5 py-0.5 rounded-full
+                        {% if status_filter == tab_status %}bg-white/30{% else %}bg-gray-200 text-gray-500{% endif %}">
+                        {% if tab_status == 'all' %}{{ counts.all }}
+                        {% elif tab_status == 'pending' %}{{ counts.pending }}
+                        {% elif tab_status == 'verified' %}{{ counts.verified }}
+                        {% elif tab_status == 'rejected' %}{{ counts.rejected }}{% endif %}
+                    </span>
+                </a>
+                {% empty %}
+                {% for item in tab_list %}{% endfor %}
+                {% endfor %}
+                <!-- Fallback: hardcoded tabs if no statuses context -->
+                <a href="?status=all{% if search %}&search={{ search }}{% endif %}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'all' %}bg-gray-800 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    All <span class="text-xs px-1.5 py-0.5 rounded-full {% if status_filter == 'all' %}bg-white/30{% else %}bg-gray-200 text-gray-500{% endif %}">{{ counts.all }}</span>
+                </a>
+                <a href="?status=pending{% if search %}&search={{ search }}{% endif %}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'pending' %}bg-yellow-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    ⏳ Pending <span class="text-xs px-1.5 py-0.5 rounded-full {% if status_filter == 'pending' %}bg-white/30{% else %}bg-gray-200 text-gray-500{% endif %}">{{ counts.pending }}</span>
+                </a>
+                <a href="?status=verified{% if search %}&search={{ search }}{% endif %}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'verified' %}bg-emerald-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    ✅ Verified <span class="text-xs px-1.5 py-0.5 rounded-full {% if status_filter == 'verified' %}bg-white/30{% else %}bg-gray-200 text-gray-500{% endif %}">{{ counts.verified }}</span>
+                </a>
+                <a href="?status=rejected{% if search %}&search={{ search }}{% endif %}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'rejected' %}bg-red-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    ❌ Rejected <span class="text-xs px-1.5 py-0.5 rounded-full {% if status_filter == 'rejected' %}bg-white/30{% else %}bg-gray-200 text-gray-500{% endif %}">{{ counts.rejected }}</span>
                 </a>
             </div>
+
+            <!-- Search -->
+            <form method="get" class="sm:ml-auto flex items-center gap-2">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                    <input type="text" name="search" value="{{ search }}"
+                        placeholder="Search student, skill..."
+                        class="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent bg-gray-50 w-56">
+                </div>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition">Search</button>
+                {% if search %}<a href="?status={{ status_filter }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 transition">✕ Clear</a>{% endif %}
+            </form>
         </div>
+    </div>
+
+    <!-- Skills List -->
+    {% if skills %}
+    <div class="space-y-5">
+        {% for skill in skills %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- Card Header -->
+            <div class="flex items-start justify-between p-6 border-b border-gray-100">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-700 font-bold text-lg flex-shrink-0">
+                        {{ skill.student.fullname|first|upper }}
+                    </div>
+                    <div>
+                        <h3 class="font-poppins font-semibold text-gray-900 text-lg">{{ skill.student.fullname }}</h3>
+                        <p class="text-gray-500 text-sm">{{ skill.student.email }}</p>
+                        <div class="flex items-center gap-2 mt-2 flex-wrap">
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-full capitalize">
+                                {% if skill.skill_name == 'typing' %}⌨️{% elif skill.skill_name == 'powerpoint' %}📊{% elif skill.skill_name == 'graphics' %}🎨{% else %}🔧{% endif %}
+                                {{ skill.get_skill_name_display }}
+                            </span>
+                            {% if skill.status == 'pending' %}
+                            <span class="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">⏳ Pending</span>
+                            {% elif skill.status == 'verified' %}
+                            <span class="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full">✅ Verified</span>
+                            {% elif skill.status == 'rejected' %}
+                            <span class="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">❌ Rejected</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-400 font-medium">Submitted</p>
+                    <p class="text-sm text-gray-600 font-medium">{{ skill.created_at|timesince }} ago</p>
+                </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-6">
+                {% if skill.notes %}
+                <div class="mb-5 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">📝 {% if skill.status == 'pending' %}Student Notes{% else %}Admin Feedback{% endif %}</p>
+                    <p class="text-gray-700 text-sm leading-relaxed">{{ skill.notes }}</p>
+                </div>
+                {% endif %}
+
+                {% if skill.proof_url %}
+                <div class="mb-5 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">📎 Proof Submitted</p>
+                    <a href="{{ skill.proof_url.url }}" target="_blank" class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:underline">
+                        📄 View Proof File <span class="text-xs text-blue-400">(opens in new tab)</span>
+                    </a>
+                </div>
+                {% else %}
+                <div class="mb-5 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                    <p class="text-xs text-gray-400 text-center">No proof file uploaded</p>
+                </div>
+                {% endif %}
+
+                {% if skill.status == 'pending' %}
+                <form method="post" class="border-t border-gray-100 pt-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="skill_id" value="{{ skill.id }}">
+                    <input type="hidden" name="status" value="{{ status_filter }}">
+                    <input type="hidden" name="search" value="{{ search }}">
+                    <div class="mb-4">
+                        <label for="notes_{{ skill.id }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Admin Feedback <span class="text-gray-400 font-normal">(optional)</span>
+                        </label>
+                        <textarea name="notes" id="notes_{{ skill.id }}" rows="3"
+                            placeholder="Add feedback or notes for the student..."
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent resize-y transition"></textarea>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button type="submit" name="action" value="approve"
+                            onclick="return confirm('Approve this skill submission?')"
+                            class="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm rounded-xl transition shadow-sm">
+                            ✅ Approve Skill
+                        </button>
+                        <button type="submit" name="action" value="reject"
+                            onclick="return confirm('Reject this skill? Please add feedback notes.')"
+                            class="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm rounded-xl transition shadow-sm">
+                            ❌ Reject Skill
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="border-t border-gray-100 pt-4 text-center text-sm text-gray-400">
+                    {% if skill.status == 'verified' %}✅ This skill has been approved.{% else %}❌ This skill has been rejected.{% endif %}
+                    {% if skill.verified_at %} · {{ skill.verified_at|timesince }} ago{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if skills.has_other_pages %}
+    <div class="flex items-center justify-center gap-2 mt-8">
+        {% if skills.has_previous %}
+        <a href="?status={{ status_filter }}&search={{ search }}&page=1" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">« First</a>
+        <a href="?status={{ status_filter }}&search={{ search }}&page={{ skills.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">← Prev</a>
+        {% endif %}
+        <span class="px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 rounded-xl border border-indigo-200">{{ skills.number }} / {{ skills.paginator.num_pages }}</span>
+        {% if skills.has_next %}
+        <a href="?status={{ status_filter }}&search={{ search }}&page={{ skills.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">Next →</a>
+        <a href="?status={{ status_filter }}&search={{ search }}&page={{ skills.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">Last »</a>
+        {% endif %}
+    </div>
     {% endif %}
+
+    {% else %}
+    <div class="flex items-center justify-center min-h-64">
+        <div class="text-center bg-white rounded-2xl shadow-sm border border-gray-100 px-12 py-14 max-w-sm w-full">
+            <div class="text-6xl mb-4 opacity-40">🎓</div>
+            <h3 class="font-poppins font-bold text-xl text-gray-600 mb-2">No results found</h3>
+            <p class="text-gray-500 text-sm mb-6">
+                {% if search %}No skills match "{{ search }}" with the selected filter.{% else %}No skills in this category yet.{% endif %}
+            </p>
+            <a href="?status=all" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition">View All Skills</a>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
-
-<style>
-.skill-validation-admin {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-.admin-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.admin-header h1 {
-    color: #333;
-    margin-bottom: 0.5rem;
-}
-
-.admin-header p {
-    color: #666;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-}
-
-.validation-stats {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.stat-item {
-    font-size: 1.2rem;
-    color: #333;
-}
-
-.skills-list {
-    display: grid;
-    gap: 2rem;
-}
-
-.skill-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #ffc107;
-}
-
-.skill-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 1.5rem;
-}
-
-.student-info h3 {
-    margin: 0 0 0.25rem 0;
-    color: #333;
-}
-
-.student-info p {
-    margin: 0 0 0.5rem 0;
-    color: #666;
-}
-
-.skill-type {
-    background: #667eea;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.submission-date {
-    color: #888;
-    font-size: 0.9rem;
-}
-
-.skill-notes,
-.skill-proof {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.skill-notes h4,
-.skill-proof h4 {
-    margin: 0 0 0.5rem 0;
-    color: #333;
-    font-size: 1rem;
-}
-
-.skill-notes p {
-    margin: 0;
-    color: #555;
-    line-height: 1.5;
-}
-
-.proof-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.proof-link:hover {
-    text-decoration: underline;
-}
-
-.validation-form {
-    border-top: 1px solid #eee;
-    padding-top: 1.5rem;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #333;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    resize: vertical;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.btn-success {
-    background: #28a745;
-    color: white;
-}
-
-.btn-success:hover {
-    background: #218838;
-    transform: translateY(-1px);
-}
-
-.btn-danger {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #c82333;
-    transform: translateY(-1px);
-}
-
-.btn-secondary {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #5a6268;
-}
-
-.btn-primary {
-    background: #667eea;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #5a67d8;
-}
-
-.no-skills {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 400px;
-}
-
-.no-skills-content {
-    text-align: center;
-    padding: 3rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.no-skills-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-.no-skills-content h3 {
-    color: #28a745;
-    margin-bottom: 1rem;
-}
-
-.no-skills-content p {
-    color: #666;
-    margin-bottom: 2rem;
-}
-
-.pagination-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-}
-
-.pagination {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.page-link {
-    padding: 0.5rem 1rem;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    text-decoration: none;
-    color: #667eea;
-}
-
-.page-link:hover {
-    background: #667eea;
-    color: white;
-}
-
-.page-info {
-    padding: 0.5rem 1rem;
-    color: #666;
-}
-
-@media (max-width: 768px) {
-    .skill-header {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .action-buttons {
-        flex-direction: column;
-    }
-    
-    .btn {
-        width: 100%;
-    }
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add confirmation for actions
-    const approveButtons = document.querySelectorAll('button[value="approve"]');
-    const rejectButtons = document.querySelectorAll('button[value="reject"]');
-    
-    approveButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to approve this skill?')) {
-                e.preventDefault();
-            }
-        });
-    });
-    
-    rejectButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to reject this skill? Please provide feedback in the notes.')) {
-                e.preventDefault();
-            }
-        });
-    });
-});
-</script>
 {% endblock %}

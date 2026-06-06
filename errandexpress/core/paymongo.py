@@ -159,6 +159,39 @@ class PayMongoClient:
             logger.error(f"PayMongo source creation error: {str(e)}")
             return None
     
+    def create_link(self, amount, description="ErrandExpress Payment"):
+        """Create a payment link (Checkout Session)"""
+        try:
+            # Convert amount to centavos
+            amount_centavos = int(float(amount) * 100)
+            
+            payload = {
+                "data": {
+                    "attributes": {
+                        "amount": amount_centavos,
+                        "description": description,
+                        "remarks": "card_payment"
+                    }
+                }
+            }
+            
+            response = requests.post(
+                f"{self.base_url}/links",
+                json=payload,
+                headers=self.headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"PayMongo link creation failed: {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"PayMongo link creation error: {str(e)}")
+            return None
+
     def retrieve_payment_intent(self, payment_intent_id):
         """Retrieve payment intent details"""
         try:
@@ -175,6 +208,53 @@ class PayMongoClient:
                 
         except Exception as e:
             logger.error(f"PayMongo payment intent retrieval error: {str(e)}")
+            return None
+    
+    def create_source(self, amount, source_type="gcash", currency="PHP", success_url=None, failed_url=None, description="ErrandExpress Payment"):
+        """Create a payment source (for GCash, Card, etc.)"""
+        try:
+            # Convert amount to centavos (handle Decimal types)
+            amount_centavos = int(float(amount) * 100)
+            
+            # Validate amount
+            if amount_centavos <= 0:
+                logger.error(f"Invalid amount: {amount_centavos} centavos")
+                return None
+            
+            # Build payload
+            payload = {
+                "data": {
+                    "attributes": {
+                        "amount": amount_centavos,
+                        "currency": currency,
+                        "type": source_type,
+                        "description": description,
+                        "redirect": {
+                            "success": success_url,
+                            "failed": failed_url
+                        }
+                    }
+                }
+            }
+            
+            logger.info(f"Creating PayMongo source: type={source_type}, amount={amount_centavos} centavos")
+            
+            response = requests.post(
+                f"{self.base_url}/sources",
+                json=payload,
+                headers=self.headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"PayMongo source created successfully")
+                return response.json()
+            else:
+                logger.error(f"PayMongo source creation failed: Status={response.status_code}, Response={response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"PayMongo source creation error: {str(e)}")
             return None
     
     def create_webhook(self, url, events):
@@ -326,35 +406,8 @@ class ErrandExpressPayments:
             logger.error(f"GCash payment error: {str(e)}")
             return {'success': False, 'error': str(e)}
     
-    def process_card_payment(self, amount, description="ErrandExpress Payment", success_url=None, failed_url=None):
-        """Create card payment source
-        
-        Args:
-            amount: The payment amount
-            description: Payment description
-            success_url: Custom success redirect URL (optional)
-            failed_url: Custom failed redirect URL (optional)
-        """
-        try:
-            source = self.paymongo.create_source(
-                amount=amount,
-                source_type="card",
-                success_url=success_url,
-                failed_url=failed_url
-            )
-            
-            if source:
-                return {
-                    'success': True,
-                    'checkout_url': source['data']['attributes']['redirect']['checkout_url'],
-                    'source_id': source['data']['id']
-                }
-            else:
-                return {'success': False, 'error': 'Failed to create card payment'}
-                
-        except Exception as e:
-            logger.error(f"Card payment error: {str(e)}")
-            return {'success': False, 'error': str(e)}
+
+    # ==================== PAYMENT PROCESSING ====================
     
     def verify_payment(self, payment_intent_id):
         """Verify payment status"""

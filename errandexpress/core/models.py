@@ -175,6 +175,46 @@ class Task(models.Model):
     commission_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Commission amount (10% of task price)')
     doer_payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text='Amount to pay doer (price - commission)')
     
+    # Time Windows & Scheduling (OBJECTIVE NO.1 Enhancement)
+    time_window_start = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Preferred start time for task execution"
+    )
+    time_window_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Preferred end time for task execution"
+    )
+    preferred_delivery_time = models.TimeField(
+        null=True,
+        blank=True,
+        help_text="Specific preferred time of day"
+    )
+    flexible_timing = models.BooleanField(
+        default=False,
+        help_text="Allow flexible scheduling outside preferred window"
+    )
+    
+    # Customer Preferences (OBJECTIVE NO.1 Enhancement)
+    preferred_doer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='preferred_tasks',
+        help_text="Preferred doer for this task"
+    )
+    auto_assign_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable automatic assignment based on matching algorithm"
+    )
+    priority_level = models.IntegerField(
+        default=3,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Priority level (1=Low, 3=Normal, 5=Urgent)"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
@@ -188,12 +228,91 @@ class Task(models.Model):
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
 
     @property
+    def is_expired(self):
+        """Check if task is past its deadline"""
+        from django.utils import timezone
+        if not self.deadline:
+            return False
+        return timezone.now() > self.deadline
+
+    @property
     def is_new(self):
         """Check if task was posted within the last 24 hours"""
         from django.utils import timezone
         from datetime import timedelta
         return timezone.now() - self.created_at < timedelta(hours=24)
     
+    def save(self, *args, **kwargs):
+        """Override save to trigger automated actions on status changes."""
+        # Auto-sync tags with category and add relevant skill tags
+        if self.category and self.tags is not None:
+            tags_list = [t.strip().lower() for t in self.tags.split(',') if t.strip()]
+            
+            # Standard categories
+            standard_categories = ['microtask', 'typing', 'powerpoint', 'graphics']
+            tags_list = [t for t in tags_list if t not in standard_categories]
+            
+            # Define relevant tags for each category
+            relevant_tags = {
+                'typing': ['data entry', 'transcription', 'encoding', 'word processing'],
+                'powerpoint': ['presentation', 'slides', 'design', 'pitch deck'],
+                'graphics': ['logo', 'photoshop', 'illustrator', 'layout'],
+                'microtask': ['errand', 'quick task', 'simple']
+            }
+            
+            # Remove old relevant tags from other categories if changed
+            for cat, tags in relevant_tags.items():
+                if cat != self.category:
+                    tags_list = [t for t in tags_list if t not in tags]
+            
+            # Add current category keyword
+            if self.category not in tags_list:
+                tags_list.append(self.category)
+                
+            # Automatically add new relevant tags
+            if self.category in relevant_tags:
+                for tag in relevant_tags[self.category]:
+                    if tag not in tags_list:
+                        tags_list.append(tag)
+                        
+            self.tags = ', '.join(tags_list)
+
+        is_newly_completed = False
+        
+        # Check if status changed from something else to 'completed'
+        if self.pk:
+            try:
+                old_task = Task.objects.get(pk=self.pk)
+                if old_task.status != 'completed' and self.status == 'completed':
+                    is_newly_completed = True
+            except Task.DoesNotExist:
+                pass
+                
+        super().save(*args, **kwargs)
+        
+        # Post-save actions
+        if is_newly_completed:
+            # 1. Delete all chat messages linked to this task EXCEPT proof files
+            deleted_count, _ = self.messages.filter(is_proof=False).delete()
+            
+            # 2. Notify users if conversations were deleted
+            if deleted_count > 0:
+                Notification.objects.create(
+                    user=self.poster,
+                    type='system_message',
+                    title='Conversation securely deleted',
+                    message=f'The conversation for your completed task "{self.title}" has been permanently deleted for privacy.',
+                    related_task=self
+                )
+                if self.doer:
+                    Notification.objects.create(
+                        user=self.doer,
+                        type='system_message',
+                        title='Conversation securely deleted',
+                        message=f'The conversation for completed task "{self.title}" has been permanently deleted for privacy.',
+                        related_task=self
+                    )
+
     class Meta:
         indexes = [
             models.Index(fields=['status']),
@@ -201,6 +320,10 @@ class Task(models.Model):
             models.Index(fields=['doer']),
             models.Index(fields=['created_at']),
             models.Index(fields=['status', 'created_at']),
+            # Performance indexes for prioritization algorithm
+            models.Index(fields=['priority_level', '-created_at']),
+            models.Index(fields=['time_window_start', 'time_window_end']),
+            models.Index(fields=['preferred_doer', 'status']),
         ]
 
 

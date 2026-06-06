@@ -20,6 +20,10 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'send-deadline-reminders': {
         'task': 'core.tasks.send_deadline_reminders',
+        'schedule': crontab(minute='*/2'),  # Every 2 minutes for granular warnings
+    },
+    'auto-delete-expired-tasks': {
+        'task': 'core.tasks.auto_delete_expired_tasks',
         'schedule': crontab(minute=0),  # Every hour
     },
     'handle-overdue-tasks': {

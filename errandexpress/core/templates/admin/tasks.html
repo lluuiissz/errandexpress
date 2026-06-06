@@ -1,0 +1,188 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}Tasks — ErrandExpress Admin{% endblock %}
+
+{% block extrastyle %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#4F46E5'},fontFamily:{poppins:['Poppins','sans-serif']}}}}</script>
+<style>.admin-content{background:transparent!important;box-shadow:none!important;border:none!important;padding:0!important;}</style>
+{% endblock %}
+
+{% block content %}
+<div class="pb-8">
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="font-poppins font-bold text-3xl text-gray-800 mb-1">📋 Task Management</h1>
+            <p class="text-gray-500 text-sm">Monitor, search, and manage all platform tasks</p>
+        </div>
+        <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 text-sm font-medium rounded-xl shadow-sm hover:bg-gray-50 transition">← Back to Overview</a>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-5 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+            {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %} {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Filter Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+        <div class="flex flex-col gap-4">
+
+            <!-- Row 1: Status Pill Tabs -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide mr-1">Status:</span>
+                {% for slug, label, active_class, icon in status_tabs %}
+                <a href="?status={{ slug }}&category={{ category_filter }}&search={{ search }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition
+                       {% if status_filter == slug %}{{ active_class }}{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+                    {{ icon }} {{ label }}
+                </a>
+                {% empty %}
+                <!-- Fallback hardcoded tabs -->
+                <a href="?status=&category={{ category_filter }}&search={{ search }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if not status_filter %}bg-gray-800 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">All</a>
+                <a href="?status=open&category={{ category_filter }}&search={{ search }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'open' %}bg-blue-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🔵 Open</a>
+                <a href="?status=in_progress&category={{ category_filter }}&search={{ search }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'in_progress' %}bg-yellow-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">🔄 In Progress</a>
+                <a href="?status=completed&category={{ category_filter }}&search={{ search }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'completed' %}bg-emerald-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">✅ Completed</a>
+                <a href="?status=cancelled&category={{ category_filter }}&search={{ search }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition {% if status_filter == 'cancelled' %}bg-red-500 text-white{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">❌ Cancelled</a>
+                {% endfor %}
+            </div>
+
+            <!-- Row 2: Category + Search -->
+            <form method="get" class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <input type="hidden" name="status" value="{{ status_filter }}">
+
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Category:</span>
+                <select name="category" onchange="this.form.submit()"
+                    class="pl-3 pr-8 py-2 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer">
+                    <option value="">All Categories</option>
+                    <option value="microtask" {% if category_filter == 'microtask' %}selected{% endif %}>🔧 Microtask</option>
+                    <option value="typing" {% if category_filter == 'typing' %}selected{% endif %}>⌨️ Typing</option>
+                    <option value="powerpoint" {% if category_filter == 'powerpoint' %}selected{% endif %}>📊 PowerPoint</option>
+                    <option value="graphics" {% if category_filter == 'graphics' %}selected{% endif %}>🎨 Graphics</option>
+                </select>
+
+                <div class="sm:ml-auto flex items-center gap-2">
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                        <input type="text" name="search" value="{{ search }}"
+                            placeholder="Title, poster, description..."
+                            class="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50 w-60">
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition">Search</button>
+                    {% if search or category_filter or status_filter %}<a href="?" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 transition">✕ Clear</a>{% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results count -->
+    <p class="text-sm text-gray-500 mb-4">
+        Showing <strong class="text-gray-800">{{ tasks.start_index }}–{{ tasks.end_index }}</strong> of <strong class="text-gray-800">{{ tasks.paginator.count }}</strong> tasks
+        {% if search %} matching "<em>{{ search }}</em>"{% endif %}
+        {% if status_filter %} · Status: <strong>{{ status_filter|title }}</strong>{% endif %}
+        {% if category_filter %} · Category: <strong>{{ category_filter|title }}</strong>{% endif %}
+    </p>
+
+    <!-- Tasks Table -->
+    {% if tasks %}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Task</th>
+                    <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Poster</th>
+                    <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Category</th>
+                    <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Price</th>
+                    <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Created</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for task in tasks %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        <div>
+                            <p class="font-semibold text-gray-900 truncate max-w-xs">{{ task.title }}</p>
+                            {% if task.doer %}
+                            <p class="text-xs text-gray-500 mt-0.5">Doer: {{ task.doer.fullname }}</p>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-xs flex-shrink-0">
+                                {{ task.poster.fullname|first|upper }}
+                            </div>
+                            <span class="text-gray-700 text-sm">{{ task.poster.fullname }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full capitalize">
+                            {% if task.category == 'typing' %}⌨️{% elif task.category == 'powerpoint' %}📊{% elif task.category == 'graphics' %}🎨{% else %}🔧{% endif %}
+                            {{ task.category }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-gray-800">₱{{ task.price }}</td>
+                    <td class="px-6 py-4">
+                        {% if task.status == 'open' %}
+                        <span class="inline-flex items-center px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">🔵 Open</span>
+                        {% elif task.status == 'in_progress' %}
+                        <span class="inline-flex items-center px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">🔄 In Progress</span>
+                        {% elif task.status == 'completed' %}
+                        <span class="inline-flex items-center px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">✅ Completed</span>
+                        {% elif task.status == 'cancelled' %}
+                        <span class="inline-flex items-center px-2.5 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">❌ Cancelled</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{{ task.status|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-gray-500 text-xs">{{ task.created_at|timesince }} ago</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if tasks.has_other_pages %}
+    <div class="flex items-center justify-center gap-2 mt-6">
+        {% if tasks.has_previous %}
+        <a href="?status={{ status_filter }}&category={{ category_filter }}&search={{ search }}&page=1" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">« First</a>
+        <a href="?status={{ status_filter }}&category={{ category_filter }}&search={{ search }}&page={{ tasks.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">← Prev</a>
+        {% endif %}
+        <span class="px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 rounded-xl border border-indigo-200">{{ tasks.number }} / {{ tasks.paginator.num_pages }}</span>
+        {% if tasks.has_next %}
+        <a href="?status={{ status_filter }}&category={{ category_filter }}&search={{ search }}&page={{ tasks.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">Next →</a>
+        <a href="?status={{ status_filter }}&category={{ category_filter }}&search={{ search }}&page={{ tasks.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">Last »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="flex items-center justify-center min-h-64">
+        <div class="text-center bg-white rounded-2xl shadow-sm border border-gray-100 px-12 py-14 max-w-sm w-full">
+            <div class="text-6xl mb-4 opacity-40">📋</div>
+            <h3 class="font-poppins font-bold text-xl text-gray-600 mb-2">No tasks found</h3>
+            <p class="text-gray-500 text-sm mb-6">Try adjusting your search or filters.</p>
+            <a href="?" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition">Clear Filters</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

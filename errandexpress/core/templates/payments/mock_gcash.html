@@ -1,0 +1,88 @@
+{% extends 'base_complete.html' %}
+{% load static %}
+
+{% block title %}GCash Payment - ErrandExpress{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gcash-blue {
+        background-color: #007dfe;
+    }
+
+    .gcash-bg {
+        background-color: #007dfe;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+
+    <!-- GCash Mock Container -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden relative">
+
+        <!-- Header -->
+        <div class="gcash-bg p-6 text-white text-center relative">
+            <div class="font-bold text-2xl tracking-tight">GCash</div>
+            <p class="text-white/80 text-sm mt-1">Secure Payment Gateway</p>
+            <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium">
+                Merchant: ErrandExpress
+            </div>
+        </div>
+
+        <!-- Amount Banner -->
+        <div class="bg-slate-50 p-6 text-center border-b border-slate-100">
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-wide mb-1">Total Amount</p>
+            <div class="text-3xl font-black text-slate-800">₱{{ amount|floatformat:2 }}</div>
+        </div>
+
+        <!-- Form -->
+        <div class="p-8">
+            <p class="text-center text-slate-600 mb-8 text-sm">
+                Login with your mobile number and MPIN to proceed.
+            </p>
+
+            <form method="POST" action="{{ process_url }}" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Mobile Number -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 ml-1">Mobile
+                        Number</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3.5 text-slate-400 font-bold">+63</span>
+                        <input type="tel" value="{{ phone|slice:'1:' }}" readonly
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-14 pr-4 font-bold text-slate-700 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- MPIN Mock -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 ml-1">MPIN</label>
+                    <input type="password" name="mpin" required maxlength="4" placeholder="••••"
+                        class="w-full border-b-2 border-slate-200 py-3 px-4 text-center text-2xl tracking-[1em] font-black text-slate-800 focus:outline-none focus:border-blue-500 transition-colors placeholder:tracking-normal placeholder:text-slate-300">
+                </div>
+
+                <button type="submit"
+                    class="w-full gcash-bg text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-600 transition-all transform active:scale-95 mt-8 flex items-center justify-center gap-2">
+                    <span>Pay ₱{{ amount|floatformat:2 }}</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </form>
+
+            <p class="text-center text-[10px] text-slate-400 mt-6">
+                This is a secure mock interface for testing. <br>
+                Proceeding will redirect to PayMongo authentication.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

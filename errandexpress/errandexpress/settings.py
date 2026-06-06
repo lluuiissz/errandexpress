@@ -90,6 +90,12 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL)
     }
+    # ✅ PERFORMANCE: Add connection pooling to reduce connection overhead
+    DATABASES['default']['CONN_MAX_AGE'] = 600  # Keep connections alive for 10 minutes
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,  # 10 second connection timeout
+        'options': '-c statement_timeout=30000'  # 30 second query timeout
+    }
 else:
     DATABASES = {
         "default": {
@@ -138,6 +144,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Custom User Model
 AUTH_USER_MODEL = "core.User"
 
+# Auth Redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'home'
+
 # Session settings
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
@@ -159,6 +170,20 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# ✅ PERFORMANCE: Caching Configuration
+# Using LocMemCache for development (no Redis required)
+# For production, switch to Redis for better performance
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'errandexpress-cache',
+        'TIMEOUT': 60,  # Default cache timeout: 60 seconds
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
 
 # REST Framework settings
 REST_FRAMEWORK = {

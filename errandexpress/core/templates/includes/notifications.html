@@ -1,398 +1,411 @@
-<!-- Professional Toast Notification System -->
-<div id="notification-container" class="fixed bottom-6 left-6 z-[60] space-y-4 max-w-md"></div>
+<!-- Premium Glassmorphism Notification System -->
+<div id="notification-container" class="fixed top-6 right-6 z-[100] space-y-4 max-w-sm w-full pointer-events-none">
+</div>
 
 <style>
-/* Professional Notification Styles */
-.notification {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.12);
-    padding: 20px 24px;
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    transform: translateX(-500px) translateY(20px);
-    opacity: 0;
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    border-left: 6px solid;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
-    max-width: 450px;
-    min-height: 80px;
-}
+    /* 
+    Premium Glassmorphism Styles 
+    - Frosted glass effect
+    - Smooth gradients
+    - Modern typography
+*/
 
-.notification.show {
-    transform: translateX(0) translateY(0);
-    opacity: 1;
-}
-
-.notification.hide {
-    transform: translateX(-550px) translateY(20px);
-    opacity: 0;
-}
-
-/* Notification Types - More Vibrant */
-.notification.success {
-    border-left-color: #10B981;
-    background: linear-gradient(135deg, #ffffff 0%, #ECFDF5 100%);
-}
-
-.notification.error {
-    border-left-color: #DC2626;
-    background: linear-gradient(135deg, #ffffff 0%, #FEF2F2 100%);
-}
-
-.notification.warning {
-    border-left-color: #F59E0B;
-    background: linear-gradient(135deg, #ffffff 0%, #FFFBEB 100%);
-}
-
-.notification.info {
-    border-left-color: #0EA5E9;
-    background: linear-gradient(135deg, #ffffff 0%, #F0F9FF 100%);
-}
-
-/* Icon Container */
-.notification-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    position: relative;
-}
-
-.notification.success .notification-icon {
-    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-}
-
-.notification.error .notification-icon {
-    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-.notification.warning .notification-icon {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-.notification.info .notification-icon {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.notification-icon svg {
-    width: 22px;
-    height: 22px;
-    color: white;
-    stroke-width: 2.5;
-}
-
-/* Content */
-.notification-content {
-    flex: 1;
-    padding-right: 8px;
-}
-
-.notification-title {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    color: #000000;
-    margin-bottom: 6px;
-    line-height: 1.4;
-    letter-spacing: 0.3px;
-}
-
-.notification-message {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    color: #374151;
-    line-height: 1.6;
-    font-weight: 500;
-}
-
-/* Close Button */
-.notification-close {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-    color: #9CA3AF;
-}
-
-.notification-close:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: #4B5563;
-}
-
-.notification-close svg {
-    width: 16px;
-    height: 16px;
-}
-
-/* Progress Bar */
-.notification-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.8) 100%);
-    border-radius: 0 0 0 16px;
-    animation: progress 5s linear forwards;
-}
-
-.notification.success .notification-progress {
-    background: linear-gradient(90deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.8) 100%);
-}
-
-.notification.error .notification-progress {
-    background: linear-gradient(90deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.8) 100%);
-}
-
-.notification.warning .notification-progress {
-    background: linear-gradient(90deg, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0.8) 100%);
-}
-
-@keyframes progress {
-    from {
+    .notification {
+        pointer-events: auto;
+        position: relative;
+        background: rgba(255, 255, 255, 0.85);
+        /* Slightly more opaque for readability */
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.08),
+            0 2px 8px rgba(0, 0, 0, 0.04);
+        transform: translateX(120%};
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         width: 100%;
+        margin-bottom: 12px;
     }
-    to {
-        width: 0%;
-    }
-}
 
-/* Pulse Animation for Icon */
-@keyframes pulse-ring {
-    0% {
-        transform: scale(0.8);
+    .notification.show {
+        transform: translateX(0);
         opacity: 1;
     }
-    100% {
-        transform: scale(1.4);
+
+    .notification.hide {
+        transform: translateX(120%};
         opacity: 0;
     }
-}
 
-.notification-icon::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 14px;
-    background: inherit;
-    opacity: 0.3;
-    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
+    /* Gradient Borders & Accents */
+    .notification::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        padding: 2px;
+        /* Border width */
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.1}};
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        pointer-events: none;
+    }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    #notification-container {
-        bottom: 80px;
-        left: 12px;
-        right: 12px;
-        max-width: calc(100vw - 24px);
+    /* Notification Types */
+    .notification.success {
+        background: rgba(240, 253, 244, 0.85);
+        border-color: rgba(34, 197, 94, 0.2);
     }
-    
-    .notification {
-        max-width: 100%;
-        min-height: 70px;
-        padding: 16px 20px;
+
+    .notification.error {
+        background: rgba(254, 242, 242, 0.85);
+        border-color: rgba(239, 68, 68, 0.2);
     }
-    
+
+    .notification.warning {
+        background: rgba(255, 251, 235, 0.85);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+
+    .notification.info {
+        background: rgba(239, 246, 255, 0.85);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    /* Icon Styles */
+    .notification-icon-wrapper {
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Icon Colors */
+    .notification.success .notification-icon-wrapper {
+        background: linear-gradient(135deg, #86efac 0%, #22c55e 100%};
+        color: white;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .notification.error .notification-icon-wrapper {
+        background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%};
+        color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .notification.warning .notification-icon-wrapper {
+        background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%};
+        color: white;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .notification.info .notification-icon-wrapper {
+        background: linear-gradient(135deg, #93c5fd 0%, #3b82f6 100%};
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .notification-icon-wrapper svg {
+        width: 22px;
+        height: 22px;
+        stroke-width: 2.5;
+    }
+
+    /* Content */
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+        /* Prevent text overflow */
+    }
+
     .notification-title {
-        font-size: 15px;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #111827;
+        margin-bottom: 2px;
+        letter-spacing: -0.01em;
     }
-    
-    .notification-message {
-        font-size: 13px;
-    }
-}
 
-@media (max-width: 480px) {
-    #notification-container {
-        bottom: 70px;
-        left: 8px;
-        right: 8px;
-    }
-    
-    .notification {
-        max-width: 100%;
-        padding: 14px 16px;
-        gap: 12px;
-    }
-    
-    .notification-icon {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .notification-title {
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-    
     .notification-message {
-        font-size: 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        color: #4B5563;
+        line-height: 1.5;
+        word-break: break-word;
+        /* Handle long words */
     }
-}
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .notification {
-        background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    
-    .notification-title {
-        color: #F9FAFB;
-    }
-    
-    .notification-message {
-        color: #D1D5DB;
-    }
-    
+    /* Close Button */
     .notification-close {
+        background: transparent;
+        border: none;
         color: #9CA3AF;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        line-height: 0;
     }
-    
+
     .notification-close:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #E5E7EB;
+        background: rgba(0, 0, 0, 0.05);
+        color: #374151;
     }
-}
+
+    /* Animation for Icon Pulse */
+    @keyframes nice-pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .notification-icon-wrapper {
+        animation: nice-pulse 2s infinite ease-in-out;
+    }
+
+    /* Progress Bar */
+    .notification-progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 4px;
+        right: 4px;
+        height: 3px;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .notification-progress-fill {
+        height: 100%;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.1);
+        transform-origin: left;
+        animation: progress-shrink linear forwards;
+    }
+
+    .notification.success .notification-progress-fill {
+        background: rgba(34, 197, 94, 0.5);
+    }
+
+    .notification.error .notification-progress-fill {
+        background: rgba(239, 68, 68, 0.5);
+    }
+
+    .notification.warning .notification-progress-fill {
+        background: rgba(245, 158, 11, 0.5);
+    }
+
+    .notification.info .notification-progress-fill {
+        background: rgba(59, 130, 246, 0.5);
+    }
+
+    @keyframes progress-shrink {
+        from {
+            transform: scaleX(1);
+        }
+
+        to {
+            transform: scaleX(0);
+        }
+    }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+        .notification {
+            background: rgba(17, 24, 39, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .notification-title {
+            color: #F3F4F6;
+        }
+
+        .notification-message {
+            color: #D1D5DB;
+        }
+
+        .notification.success {
+            background: rgba(6, 78, 59, 0.85);
+            border-color: rgba(5, 150, 105, 0.2);
+        }
+
+        .notification.error {
+            background: rgba(127, 29, 29, 0.85);
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        .notification.warning {
+            background: rgba(120, 53, 15, 0.85);
+            border-color: rgba(217, 119, 6, 0.2);
+        }
+
+        .notification.info {
+            background: rgba(30, 58, 138, 0.85);
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 640px) {
+        #notification-container {
+            top: auto;
+            bottom: 24px;
+            right: 16px;
+            left: 16px;
+            width: auto;
+            max-width: none;
+        }
+
+        .notification {
+            margin-bottom: 8px;
+        }
+    }
 </style>
 
 <script>
-/**
- * Professional Notification System for ErrandExpress
- * Displays beautiful, animated toast notifications - ONLY ONCE PER SESSION
- */
+    /**
+     * Premium Glassmorphism Notification System
+     * Handles toast notifications with a modern look and feel.
+     */
 
-// Track shown notifications to prevent duplicates
-const shownNotifications = new Set();
+    // Global notification function
+    window.showNotification = function (message, type = 'info', title = null, duration = 5000) {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
 
-window.showNotification = function(message, type = 'info', title = null, duration = 6000) {
-    const container = document.getElementById('notification-container');
-    if (!container) return;
-    
-    // Create unique key for this notification
-    const notificationKey = `${type}:${message}`;
-    
-    // Check if this notification was already shown
-    if (shownNotifications.has(notificationKey)) {
-        console.log('Notification already shown, skipping duplicate:', notificationKey);
-        return;
-    }
-    
-    // Mark this notification as shown
-    shownNotifications.add(notificationKey);
-    
-    // Auto-generate title based on type if not provided
-    if (!title) {
-        const titles = {
-            success: '✓ Success',
-            error: '✕ Error',
-            warning: '⚠ Warning',
-            info: 'ℹ Information'
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+
+        // Determine icon
+        const icons = {
+            success: 'check',
+            error: 'x',
+            warning: 'alert-triangle',
+            info: 'info',
+            deadline_reminder: 'clock',
+            task_overdue: 'alert-triangle'
         };
-        title = titles[type] || 'Notification';
-    }
-    
-    // Icon mapping
-    const icons = {
-        success: 'check-circle',
-        error: 'x-circle',
-        warning: 'alert-triangle',
-        info: 'info'
-    };
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-icon">
-            <i data-lucide="${icons[type]}"></i>
+
+        // Determine default title
+        if (!title) {
+            const titles = {
+                success: 'Success',
+                error: 'Error',
+                warning: 'Warning',
+                info: 'Information'
+            };
+            title = titles[type] || 'Notification';
+        }
+
+        // Sanitize message if it's raw text
+        // Note: We expect message to be safe HTML if called from our system, 
+        // but we should be careful. 
+
+        notification.innerHTML = `
+        <div class="notification-icon-wrapper">
+            <i data-lucide="${icons[type] || 'bell'}"></i>
         </div>
         <div class="notification-content">
-            <div class="notification-title">${title}</div>
+            <h4 class="notification-title">${title}</h4>
             <div class="notification-message">${message}</div>
         </div>
-        <button class="notification-close" type="button">
-            <i data-lucide="x"></i>
+        <button class="notification-close" aria-label="Close">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
         </button>
-        <div class="notification-progress"></div>
+        <div class="notification-progress-bar">
+            <div class="notification-progress-fill" style="animation-duration: ${duration}ms;"></div>
+        </div>
     `;
-    
-    // Add to container
-    container.appendChild(notification);
-    
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
-    
-    // Animate in
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // Close button handler
-    const closeBtn = notification.querySelector('.notification-close');
-    const removeNotification = () => {
-        notification.classList.add('hide');
-        setTimeout(() => {
-            notification.remove();
-        }, 400);
+
+        // Append to container
+        // Prepend if using top-right, append if bottom-left. Since we are top-right, prepend looks better (stack down)
+        // or append (stack up). Let's Append to stack downwards from top.
+        container.appendChild(notification);
+
+        // Initialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons({
+                root: notification
+            });
+        }
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+            notification.classList.add('show');
+        });
+
+        // Remove function
+        const remove = () => {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 500); // 500ms match CSS transition
+        };
+
+        // Auto remove
+        const timer = setTimeout(remove, duration);
+
+        // Close button click
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            clearTimeout(timer);
+            remove();
+        });
     };
-    
-    closeBtn.addEventListener('click', removeNotification);
-    
-    // Auto remove after duration
-    const timeout = setTimeout(removeNotification, duration);
-    
-    // Limit to 3 notifications at a time (only show most recent)
-    const notifications = container.querySelectorAll('.notification');
-    if (notifications.length > 3) {
-        notifications[0].remove();
-    }
-};
 
-// Alias for backward compatibility
-window.showToast = window.showNotification;
+    // Backward compatibility alias
+    window.showToast = window.showNotification;
 
-// Auto-show Django messages if present (only once per page load)
-let djangoMessagesProcessed = false;
-document.addEventListener('DOMContentLoaded', function() {
-    if (djangoMessagesProcessed) return;
-    djangoMessagesProcessed = true;
-    
-    // Check for Django messages in the page
-    const djangoMessages = document.querySelectorAll('.django-message');
-    djangoMessages.forEach(msg => {
-        const type = msg.dataset.type || 'info';
-        const message = msg.dataset.message || msg.textContent.trim();
-        const title = msg.dataset.title || null;
-        
-        showNotification(message, type, title);
-        msg.remove(); // Remove the hidden message element
+    // Auto-process Django messages on load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Select all hidden django message containers
+        const djangoMessages = document.querySelectorAll('.django-message');
+
+        djangoMessages.forEach(el => {
+            const type = el.dataset.type || 'info';
+            const title = el.dataset.title;
+            // Retrieve content from the hidden script tag to avoid attribute parsing issues
+            const contentScript = el.querySelector('.message-content');
+            const message = contentScript ? contentScript.innerHTML : (el.dataset.message || '');
+
+            if (message) {
+                // Using a slight delay for each message if multiple exist creates a nice stagger effect
+                setTimeout(() => {
+                    showNotification(message, type, title);
+                }, 100);
+            }
+
+            // Cleanup DOM
+            el.remove();
+        });
     });
-});
-
-// Example usage:
-// showNotification('Chat has been unlocked! You can now send unlimited messages.', 'success', 'Chat Unlocked');
-// showNotification('Payment successful! Your task is now active.', 'success', 'Payment Confirmed');
-// showNotification('Please complete the payment to continue.', 'warning', 'Payment Required');
-// showNotification('An error occurred. Please try again.', 'error', 'Oops!');
 </script>

@@ -294,7 +294,10 @@ function selectPaymentMethod(method) {
     });
 
     const selectedBtn = event.currentTarget;
-    const color = method === 'gcash' ? 'blue' : 'green';
+    let color = 'blue';
+    if (method === 'gcash') color = 'blue';
+    else if (method === 'cod') color = 'green';
+
     selectedBtn.classList.remove('border-gray-200');
     selectedBtn.classList.add(`border-${color}-500`, `bg-${color}-50`);
     selectedBtn.querySelector('.check-icon').classList.remove('hidden');
