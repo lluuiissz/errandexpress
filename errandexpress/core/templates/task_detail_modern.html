@@ -994,7 +994,8 @@
                     // 3. Set hidden input with the s3 key
                     document.getElementById('s3-file-path').value = data.s3_key;
                     
-                    // Remove name attribute from file input so it isn't sent to Django
+                    // CLEAR the file input completely so the browser doesn't send the 50MB file to Django!
+                    fileInput.value = '';
                     fileInput.removeAttribute('name');
                     
                     // Submit the form
