@@ -999,8 +999,8 @@ def signup_view(request):
         campus_location = request.POST.get("campus_location", "")
         
         # Validate email domain
-        if not email.endswith('@asscat.edu.ph'):
-            messages.error(request, "Please use your institutional email (@asscat.edu.ph).")
+        if not email.endswith('@adssu.edu.ph'):
+            messages.error(request, "Please use your institutional email (@adssu.edu.ph).")
             return redirect("signup")
 
         # Check if user already exists
