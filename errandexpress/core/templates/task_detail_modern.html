@@ -991,15 +991,21 @@
                         throw new Error('Failed to upload file to storage');
                     }
                     
-                    // 3. Set hidden input with the s3 key
-                    document.getElementById('s3-file-path').value = data.s3_key;
+                    // 3. Submit to Django using fetch to guarantee the file isn't attached
+                    const finalFormData = new FormData();
+                    finalFormData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                    finalFormData.append('s3_file_path', data.s3_key);
                     
-                    // CLEAR the file input completely so the browser doesn't send the 50MB file to Django!
-                    fileInput.value = '';
-                    fileInput.removeAttribute('name');
+                    const djangoResponse = await fetch(submitForm.action, {
+                        method: 'POST',
+                        body: finalFormData
+                    });
                     
-                    // Submit the form
-                    submitForm.submit();
+                    if (djangoResponse.ok) {
+                        window.location.href = djangoResponse.url; // Follow the redirect
+                    } else {
+                        throw new Error('Failed to complete task in Django');
+                    }
                     
                 } catch (error) {
                     console.error('Upload error:', error);
