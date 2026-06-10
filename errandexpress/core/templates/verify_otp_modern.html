@@ -1,0 +1,65 @@
+{% extends 'auth_modern.html' %}
+
+{% block title %}Verify Email - ErrandExpress 🚀{% endblock %}
+
+{% block form_content %}
+<div class="animate-slide-up">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="font-heading font-bold text-3xl text-text-primary mb-2">Verify Your Email</h1>
+        <p class="font-body text-text-secondary">We sent a 6-digit code to <strong>{{ email }}</strong></p>
+    </div>
+    
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- OTP Field -->
+        <div>
+            <label for="otp_code" class="block font-ui font-medium text-text-primary mb-2 text-center">
+                Enter Verification Code
+            </label>
+            <div class="relative max-w-xs mx-auto">
+                <input type="text" id="otp_code" name="otp_code" required
+                       maxlength="6"
+                       pattern="\d{6}"
+                       title="Please enter the 6-digit code"
+                       class="w-full text-center text-3xl tracking-[0.5em] font-mono py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                       placeholder="••••••">
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="w-full btn-modern bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-ui font-semibold text-lg shadow-lg hover:shadow-xl">
+            Verify Email
+            <i data-lucide="check-circle" class="w-5 h-5 ml-2 inline"></i>
+        </button>
+    </form>
+    
+    <!-- Resend Code -->
+    <div class="text-center mt-8 space-y-4">
+        <p class="font-ui text-sm text-text-secondary">
+            Didn't receive the code or did it expire?
+        </p>
+        <a href="{% url 'resend_otp' %}" class="btn-modern bg-white text-primary border-2 border-primary py-2 px-6 rounded-xl font-ui font-semibold hover:bg-primary hover:text-white transition-all duration-200 inline-flex items-center">
+            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+            Resend Code
+        </a>
+    </div>
+    
+    <!-- Back to Signup -->
+    <div class="text-center mt-6">
+        <a href="{% url 'signup' %}" class="font-ui text-sm text-text-secondary hover:text-primary transition-colors inline-flex items-center">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+            Use a different email
+        </a>
+    </div>
+</div>
+
+<script>
+    // Initialize icons when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}

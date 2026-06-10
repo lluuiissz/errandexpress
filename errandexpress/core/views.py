@@ -30,7 +30,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from .supabase_client import supabase
-from .models import User, Task, TaskApplication, StudentSkill, Message, Rating, Report, Notification, Payment
+from .models import User, Task, TaskApplication, StudentSkill, Message, Rating, Report, Notification, Payment, EmailOTP
 from .forms import TaskForm, TaskApplicationForm, TaskFilterForm, SkillValidationForm, MessageForm, RatingForm, ReportForm
 from .utils import (
     compress_profile_picture, 
@@ -42,6 +42,9 @@ from .utils import (
 import logging
 import json
 import base64
+import random
+import string
+from django.core.mail import send_mail
 import requests
 import traceback
 import hmac
@@ -1009,91 +1012,125 @@ def signup_view(request):
             return redirect("signup")
         
         try:
-            # For now, create Django user directly (bypass Supabase temporarily)
-            # TODO: Re-enable Supabase integration once response format is resolved
-            
-            import uuid
-            django_user = User.objects.create_user(
-                id=uuid.uuid4(),
-                username=email,
-                email=email,
-                password=password,
-                fullname=fullname,
-                role=role,
-                doer_type=doer_type if role == "task_doer" else "",
-
-                campus_location=campus_location,
-                is_active=True
-            )
-            
-            logger.info(f"Created Django user {django_user.id} for email {email}")
-            messages.success(request, "Account created successfully! You can now log in.")
-            return redirect("login")
-            
-            # Supabase integration (temporarily disabled)
-            """
-            result = supabase.auth.sign_up({
-                "email": email,
-                "password": password,
-                "options": {
-                    "data": {
-                        "fullname": fullname, 
-                        "role": role,
-                        "doer_type": doer_type if role == "task_doer" else ""
-                    }
-                }
-            })
-            
-            # Handle Supabase AuthResponse object
-            if hasattr(result, 'user') and result.user:
-                supabase_user = result.user
-            elif hasattr(result, 'data') and result.data and hasattr(result.data, 'user'):
-                supabase_user = result.data.user
-            else:
-                # Check for error in the response
-                error_msg = "Failed to create account."
-                if hasattr(result, 'error') and result.error:
-                    error_msg = str(result.error)
-                elif hasattr(result, 'data') and hasattr(result.data, 'error') and result.data.error:
-                    error_msg = str(result.data.error)
-                messages.error(request, error_msg)
-                return redirect("signup")
-            
-            if not supabase_user:
-                messages.error(request, "Failed to create account. Please try again.")
-                return redirect("signup")
-            
-            # Create corresponding Django User
             with transaction.atomic():
-                # Handle different user object structures
-                user_id = supabase_user.id if hasattr(supabase_user, 'id') else supabase_user['id']
-                user_email = supabase_user.email if hasattr(supabase_user, 'email') else supabase_user['email']
-                
-                django_user, created = User.objects.get_or_create(
-                    id=user_id,
-                    defaults={
-                        'username': user_email,  # Use email as username
-                        'email': user_email,
-                        'fullname': fullname,
-                        'role': role,
-                        'doer_type': doer_type if role == "task_doer" else "",
-                        'is_active': False,  # Will be activated when email is confirmed
-                    }
+                import uuid
+                django_user = User.objects.create_user(
+                    id=uuid.uuid4(),
+                    username=email,
+                    email=email,
+                    password=password,
+                    fullname=fullname,
+                    role=role,
+                    doer_type=doer_type if role == "task_doer" else "",
+                    campus_location=campus_location,
+                    is_active=False  # Must be activated via OTP
                 )
                 
-                if created:
-                    logger.info(f"Created Django user for Supabase user {user_id}")
+                # Generate 6-digit OTP
+                otp_code = ''.join(random.choices(string.digits, k=6))
                 
-            messages.success(request, "Account created successfully! Please check your email for confirmation.")
-            return redirect("login")
-            """
-            
+                # Save OTP to database
+                EmailOTP.objects.create(
+                    user=django_user,
+                    otp_code=otp_code,
+                    expires_at=timezone.now() + timedelta(minutes=10)
+                )
+                
+                # Send email
+                subject = "Verify your ErrandExpress Account"
+                message = f"Hello {fullname},\n\nYour verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nThank you,\nThe ErrandExpress Team"
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [email],
+                    fail_silently=False,
+                )
+                
+                # Store email in session for verification
+                request.session['verification_email'] = email
+                
+                logger.info(f"Created Django user {django_user.id} and sent OTP to {email}")
+                messages.success(request, "Account created! Please check your email for the verification code.")
+                return redirect("verify_otp")
         except Exception as e:
             logger.error(f"Signup error: {str(e)}")
             messages.error(request, f"An error occurred during signup: {str(e)}")
             return redirect("signup")
     
     return render(request, "signup_modern.html")
+
+def verify_otp(request):
+    email = request.session.get('verification_email')
+    if not email:
+        messages.error(request, "Session expired. Please sign up again.")
+        return redirect("signup")
+        
+    if request.method == "POST":
+        otp_code = request.POST.get("otp_code", "").strip()
+        
+        try:
+            user = User.objects.get(email=email)
+            otp_record = EmailOTP.objects.filter(user=user, otp_code=otp_code).last()
+            
+            if otp_record and otp_record.is_valid():
+                user.is_active = True
+                user.save()
+                otp_record.delete()  # Clean up
+                
+                # Clear session
+                if 'verification_email' in request.session:
+                    del request.session['verification_email']
+                
+                logger.info(f"User {user.email} successfully verified OTP.")
+                messages.success(request, "Email verified successfully! You can now log in.")
+                return redirect("login")
+            else:
+                messages.error(request, "Invalid or expired verification code.")
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return redirect("signup")
+            
+    return render(request, "verify_otp_modern.html", {"email": email})
+
+def resend_otp(request):
+    email = request.session.get('verification_email')
+    if not email:
+        messages.error(request, "Session expired. Please sign up again.")
+        return redirect("signup")
+        
+    try:
+        user = User.objects.get(email=email)
+        
+        # Clear old OTPs
+        EmailOTP.objects.filter(user=user).delete()
+        
+        # Generate new OTP
+        otp_code = ''.join(random.choices(string.digits, k=6))
+        EmailOTP.objects.create(
+            user=user,
+            otp_code=otp_code,
+            expires_at=timezone.now() + timedelta(minutes=10)
+        )
+        
+        # Send email
+        subject = "Your New Verification Code - ErrandExpress"
+        message = f"Hello {user.fullname},\n\nYour new verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nThank you,\nThe ErrandExpress Team"
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+        
+        messages.success(request, "A new verification code has been sent to your email.")
+    except User.DoesNotExist:
+        messages.error(request, "User not found.")
+        
+    return redirect("verify_otp")
 
 def login_view(request):
     if request.method == "POST":
