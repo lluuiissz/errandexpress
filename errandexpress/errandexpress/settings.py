@@ -139,16 +139,29 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Supabase settings
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
 # Supabase Storage (S3-compatible) Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "errandexpress-media")
-    # For Supabase, the S3 endpoint is typically https://<project-ref>.supabase.co/storage/v1/s3
-    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
+    
+    # Deriving S3 endpoint from SUPABASE_URL if not provided explicitly
+    s3_endpoint = os.getenv("AWS_S3_ENDPOINT_URL")
+    if not s3_endpoint and SUPABASE_URL:
+        # e.g., https://yrkvxspmazdrfpbwerzm.supabase.co -> https://yrkvxspmazdrfpbwerzm.supabase.co/storage/v1/s3
+        s3_endpoint = f"{SUPABASE_URL.rstrip('/')}/storage/v1/s3"
+        
+    AWS_S3_ENDPOINT_URL = s3_endpoint
     AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "ap-south-1")
     AWS_S3_SIGNATURE_VERSION = "s3v4"
+    
+    # Ensure boto3 connects using path style and the correct endpoint
+    AWS_S3_ADDRESSING_STYLE = "virtual"
     
     # Tell Django to use S3 for media files (user uploads)
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
@@ -207,9 +220,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20
 }
 
-# Supabase settings
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+# Supabase settings (moved up)
 
 # PayMongo settings
 PAYMONGO_SECRET_KEY = os.getenv("PAYMONGO_SECRET_KEY")
