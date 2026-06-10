@@ -1152,16 +1152,41 @@ def login_view(request):
             
             from django.contrib.auth import authenticate
             
-            # Try to find user by email (since we use email as username)
             try:
                 django_user = User.objects.get(email=email)
-                # Authenticate using the username (which is the email)
-                authenticated_user = authenticate(request, username=django_user.username, password=password)
                 
-                if authenticated_user:
-                    django_login(request, authenticated_user)
-                    messages.success(request, f"Welcome back, {authenticated_user.fullname}!")
-                    return redirect("dashboard")
+                if django_user.check_password(password):
+                    if not django_user.is_active:
+                        # User is not verified, redirect to verify_otp
+                        request.session['verification_email'] = email
+                        
+                        # Send a new OTP if there isn't a valid one
+                        valid_otp = EmailOTP.objects.filter(user=django_user, expires_at__gt=timezone.now()).last()
+                        if not valid_otp:
+                            otp_code = ''.join(random.choices(string.digits, k=6))
+                            EmailOTP.objects.create(
+                                user=django_user,
+                                otp_code=otp_code,
+                                expires_at=timezone.now() + timedelta(minutes=10)
+                            )
+                            subject = "Verify your ErrandExpress Account"
+                            message = f"Hello {django_user.fullname},\n\nYour new verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nThank you,\nThe ErrandExpress Team"
+                            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
+                            messages.info(request, "A new verification code has been sent to your email.")
+                        else:
+                            messages.info(request, "Please verify your email to continue. Enter the code that was sent to your email.")
+                            
+                        return redirect("verify_otp")
+                    else:
+                        # User is active, use authenticate to populate backend and log them in
+                        authenticated_user = authenticate(request, username=django_user.username, password=password)
+                        if authenticated_user:
+                            django_login(request, authenticated_user)
+                            messages.success(request, f"Welcome back, {authenticated_user.fullname}!")
+                            return redirect("dashboard")
+                        else:
+                            messages.error(request, "Invalid email or password.")
+                            return redirect("login")
                 else:
                     messages.error(request, "Invalid email or password.")
                     return redirect("login")
