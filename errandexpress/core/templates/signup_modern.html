@@ -14,30 +14,53 @@
     <form method="post" class="space-y-6" id="signup_form">
         {% csrf_token %}
 
-        <!-- Student ID Verification Section -->
-        <div class="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-white/40 rounded-full blur-xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-            
-            <label for="search_student_id" class="block font-ui font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-600"></i> Student ID Verification <span class="text-red-500">*</span>
+        <!-- Role Selection -->
+        <div>
+            <label for="role" class="block font-ui font-medium text-text-primary mb-2">
+                I want to...
             </label>
-            <p class="text-xs text-indigo-600 mb-3">Verify your ID to auto-fill your name and get instantly approved.</p>
-            
-            <div class="flex flex-col sm:flex-row gap-2">
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="w-5 h-5 text-indigo-400"></i>
-                    </div>
-                    <input type="text" id="search_student_id"
-                        class="w-full pl-10 pr-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-ui bg-white"
-                        placeholder="e.g. M25-01-0000">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i data-lucide="briefcase" class="w-5 h-5 text-text-secondary"></i>
                 </div>
-                <button type="button" id="btn_verify_id" onclick="verifyStudentID()"
-                    class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm whitespace-nowrap flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Verify ID
-                </button>
+                <select id="role" name="role" required onchange="toggleDoerType()"
+                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-ui appearance-none bg-white">
+                    <option value="">Select your role</option>
+                    <option value="task_poster">Post tasks and hire students</option>
+                    <option value="task_doer">Complete tasks and earn money</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <i data-lucide="chevron-down" class="w-5 h-5 text-text-secondary"></i>
+                </div>
             </div>
-            <div id="verify_message" class="text-sm mt-3 hidden flex items-start gap-2 p-3 rounded-lg">
+        </div>
+
+        <!-- Student ID Verification Section -->
+        <div id="student-id-section" class="hidden">
+            <div class="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-white/40 rounded-full blur-xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                
+                <label for="search_student_id" class="block font-ui font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-indigo-600"></i> Student ID Verification <span class="text-red-500">*</span>
+                </label>
+                <p class="text-xs text-indigo-600 mb-3">Verify your ID to auto-fill your name and get instantly approved.</p>
+                
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="search" class="w-5 h-5 text-indigo-400"></i>
+                        </div>
+                        <input type="text" id="search_student_id"
+                            class="w-full pl-10 pr-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-ui bg-white"
+                            placeholder="e.g. M25-01-0000">
+                    </div>
+                    <button type="button" id="btn_verify_id" onclick="verifyStudentID()"
+                        class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm whitespace-nowrap flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i> Verify ID
+                    </button>
+                </div>
+                <div id="verify_message" class="text-sm mt-3 hidden flex items-start gap-2 p-3 rounded-lg">
+                </div>
             </div>
         </div>
         
@@ -126,26 +149,7 @@
             <p class="text-xs text-text-secondary mt-1 ml-1">We'll prioritize tasks from your campus.</p>
         </div>
 
-        <!-- Role Selection -->
-        <div>
-            <label for="role" class="block font-ui font-medium text-text-primary mb-2">
-                I want to...
-            </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i data-lucide="briefcase" class="w-5 h-5 text-text-secondary"></i>
-                </div>
-                <select id="role" name="role" required onchange="toggleDoerType()"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 font-ui appearance-none bg-white">
-                    <option value="">Select your role</option>
-                    <option value="task_poster">Post tasks and hire students</option>
-                    <option value="task_doer">Complete tasks and earn money</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <i data-lucide="chevron-down" class="w-5 h-5 text-text-secondary"></i>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Doer Type (shown only for task_doer) -->
         <div id="doer-type-section" class="hidden">
@@ -262,14 +266,29 @@
     function toggleDoerType() {
         const roleSelect = document.getElementById('role');
         const doerTypeSection = document.getElementById('doer-type-section');
+        const studentIdSection = document.getElementById('student-id-section');
+        const fullnameInput = document.getElementById('fullname');
 
         if (roleSelect.value === 'task_doer') {
             doerTypeSection.classList.remove('hidden');
+            studentIdSection.classList.remove('hidden');
         } else {
             doerTypeSection.classList.add('hidden');
+            studentIdSection.classList.add('hidden');
+            
             // Clear doer type selection
             const doerTypeInputs = document.querySelectorAll('input[name="doer_type"]');
             doerTypeInputs.forEach(input => input.checked = false);
+            
+            // Re-enable fullname editing if they switch away from task_doer
+            fullnameInput.readOnly = false;
+            fullnameInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            
+            // Clear verified data to prevent bypass
+            document.getElementById('verified_student_id').value = '';
+            document.getElementById('verified_course').value = '';
+            document.getElementById('search_student_id').value = '';
+            document.getElementById('verify_message').classList.add('hidden');
         }
     }
 
