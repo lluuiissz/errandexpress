@@ -216,7 +216,19 @@
             }
             
             // Animate in
-            setTimeout(() => { toast.classList.remove('translate-x-full'); }, 100); // Auto remove after 5 seconds setTimeout(() => { toast.classList.add('translate-x-full'); setTimeout(() => toast.remove(), 300); }, 5000); } // Show Django messages as toasts document.addEventListener('DOMContentLoaded', function() { {% for message in messages %} showToast('{{ message|escapejs }}', '{{ message.tags }}');
+            setTimeout(() => { toast.classList.remove('translate-x-full'); }, 100); 
+            
+            // Auto remove after 5 seconds 
+            setTimeout(() => { 
+                toast.classList.add('translate-x-full'); 
+                setTimeout(() => toast.remove(), 300); 
+            }, 5000); 
+        } 
+        
+        // Show Django messages as toasts 
+        document.addEventListener('DOMContentLoaded', function() { 
+            {% for message in messages %} 
+            showToast('{{ message|escapejs }}', '{{ message.tags }}');
             {% endfor %}
         });
     </script>
