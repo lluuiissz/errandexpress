@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # "corsheaders",  # Temporarily disabled - install with: pip install django-cors-headers
     # "rest_framework",  # Temporarily disabled - install with: pip install djangorestframework
     "core",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -137,6 +138,21 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Supabase Storage (S3-compatible) Configuration
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "errandexpress-media")
+    # For Supabase, the S3 endpoint is typically https://<project-ref>.supabase.co/storage/v1/s3
+    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "ap-south-1")
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+    
+    # Tell Django to use S3 for media files (user uploads)
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
