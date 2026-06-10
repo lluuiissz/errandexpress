@@ -1091,10 +1091,12 @@ def verify_otp(request):
                 # Clear session
                 if 'verification_email' in request.session:
                     del request.session['verification_email']
+                # Log the user in automatically
+                django_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 
-                logger.info(f"User {user.email} successfully verified OTP.")
-                messages.success(request, "Email verified successfully! You can now log in.")
-                return redirect("login")
+                logger.info(f"User {user.email} successfully verified OTP and logged in.")
+                messages.success(request, "Email verified successfully! Welcome to ErrandExpress.")
+                return redirect("dashboard")
             else:
                 messages.error(request, "Invalid or expired verification code.")
         except User.DoesNotExist:
