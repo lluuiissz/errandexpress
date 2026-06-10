@@ -1,4 +1,5 @@
 # core/views.py
+import boto3
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -1791,19 +1792,27 @@ def complete_task(request, task_id):
     if task.category in digital_categories:
         if request.method == 'POST':
             output_file = request.FILES.get('output_file')
-            if not output_file:
+            s3_file_path = request.POST.get('s3_file_path')
+            
+            if not output_file and not s3_file_path:
                 messages.error(request, "This task requires a file output. Please upload your final work.")
                 return redirect('task_detail', task_id=task_id)
             
             # Save the file as a system message
             from .models import Message
-            Message.objects.create(
+            msg = Message.objects.create(
                 task=task,
                 sender=request.user,
                 message="Final Output Submitted",
-                attachment=output_file,
                 is_proof=True
             )
+            
+            if s3_file_path:
+                msg.attachment.name = s3_file_path
+                msg.save()
+            elif output_file:
+                msg.attachment = output_file
+                msg.save()
         else:
             messages.error(request, "Invalid request method for completing a digital task.")
             return redirect('task_detail', task_id=task_id)
@@ -6024,6 +6033,68 @@ def mock_gcash_view(request, task_id, payment_type):
         'process_url': process_url
     }
     return render(request, 'payments/mock_gcash.html', context)
+
+@require_POST
+def get_s3_presigned_url(request):
+    """Generate a presigned POST URL for direct-to-S3 uploads"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+        
+    try:
+        import json
+        import uuid
+        data = json.loads(request.body)
+        file_name = data.get('file_name')
+        file_type = data.get('file_type')
+        folder = data.get('folder', 'chat_attachments')
+        
+        if not file_name:
+            return JsonResponse({'error': 'File name is required'}, status=400)
+            
+        # Create a safe, unique file name
+        ext = file_name.split('.')[-1] if '.' in file_name else ''
+        safe_name = f"{uuid.uuid4().hex}.{ext}" if ext else uuid.uuid4().hex
+        
+        # Path where the file will be stored in S3
+        s3_key = f"{folder}/{safe_name}"
+        
+        # Initialize boto3 S3 client
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME,
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            config=boto3.session.Config(
+                signature_version=settings.AWS_S3_SIGNATURE_VERSION, 
+                s3={'addressing_style': settings.AWS_S3_ADDRESSING_STYLE}
+            )
+        )
+        
+        # Generate presigned POST
+        presigned_post = s3_client.generate_presigned_post(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=s3_key,
+            Fields={"Content-Type": file_type},
+            Conditions=[
+                {"Content-Type": file_type},
+                ["content-length-range", 0, 50 * 1024 * 1024] # Max 50MB
+            ],
+            ExpiresIn=3600 # URL expires in 1 hour
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'url': presigned_post['url'],
+            'fields': presigned_post['fields'],
+            's3_key': s3_key,
+            'file_url': f"{settings.MEDIA_URL}{s3_key}"
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 # ==================== PROFILE & USER MANAGEMENT ====================

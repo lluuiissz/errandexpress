@@ -135,6 +135,9 @@ urlpatterns = [
     path('api/create-task-payment-intent/', views.create_task_payment_intent, name='create_task_payment_intent'),
     path('api/create-task-gcash-payment/', views.create_task_gcash_payment, name='create_task_gcash_payment'),
     
+    # S3 Direct Upload
+    path('api/s3/presigned-url/', views.get_s3_presigned_url, name='get_s3_presigned_url'),
+    
     # Prioritization API Endpoints (Phase 2)
     path('api/tasks/prioritized/', api_views.api_get_prioritized_tasks, name='api_get_prioritized_tasks'),
     path('api/tasks/auto-assign/', api_views.api_auto_assign_task, name='api_auto_assign_task_v2'),
