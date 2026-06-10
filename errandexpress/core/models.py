@@ -44,6 +44,8 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
     is_banned = models.BooleanField(default=False)
     ban_reason = models.TextField(blank=True)
+    student_id_number = models.CharField(max_length=50, blank=True, null=True)
+    course = models.CharField(max_length=100, blank=True, null=True)
     
     def __str__(self):
         return f"{self.fullname} ({self.role})"
@@ -54,6 +56,17 @@ class User(AbstractUser):
         self.total_ratings += 1
         self.avg_rating = total_score / self.total_ratings
         self.save()
+
+
+class EnrolledStudent(models.Model):
+    """Official student records imported from CSV for automated verification"""
+    student_id = models.CharField(max_length=50, unique=True)
+    full_name = models.CharField(max_length=255)
+    course = models.CharField(max_length=100)
+    is_claimed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.student_id} - {self.full_name}"
 
 
 class EmailOTP(models.Model):

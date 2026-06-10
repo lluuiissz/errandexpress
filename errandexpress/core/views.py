@@ -1001,6 +1001,9 @@ def signup_view(request):
         doer_type = request.POST.get("doer_type", "")
         campus_location = request.POST.get("campus_location", "")
         
+        verified_student_id = request.POST.get("verified_student_id", "")
+        verified_course = request.POST.get("verified_course", "")
+        
         # Validate email domain
         if not email.endswith('@adssu.edu.ph'):
             messages.error(request, "Please use your institutional email (@adssu.edu.ph).")
@@ -1023,8 +1026,14 @@ def signup_view(request):
                     role=role,
                     doer_type=doer_type if role == "task_doer" else "",
                     campus_location=campus_location,
-                    is_active=False  # Must be activated via OTP
+                    is_active=False,  # Must be activated via OTP
+                    is_verified=bool(verified_student_id),
+                    student_id_number=verified_student_id,
+                    course=verified_course
                 )
+                
+                if verified_student_id:
+                    EnrolledStudent.objects.filter(student_id=verified_student_id).update(is_claimed=True)
                 
                 # Generate 6-digit OTP
                 otp_code = ''.join(random.choices(string.digits, k=6))
@@ -6135,3 +6144,76 @@ def get_s3_presigned_url(request):
 
 
 # ==================== PROFILE & USER MANAGEMENT ====================
+
+import difflib
+from .models import EnrolledStudent
+
+@login_required
+def verify_identity(request):
+    if request.user.is_verified:
+        messages.info(request, "You are already verified.")
+        return redirect('profile')
+        
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id', '').strip()
+        
+        if not student_id:
+            messages.error(request, "Student ID is required.")
+            return redirect('verify_identity')
+            
+        try:
+            # Look up the student record
+            student_record = EnrolledStudent.objects.get(student_id=student_id)
+            
+            if student_record.is_claimed:
+                messages.error(request, "This Student ID has already been claimed by another account. If this is an error, please contact support.")
+                return redirect('verify_identity')
+                
+            # Fuzzy match the names
+            user_name = request.user.fullname.lower()
+            record_name = student_record.full_name.lower()
+            
+            similarity = difflib.SequenceMatcher(None, user_name, record_name).ratio()
+            
+            # Allow some tolerance for missing middle names or slight misspellings
+            if similarity > 0.65 or user_name in record_name or record_name in user_name:
+                # Mark as verified!
+                request.user.is_verified = True
+                request.user.student_id_number = student_record.student_id
+                request.user.course = student_record.course
+                request.user.save()
+                
+                # Mark record as claimed
+                student_record.is_claimed = True
+                student_record.save()
+                
+                messages.success(request, f"Identity verified successfully! Welcome, {student_record.full_name.title()}.")
+                return redirect('profile')
+            else:
+                messages.error(request, f"Verification failed. The name on your account ({request.user.fullname}) does not match the school's records for this Student ID.")
+                
+        except EnrolledStudent.DoesNotExist:
+            messages.error(request, "Invalid Student ID. Record not found.")
+            
+    return render(request, 'verify_identity_modern.html')
+
+def check_student_id(request):
+    """API endpoint to search for a student ID during signup"""
+    student_id = request.GET.get('student_id', '').strip()
+    if not student_id:
+        return JsonResponse({'success': False, 'error': 'Student ID is required'})
+        
+    try:
+        student = EnrolledStudent.objects.get(student_id=student_id)
+        if student.is_claimed:
+            return JsonResponse({'success': False, 'error': 'This Student ID has already been registered.'})
+            
+        return JsonResponse({
+            'success': True,
+            'student_id': student.student_id,
+            'full_name': student.full_name.title(),
+            'course': student.course
+        })
+    except EnrolledStudent.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Student ID not found in official school records.'})
+

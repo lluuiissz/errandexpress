@@ -11,8 +11,38 @@
     </div>
 
     <!-- Form -->
-    <form method="post" class="space-y-6">
+    <form method="post" class="space-y-6" id="signup_form">
         {% csrf_token %}
+
+        <!-- Student ID Verification Section -->
+        <div class="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-white/40 rounded-full blur-xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+            
+            <label for="search_student_id" class="block font-ui font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-600"></i> Student ID Verification <span class="text-red-500">*</span>
+            </label>
+            <p class="text-xs text-indigo-600 mb-3">Verify your ID to auto-fill your name and get instantly approved.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-2">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="w-5 h-5 text-indigo-400"></i>
+                    </div>
+                    <input type="text" id="search_student_id"
+                        class="w-full pl-10 pr-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 font-ui bg-white"
+                        placeholder="e.g. M25-01-0000">
+                </div>
+                <button type="button" id="btn_verify_id" onclick="verifyStudentID()"
+                    class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm whitespace-nowrap flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Verify ID
+                </button>
+            </div>
+            <div id="verify_message" class="text-sm mt-3 hidden flex items-start gap-2 p-3 rounded-lg">
+            </div>
+        </div>
+        
+        <input type="hidden" id="verified_student_id" name="verified_student_id" value="">
+        <input type="hidden" id="verified_course" name="verified_course" value="">
 
         <!-- Full Name Field -->
         <div>
@@ -247,5 +277,53 @@
     document.addEventListener('DOMContentLoaded', function () {
         lucide.createIcons();
     });
+
+    async function verifyStudentID() {
+        const studentId = document.getElementById('search_student_id').value.trim();
+        const msgDiv = document.getElementById('verify_message');
+        const fullnameInput = document.getElementById('fullname');
+        const verifiedIdInput = document.getElementById('verified_student_id');
+        const verifiedCourseInput = document.getElementById('verified_course');
+        
+        if (!studentId) {
+            msgDiv.className = 'text-sm mt-3 flex items-start gap-2 p-3 rounded-lg bg-rose-50 text-rose-700 border border-rose-100';
+            msgDiv.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5 mt-0.5"></i> <p>Please enter a Student ID first.</p>';
+            msgDiv.classList.remove('hidden');
+            lucide.createIcons();
+            return;
+        }
+
+        try {
+            msgDiv.className = 'text-sm mt-3 flex items-start gap-2 p-3 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100';
+            msgDiv.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 mt-0.5 animate-spin"></i> <p>Searching official records...</p>';
+            msgDiv.classList.remove('hidden');
+            lucide.createIcons();
+            
+            const response = await fetch(`/api/verify-student-id/?student_id=${encodeURIComponent(studentId)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // Auto-fill and lock
+                fullnameInput.value = data.full_name;
+                fullnameInput.readOnly = true;
+                fullnameInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                
+                verifiedIdInput.value = data.student_id;
+                verifiedCourseInput.value = data.course;
+                
+                msgDiv.className = 'text-sm mt-3 flex items-start gap-2 p-3 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100';
+                msgDiv.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 mt-0.5"></i> <div><p class="font-bold">Student Verified!</p><p>Welcome, ${data.full_name}</p></div>`;
+            } else {
+                msgDiv.className = 'text-sm mt-3 flex items-start gap-2 p-3 rounded-lg bg-rose-50 text-rose-700 border border-rose-100';
+                msgDiv.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5 mt-0.5"></i> <p>${data.error}</p>`;
+            }
+            lucide.createIcons();
+            
+        } catch (error) {
+            msgDiv.className = 'text-sm mt-3 flex items-start gap-2 p-3 rounded-lg bg-rose-50 text-rose-700 border border-rose-100';
+            msgDiv.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5 mt-0.5"></i> <p>An error occurred while verifying.</p>';
+            lucide.createIcons();
+        }
+    }
 </script>
 {% endblock %}

@@ -22,6 +22,8 @@ urlpatterns = [
     path('pending-ratings/', views.pending_ratings, name='pending_ratings'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),
+    path('verify-identity/', views.verify_identity, name='verify_identity'),
+    path('api/verify-student-id/', views.check_student_id, name='check_student_id'),
     path('guide/', TemplateView.as_view(template_name='guide.html'), name='guide'),
     
     # Legal Pages

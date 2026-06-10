@@ -327,6 +327,33 @@
                             </div>
                             <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
                         </div>
+
+                        <div
+                            class="flex items-center justify-between p-4 rounded-2xl bg-white/50 border border-white/60">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-full {% if user.is_verified %}bg-indigo-100{% else %}bg-amber-100{% endif %} flex items-center justify-center shrink-0">
+                                    <i data-lucide="shield" class="w-5 h-5 {% if user.is_verified %}text-indigo-600{% else %}text-amber-600{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-900 text-sm">Identity</p>
+                                    <p class="text-xs text-slate-500">
+                                        {% if user.is_verified %}
+                                            Student Verified
+                                        {% else %}
+                                            Unverified
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            {% if user.is_verified %}
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500"></i>
+                            {% else %}
+                                <a href="{% url 'verify_identity' %}" class="text-xs font-bold text-amber-600 hover:text-amber-700 hover:underline bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                                    Verify Now
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
