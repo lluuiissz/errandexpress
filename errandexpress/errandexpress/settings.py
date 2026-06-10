@@ -161,7 +161,7 @@ if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
     AWS_S3_SIGNATURE_VERSION = "s3v4"
     
     # Ensure boto3 connects using path style and the correct endpoint
-    AWS_S3_ADDRESSING_STYLE = "virtual"
+    AWS_S3_ADDRESSING_STYLE = "path"
     
     # Tell Django to use S3 for media files (user uploads)
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
